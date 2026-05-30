@@ -1,0 +1,100 @@
+import { db } from "@/lib/db";
+import { SignJWT, jwtVerify } from "jose";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "dev-secret-change-in-production"
+);
+
+const COOKIE_NAME = "bb-session";
+
+export function generateOTP(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+export async function createOtpSession(phone: string): Promise<string> {
+  const otp = generateOTP();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+  // Delete old OTPs for this phone
+  await db.otpSession.deleteMany({ where: { phone } });
+
+  await db.otpSession.create({
+    data: { phone, otp, expiresAt },
+  });
+
+  return otp;
+}
+
+export async function verifyOtp(phone: string, otp: string): Promise<boolean> {
+  const session = await db.otpSession.findFirst({
+    where: {
+      phone,
+      otp,
+      verified: false,
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!session) return false;
+
+  await db.otpSession.update({
+    where: { id: session.id },
+    data: { verified: true },
+  });
+
+  return true;
+}
+
+export async function createSession(userId: string, role: string): Promise<string> {
+  const token = await new SignJWT({ userId, role })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("30d")
+    .setIssuedAt()
+    .sign(JWT_SECRET);
+
+  return token;
+}
+
+export async function getSession(): Promise<{ userId: string; role: string } | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    return { userId: payload.userId as string, role: payload.role as string };
+  } catch {
+    return null;
+  }
+}
+
+export async function getCurrentUser() {
+  const session = await getSession();
+  if (!session) return null;
+
+  const user = await db.user.findUnique({
+    where: { id: session.userId },
+  });
+
+  return user;
+}
+
+export async function setSessionCookie(token: string) {
+  const cookieStore = await cookies();
+  cookieStore.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    path: "/",
+  });
+}
+
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete(COOKIE_NAME);
+}
+
+export { COOKIE_NAME };
