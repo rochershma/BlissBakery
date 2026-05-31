@@ -3,11 +3,13 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { randomInt } from "crypto";
 
-if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "dev-secret-change-in-production") {
-  if (process.env.NODE_ENV === "production") {
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "dev-secret-do-not-use-in-prod") {
+  if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
     throw new Error("FATAL: JWT_SECRET must be set in production. Generate one with: openssl rand -base64 32");
   }
-  console.warn("⚠️  Using insecure default JWT_SECRET. Set JWT_SECRET env var before deploying.");
+  if (process.env.NODE_ENV !== "development") {
+    console.warn("⚠️  Using insecure default JWT_SECRET. Set JWT_SECRET env var before deploying.");
+  }
 }
 
 const JWT_SECRET = new TextEncoder().encode(

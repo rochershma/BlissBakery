@@ -7,17 +7,6 @@ import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
-// Wide banner images for occasion page heroes (separate from card images)
-const HERO_BANNERS: Record<string, string> = {
-  birthday: "/images/hero/bakingo-birthday.png",
-  anniversary: "/images/hero/bakingo-anniversary.png",
-  designer: "/images/hero/bakingo-designer.png",
-  wedding: "/images/hero/bakingo-regular.png",
-  festival: "/images/hero/bakingo-mango.png",
-  retirement: "/images/hero/bakingo-gourmet.png",
-  "kids-cake": "/images/hero/bakingo-birthday.png",
-};
-
 const OCCASION_CONFIG: Record<string, {
   title: string;
   subtitle: string;
@@ -177,7 +166,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
   const config = dbOccasion ? {
     title: dbOccasion.name,
     subtitle: dbOccasion.subtitle || "",
-    heroImage: HERO_BANNERS[occasion] || dbOccasion.image || "/images/categories/cakes.jpg",
+    heroImage: dbOccasion.image || "/images/categories/cakes.jpg",
     relations: dbOccasion.recipients.map(r => ({ key: r.slug, label: r.name, image: r.image || "/images/categories/cakes.jpg" })),
   } : OCCASION_CONFIG[occasion];
 
