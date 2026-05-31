@@ -55,7 +55,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
               {isDesigned ? (
                 /* Designed banner — show image as-is, no overlay */
                 <Link href={banner.linkUrl || "/"} className="block">
-                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] md:aspect-[21/8]">
+                  <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
                     <Image
                       src={banner.mediaUrl}
                       alt={banner.title || "Bliss Bakery"}
@@ -69,7 +69,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
                 </Link>
               ) : (
                 /* Legacy banner — text overlay style */
-                <div className="relative aspect-[4/3] sm:aspect-[16/7] md:aspect-[21/8]">
+                <div className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
                   <Image
                     src={banner.mediaUrl}
                     alt={banner.title || "Bliss Bakery"}
