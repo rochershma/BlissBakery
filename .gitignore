@@ -30,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
 !.env.example
 
@@ -46,11 +46,16 @@ prisma/dev.db-journal
 prisma/data-export.json
 prisma/schema.prisma.sqlite.bak
 
-# test screenshots
-*.png
-!public/**/*.png
-!src/**/*.png
+# generated prisma client (regenerated at build)
+src/generated/
 
-# uploads (user-generated, not in repo)
+# test/debug screenshots (root level only)
+/*.png
+
+# uploads (user-generated content)
 public/uploads/
+
+# root-level junk
+logo.png
+bblogo2.png
 next-env.d.ts
