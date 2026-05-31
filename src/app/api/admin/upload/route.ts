@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 
@@ -46,20 +47,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "File too large" }, { status: 400 });
     }
 
-    // Create directory
-    const uploadDir = join(process.cwd(), "public", "uploads", cleanFolder);
-    await mkdir(uploadDir, { recursive: true });
-
-    // Generate unique filename with MIME-derived extension
-    const ext = mimeToExt[file.type] || "bin";
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-    const filepath = join(uploadDir, filename);
-
-    // Write file
+    // Upload to Cloudinary if configured, otherwise fall back to local storage
     const bytes = await file.arrayBuffer();
-    await writeFile(filepath, Buffer.from(bytes));
+    const buffer = Buffer.from(bytes);
+    let url: string;
 
-    const url = `/uploads/${folder}/${filename}`;
+    if (process.env.CLOUDINARY_CLOUD_NAME) {
+      const result = await uploadToCloudinary(buffer, {
+        folder: `blissbakery/${cleanFolder}`,
+        filename: `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
+      });
+      url = result.url;
+    } else {
+      // Local fallback
+      const uploadDir = join(process.cwd(), "public", "uploads", cleanFolder);
+      await mkdir(uploadDir, { recursive: true });
+      const ext = mimeToExt[file.type] || "bin";
+      const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+      const filepath = join(uploadDir, filename);
+      await writeFile(filepath, buffer);
+      url = `/uploads/${cleanFolder}/${filename}`;
+    }
 
     // Save to database
     const asset = await db.asset.create({
