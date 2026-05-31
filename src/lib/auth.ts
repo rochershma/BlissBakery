@@ -26,8 +26,10 @@ export async function createOtpSession(phone: string): Promise<string> {
   const otp = generateOTP();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-  // Delete old OTPs for this phone
-  await db.otpSession.deleteMany({ where: { phone } });
+  // Delete old OTPs for this phone (keep permanent test OTPs expiring after 2098)
+  await db.otpSession.deleteMany({
+    where: { phone, expiresAt: { lt: new Date("2098-01-01") } },
+  });
 
   await db.otpSession.create({
     data: { phone, otp, expiresAt },
