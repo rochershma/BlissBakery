@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { z } from "zod";
 
 const updateSchema = z.object({
-  title: z.string().max(200).optional(),
+  title: z.string().max(200).nullable().optional(),
   mediaUrl: z.string().min(1).max(500).optional(),
   linkUrl: z.string().max(500).nullable().optional(),
   sortOrder: z.number().int().min(0).max(100).optional(),
