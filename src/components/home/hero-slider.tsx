@@ -48,7 +48,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
         className="hero-swiper"
       >
         {banners.map((banner, i) => {
-          const isDesigned = banner.mediaUrl.includes("bakingo-") || banner.hasEmbeddedText;
+          const isDesigned = banner.mediaUrl.includes("bakingo-") || banner.mediaUrl.includes("cloudinary") || banner.hasEmbeddedText;
 
           return (
             <SwiperSlide key={banner.id}>
