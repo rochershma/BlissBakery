@@ -59,13 +59,28 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             </div>
             <div className="divide-y divide-border">
               {order.items.map((item) => (
-                <div key={item.id} className="px-4 py-2.5 flex justify-between text-sm">
-                  <div>
-                    <span className="font-medium text-foreground">{item.productName}</span>
-                    {item.variantName && <span className="text-muted-foreground"> ({item.variantName})</span>}
-                    <span className="text-muted-foreground"> × {item.quantity}</span>
+                <div key={item.id} className="px-4 py-2.5 text-sm">
+                  <div className="flex justify-between">
+                    <div>
+                      <span className="font-medium text-foreground">{item.productName}</span>
+                      {item.variantName && <span className="text-muted-foreground"> ({item.variantName})</span>}
+                      <span className="text-muted-foreground"> × {item.quantity}</span>
+                    </div>
+                    <span className="font-medium">{formatPrice(item.totalPrice)}</span>
                   </div>
-                  <span className="font-medium">{formatPrice(item.totalPrice)}</span>
+                  {((item as any).cakeMessage || (item as any).occasion || (item as any).recipientName) && (
+                    <div className="mt-1.5 bg-primary/5 rounded-lg px-3 py-2 text-xs space-y-0.5">
+                      {(item as any).cakeMessage && (
+                        <p className="text-primary font-semibold">Cake Message: &ldquo;{(item as any).cakeMessage}&rdquo;</p>
+                      )}
+                      {(item as any).occasion && (
+                        <p className="text-foreground">Occasion: <span className="capitalize font-medium">{(item as any).occasion}</span></p>
+                      )}
+                      {(item as any).recipientName && (
+                        <p className="text-foreground">For: <span className="font-medium">{(item as any).recipientName}</span>{(item as any).recipientAge ? ` (${(item as any).recipientAge} yrs)` : ""}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -137,6 +152,13 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 {order.orderType}
               </div>
+              {(order as any).deliveryDate && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  Scheduled: {new Date((order as any).deliveryDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  {(order as any).deliverySlot && <span className="capitalize"> ({(order as any).deliverySlot})</span>}
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <CreditCard className="w-3.5 h-3.5 text-primary" />
                 <span className={`font-medium px-2 py-0.5 rounded-full text-[10px] ${paymentColors[order.paymentStatus]}`}>

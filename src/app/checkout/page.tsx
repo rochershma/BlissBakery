@@ -29,6 +29,9 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
+  const [availablePromos, setAvailablePromos] = useState<{ code: string; discountType: string; discountValue: number; occasionTag: string | null }[]>([]);
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliverySlot, setDeliverySlot] = useState("afternoon");
 
   useEffect(() => setHydrated(true), []);
 
@@ -36,6 +39,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig(data);
+    }).catch(() => {});
+    // Fetch available promos
+    fetch("/api/promo/list").then(r => r.json()).then(data => {
+      if (data.promos) setAvailablePromos(data.promos);
     }).catch(() => {});
   }, []);
 
@@ -61,7 +68,7 @@ export default function CheckoutPage() {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center px-4 text-center">
         <div className="text-6xl mb-4">🛒</div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Your cart is empty</h2>
+        <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
         <Link href="/" className="text-primary font-medium hover:underline">Go back to menu</Link>
       </div>
     );
@@ -115,10 +122,13 @@ export default function CheckoutPage() {
     setProcessing(true);
 
     try {
+      // Generate idempotency key to prevent double-submit
+      const idempotencyKey = `order-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
       // Step 1: Create order
       const orderRes = await fetch("/api/orders/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "X-Idempotency-Key": idempotencyKey },
         body: JSON.stringify({
           storeSlug: storeSlug || "kuchaman-city",
           orderType,
@@ -129,10 +139,16 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             addOns: item.addOns,
+            cakeMessage: item.cakeMessage,
+            occasion: item.occasion,
+            recipientName: item.recipientName,
+            recipientAge: item.recipientAge,
           })),
           specialInstructions,
           promoCode: promoApplied?.code,
           deliveryAddress: orderType === "DELIVERY" ? deliveryAddress : undefined,
+          deliveryDate: deliveryDate || undefined,
+          deliverySlot: deliverySlot || undefined,
         }),
       });
       const orderData = await orderRes.json();
@@ -281,6 +297,37 @@ export default function CheckoutPage() {
           )}
         </div>
 
+        {/* Delivery Date & Time */}
+        <div className="bg-white rounded-2xl border border-border p-4 mb-4">
+          <h2 className="label-premium text-foreground mb-3">📅 When do you want it?</h2>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Date</label>
+              <input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+                max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Time Slot</label>
+              <select
+                value={deliverySlot}
+                onChange={(e) => setDeliverySlot(e.target.value)}
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="morning">Morning (8 AM - 12 PM)</option>
+                <option value="afternoon">Afternoon (12 - 4 PM)</option>
+                <option value="evening">Evening (4 - 8 PM)</option>
+              </select>
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground">Leave empty for same-day delivery (order before 8 PM)</p>
+        </div>
+
         {/* Promo Code */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
           <h2 className="label-premium text-foreground mb-3 flex items-center gap-2">
@@ -322,6 +369,27 @@ export default function CheckoutPage() {
                 <p className="text-xs text-muted-foreground mt-2">
                   🔒 <button onClick={() => setShowLoginModal(true)} className="text-primary hover:underline">Login</button> to unlock promo codes
                 </p>
+              )}
+              {/* Available promos */}
+              {availablePromos.length > 0 && !promoApplied && (
+                <div className="mt-3 space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Available Offers</p>
+                  {availablePromos.map((p) => (
+                    <button
+                      key={p.code}
+                      onClick={() => { setPromoCode(p.code); }}
+                      className="w-full text-left flex items-center justify-between p-2 rounded-lg border border-dashed border-primary/30 hover:bg-primary/5 transition-colors"
+                    >
+                      <div>
+                        <span className="font-mono font-bold text-xs text-primary">{p.code}</span>
+                        <span className="text-[10px] text-muted-foreground ml-2">
+                          {p.discountType === "PERCENTAGE" ? `${p.discountValue}% off` : `₹${p.discountValue} off`}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-primary font-medium">TAP TO USE</span>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}

@@ -118,7 +118,7 @@ export default function CustomCakesPage() {
         <SiteHeader />
         <div className="flex-1 flex flex-col items-center justify-center px-4 text-center animate-fade-in-up">
           <div className="text-6xl mb-4">🎂</div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">Request Submitted!</h2>
+          <h2 className="text-2xl font-bold text-foreground font-serif mb-2">Request Submitted!</h2>
           <p className="text-muted-foreground mb-6 max-w-md">
             Our team will review your custom cake request and share a quote on WhatsApp within 2 hours.
           </p>

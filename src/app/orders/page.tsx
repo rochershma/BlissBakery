@@ -100,7 +100,7 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📋</div>
-            <h2 className="text-xl font-bold text-foreground mb-2">No orders yet</h2>
+            <h2 className="text-xl font-bold text-foreground font-serif mb-2">No orders yet</h2>
             <p className="text-muted-foreground mb-6">Your order history will appear here</p>
             <Link
               href="/"

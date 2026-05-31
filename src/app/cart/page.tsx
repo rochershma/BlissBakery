@@ -47,7 +47,7 @@ export default function CartPage() {
         </header>
         <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
           <div className="text-6xl mb-4">🛒</div>
-          <h2 className="text-xl font-bold text-foreground mb-2">Your cart is empty</h2>
+          <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
           <p className="text-muted-foreground mb-6">Add some delicious treats from our menu!</p>
           <Link
             href={storeSlug ? `/store/${storeSlug}/menu` : "/"}
@@ -117,6 +117,18 @@ export default function CartPage() {
                   {item.addOns && item.addOns.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       + {item.addOns.map((a) => a.name).join(", ")}
+                    </p>
+                  )}
+                  {item.cakeMessage && (
+                    <p className="text-xs text-primary font-medium mt-0.5">
+                      Cake message: &ldquo;{item.cakeMessage}&rdquo;
+                    </p>
+                  )}
+                  {(item.occasion || item.recipientName) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {item.occasion && <span className="capitalize">{item.occasion}</span>}
+                      {item.recipientName && <span> for {item.recipientName}</span>}
+                      {item.recipientAge && <span> ({item.recipientAge} yrs)</span>}
                     </p>
                   )}
                   <p className="text-sm font-bold text-foreground mt-0.5">

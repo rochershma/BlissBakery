@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart } from "lucide-react";
 import Image from "next/image";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +23,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { href: "/admin/menu", label: "Menu", icon: UtensilsCrossed },
     { href: "/admin/banners", label: "Banners", icon: Layers },
+    { href: "/admin/occasions", label: "Occasions", icon: CalendarHeart },
     { href: "/admin/promos", label: "Promos", icon: Tag },
+    { href: "/admin/add-ons", label: "Add-Ons", icon: Gift },
     { href: "/admin/customers", label: "Customers", icon: Users },
     { href: "/admin/assets", label: "Assets", icon: ImageIcon },
     { href: "/admin/settings", label: "Settings", icon: Settings },

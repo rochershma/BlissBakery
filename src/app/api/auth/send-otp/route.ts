@@ -33,13 +33,14 @@ export async function POST(req: NextRequest) {
     const otp = await createOtpSession(phone);
 
     // In production, send via WhatsApp/SMS API
-    console.log(`📱 OTP for ${phone}: ${otp}`);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`📱 OTP for ${phone}: ${otp}`);
+    }
 
     return NextResponse.json({
       success: true,
       message: "OTP sent successfully",
-      // Only in dev mode — REMOVE in production
-      ...(process.env.NODE_ENV !== "production" && { devOtp: otp }),
+      ...(process.env.NODE_ENV === "development" && { devOtp: otp }),
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

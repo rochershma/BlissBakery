@@ -13,6 +13,8 @@ interface Banner {
   title: string | null;
   mediaUrl: string;
   linkUrl: string | null;
+  /** If true, show the image as-is without text overlay (for designed banners) */
+  hasEmbeddedText?: boolean;
 }
 
 const defaultSubtitles: Record<number, string> = {
@@ -30,53 +32,81 @@ const defaultCtas: Record<number, string> = {
 export function HeroSlider({ banners }: { banners: Banner[] }) {
   if (banners.length === 0) return null;
 
+  // Check if banners have designed images (no text overlay needed)
+  const hasDesignedBanners = banners.some(b =>
+    b.mediaUrl.includes("bakingo-") || b.hasEmbeddedText
+  );
+
   return (
-    <section className="relative h-[40vh] md:h-[50vh] lg:h-[55vh] overflow-hidden bg-dark-bg">
+    <section className="relative overflow-hidden bg-[#f5ebe0]">
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
-        autoplay={{ delay: 5000, disableOnInteraction: false }}
+        autoplay={{ delay: 4000, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={banners.length > 1}
-        className="h-full hero-swiper"
+        className="hero-swiper"
       >
-        {banners.map((banner, i) => (
-          <SwiperSlide key={banner.id}>
-            <div className="relative h-full">
-              <Image
-                src={banner.mediaUrl}
-                alt={banner.title || "Bliss Bakery"}
-                fill
-                className="object-cover object-center"
-                style={{ opacity: 0.45 }}
-                priority={i === 0}
-                sizes="100vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-                <div className="animate-fade-in-up">
-                  <p className="label-premium text-primary mb-2 tracking-[0.3em] text-[10px] md:text-xs">
-                    100% Veg & Eggless
-                  </p>
-                  <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 font-serif leading-tight whitespace-pre-line">
-                    {banner.title || "Bliss Bakery"}
-                  </h2>
-                  <p className="text-white/60 text-xs md:text-sm mb-5 max-w-lg mx-auto">
-                    {defaultSubtitles[i] || "Handcrafted with love in Kuchaman City"}
-                  </p>
-                  {banner.linkUrl && (
-                    <Link
-                      href={banner.linkUrl}
-                      className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm hover:bg-primary-hover transition-all shadow-xl shadow-primary/30 btn-press inline-block"
-                    >
-                      {defaultCtas[i] || "Shop Now"}
-                    </Link>
-                  )}
+        {banners.map((banner, i) => {
+          const isDesigned = banner.mediaUrl.includes("bakingo-") || banner.hasEmbeddedText;
+
+          return (
+            <SwiperSlide key={banner.id}>
+              {isDesigned ? (
+                /* Designed banner — show image as-is, no overlay */
+                <Link href={banner.linkUrl || "/"} className="block">
+                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] md:aspect-[21/8]">
+                    <Image
+                      src={banner.mediaUrl}
+                      alt={banner.title || "Bliss Bakery"}
+                      fill
+                      className="object-cover object-center"
+                      priority={i === 0}
+                      sizes="100vw"
+                      quality={90}
+                    />
+                  </div>
+                </Link>
+              ) : (
+                /* Legacy banner — text overlay style */
+                <div className="relative aspect-[4/3] sm:aspect-[16/7] md:aspect-[21/8]">
+                  <Image
+                    src={banner.mediaUrl}
+                    alt={banner.title || "Bliss Bakery"}
+                    fill
+                    className="object-cover object-center"
+                    style={{ opacity: 0.55 }}
+                    priority={i === 0}
+                    sizes="100vw"
+                    quality={90}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+                    <div className="animate-fade-in-up">
+                      <p className="label-premium text-primary mb-2 tracking-[0.3em] text-[10px] md:text-xs">
+                        100% Veg & Eggless
+                      </p>
+                      <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 font-serif leading-tight whitespace-pre-line">
+                        {banner.title || "Bliss Bakery"}
+                      </h2>
+                      <p className="text-white/70 text-xs md:text-sm mb-5 max-w-lg mx-auto">
+                        {defaultSubtitles[i] || "Handcrafted with love in Kuchaman City"}
+                      </p>
+                      {banner.linkUrl && (
+                        <Link
+                          href={banner.linkUrl}
+                          className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold text-sm hover:bg-primary-hover transition-all shadow-xl shadow-primary/30 btn-press inline-block"
+                        >
+                          {defaultCtas[i] || "Shop Now"}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </SwiperSlide>
-        ))}
+              )}
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </section>
   );

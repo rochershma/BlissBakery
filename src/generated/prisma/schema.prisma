@@ -1,0 +1,333 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  tagline          String?
+  description      String?  @db.Text
+  address          String
+  city             String
+  state            String
+  pincode          String
+  phone            String
+  email            String?
+  latitude         Float?
+  longitude        Float?
+  fssaiLicense     String?
+  gstNumber        String?
+  logo             String?
+  isOpen           Boolean  @default(true)
+  operatingHours   String?  @db.Text
+  deliveryRadius   Float?
+  minDeliveryOrder Float?
+  deliveryCharge   Float?
+  packagingCharge  Float?
+  gstRate          Float    @default(5.0)
+  staffWhatsApp    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  categories  Category[]
+  orders      Order[]
+  banners     Banner[]
+  storeAddOns StoreAddOn[]
+  occasions   Occasion[]
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String?
+  mediaUrl  String
+  mediaType String   @default("image")
+  linkUrl   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  image     String?
+  sortOrder Int       @default(0)
+  isVisible Boolean   @default(true)
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([storeId])
+}
+
+model Product {
+  id           String           @id @default(cuid())
+  name         String
+  slug         String           @unique
+  description  String?          @db.Text
+  shortDesc    String?
+  basePrice    Float
+  mrpPrice     Float?
+  images       String?          @db.Text
+  isBestseller Boolean          @default(false)
+  isNew        Boolean          @default(false)
+  isFeatured   Boolean          @default(false)
+  isAvailable  Boolean          @default(true)
+  ingredients  String?          @db.Text
+  occasions    String?          @db.Text
+  forWhom      String?          @db.Text
+  servingInfo  String?
+  categoryId   String
+  category     Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants     ProductVariant[]
+  addOns       ProductAddOn[]
+  orderItems   OrderItem[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([categoryId])
+}
+
+model ProductVariant {
+  id          String  @id @default(cuid())
+  name        String
+  price       Float
+  isAvailable Boolean @default(true)
+  sortOrder   Int     @default(0)
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model ProductAddOn {
+  id          String  @id @default(cuid())
+  name        String
+  price       Float
+  isAvailable Boolean @default(true)
+  productId   String
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  email     String?
+  role      String   @default("CUSTOMER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses   Address[]
+  orders      Order[]
+  customCakes CustomCakeOrder[]
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  label       String?
+  fullAddress String   @db.Text
+  landmark    String?
+  pincode     String
+  latitude    Float?
+  longitude   Float?
+  isDefault   Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Order {
+  id                  String           @id @default(cuid())
+  orderNumber         String           @unique
+  userId              String
+  user                User             @relation(fields: [userId], references: [id])
+  storeId             String
+  store               Store            @relation(fields: [storeId], references: [id])
+  status              String           @default("PENDING")
+  orderType           String
+  deliveryAddress     String?          @db.Text
+  deliveryDate        DateTime?
+  deliverySlot        String?
+  specialInstructions String?          @db.Text
+  itemTotal           Float
+  deliveryCharge      Float            @default(0)
+  packagingCharge     Float            @default(0)
+  discount            Float            @default(0)
+  tax                 Float
+  grandTotal          Float
+  promoCode           String?
+  paymentId           String?
+  paymentOrderId      String?
+  paymentStatus       String           @default("PENDING")
+  customerNotified    Boolean          @default(false)
+  items               OrderItem[]
+  statusHistory       OrderStatusLog[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([storeId])
+  @@index([status])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  productName   String
+  variantName   String?
+  quantity      Int
+  unitPrice     Float
+  addOns        String? @db.Text
+  totalPrice    Float
+  cakeMessage   String?
+  occasion      String?
+  recipientName String?
+  recipientAge  String?
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderStatusLog {
+  id               String   @id @default(cuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status           String
+  note             String?  @db.Text
+  notifiedCustomer Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model CustomCakeOrder {
+  id                String    @id @default(cuid())
+  orderNumber       String    @unique
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id])
+  customerName      String
+  customerPhone     String
+  cakeSize          String
+  baseFlavour       String
+  frosting          String?
+  theme             String?
+  messageOnCake     String?
+  designDescription String?   @db.Text
+  referenceImages   String?   @db.Text
+  preferredDate     DateTime?
+  budgetRange       String?
+  status            String    @default("RECEIVED")
+  adminNotes        String?   @db.Text
+  quotedPrice       Float?
+  convertedOrderId  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model PromoCode {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  discountType  String
+  discountValue Float
+  minOrderValue Float?
+  maxDiscount   Float?
+  validFrom     DateTime
+  validTo       DateTime
+  usageLimit    Int?
+  perUserLimit  Int      @default(1)
+  usedCount     Int      @default(0)
+  occasionTag   String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+model OtpSession {
+  id        String   @id @default(cuid())
+  phone     String
+  otp       String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([expiresAt])
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  thumbnail String?
+  mimeType  String
+  size      Int
+  folder    String?
+  createdAt DateTime @default(now())
+}
+
+model StoreAddOn {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float
+  image     String?
+  category  String   @default("ACCESSORY")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+}
+
+model Occasion {
+  id         String      @id @default(cuid())
+  name       String
+  slug       String      @unique
+  subtitle   String?
+  image      String?
+  sortOrder  Int         @default(0)
+  isActive   Boolean     @default(true)
+  storeId    String
+  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  recipients Recipient[]
+  createdAt  DateTime    @default(now())
+
+  @@index([storeId])
+}
+
+model Recipient {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String
+  image      String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  occasionId String
+  occasion   Occasion @relation(fields: [occasionId], references: [id], onDelete: Cascade)
+
+  @@index([occasionId])
+}

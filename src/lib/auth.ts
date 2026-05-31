@@ -1,15 +1,23 @@
 import { db } from "@/lib/db";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { randomInt } from "crypto";
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "dev-secret-change-in-production") {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("FATAL: JWT_SECRET must be set in production. Generate one with: openssl rand -base64 32");
+  }
+  console.warn("⚠️  Using insecure default JWT_SECRET. Set JWT_SECRET env var before deploying.");
+}
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dev-secret-change-in-production"
+  process.env.JWT_SECRET || "dev-secret-do-not-use-in-prod"
 );
 
 const COOKIE_NAME = "bb-session";
 
 export function generateOTP(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+  return randomInt(100000, 999999).toString();
 }
 
 export async function createOtpSession(phone: string): Promise<string> {
@@ -50,7 +58,7 @@ export async function verifyOtp(phone: string, otp: string): Promise<boolean> {
 export async function createSession(userId: string, role: string): Promise<string> {
   const token = await new SignJWT({ userId, role })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("30d")
+    .setExpirationTime("7d")
     .setIssuedAt()
     .sign(JWT_SECRET);
 
@@ -87,7 +95,7 @@ export async function setSessionCookie(token: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 7 * 24 * 60 * 60, // 7 days
     path: "/",
   });
 }

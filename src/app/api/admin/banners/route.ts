@@ -1,6 +1,14 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { z } from "zod";
+
+const bannerSchema = z.object({
+  title: z.string().max(200).optional(),
+  mediaUrl: z.string().min(1).max(500),
+  linkUrl: z.string().max(500).optional(),
+  sortOrder: z.number().int().min(0).max(100).optional(),
+});
 
 export async function GET() {
   // Public: return active banners for storefront
@@ -25,9 +33,9 @@ export async function POST(req: NextRequest) {
   if (!store) return NextResponse.json({ error: "No store" }, { status: 400 });
 
   const body = await req.json();
-  const { title, mediaUrl, linkUrl, sortOrder } = body;
-
-  if (!mediaUrl) return NextResponse.json({ error: "Image required" }, { status: 400 });
+  const parsed = bannerSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+  const { title, mediaUrl, linkUrl, sortOrder } = parsed.data;
 
   const banner = await db.banner.create({
     data: {

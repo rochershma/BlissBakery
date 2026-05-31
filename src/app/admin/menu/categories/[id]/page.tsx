@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Save, Trash2, Eye, EyeOff } from "lucide-react";
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -36,14 +37,14 @@ export default async function EditCategoryPage({ params }: Props) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Link href="/admin/menu" className="p-1 rounded-full hover:bg-muted transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
-          <h1 className="text-2xl font-bold text-foreground">Edit: {category.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {category.name}</h1>
         </div>
         {category._count.products === 0 && (
-          <form action={deleteCategory}>
-            <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors" onClick={(e) => { if (!confirm("Delete this category?")) e.preventDefault(); }}>
+          <ConfirmDeleteForm action={deleteCategory} confirmMessage={`Delete category "${category.name}"?`}>
+            <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
               <Trash2 className="w-4 h-4" /> Delete
             </button>
-          </form>
+          </ConfirmDeleteForm>
         )}
       </div>
 

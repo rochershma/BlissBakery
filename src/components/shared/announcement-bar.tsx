@@ -1,6 +1,6 @@
 "use client";
 
-import { Leaf, Clock, Star, Sparkles } from "lucide-react";
+import { Leaf, Clock, Star, Sparkles, Tag } from "lucide-react";
 
 export function AnnouncementBar() {
   return (
@@ -8,24 +8,29 @@ export function AnnouncementBar() {
       <div className="flex items-center gap-8 py-2 animate-marquee whitespace-nowrap">
         {[1, 2].map((i) => (
           <div key={i} className="flex items-center gap-8 text-xs tracking-wide">
+            <span className="flex items-center gap-1.5 text-primary font-semibold">
+              <Tag className="w-3 h-3" />
+              Use WELCOME10 for 10% OFF
+            </span>
+            <span className="text-primary/40">✦</span>
             <span className="flex items-center gap-1.5">
               <Leaf className="w-3 h-3 text-primary" />
-              100% Vegetarian & Eggless
+              100% Veg & Eggless
             </span>
             <span className="text-primary/40">✦</span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-primary" />
-              Same Day Pickup Available
+              Same Day Delivery
             </span>
             <span className="text-primary/40">✦</span>
             <span className="flex items-center gap-1.5">
               <Star className="w-3 h-3 text-primary" />
-              Premium Quality Ingredients
+              Premium Quality
             </span>
             <span className="text-primary/40">✦</span>
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3 text-primary" />
-              Handcrafted with Love in Kuchaman City
+              Handcrafted in Kuchaman City
             </span>
             <span className="text-primary/40">✦</span>
           </div>

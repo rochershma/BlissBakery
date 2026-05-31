@@ -28,7 +28,7 @@ export default async function OffersPage() {
         {promos.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">🎫</div>
-            <h2 className="text-xl font-bold text-foreground mb-2">No active offers</h2>
+            <h2 className="text-xl font-bold text-foreground font-serif mb-2">No active offers</h2>
             <p className="text-muted-foreground">Check back soon for exciting deals!</p>
           </div>
         ) : (

@@ -50,7 +50,7 @@ export default async function OrderPage({ params }: Props) {
             <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-success/10 flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-success" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">Order Placed Successfully!</h1>
+            <h1 className="text-xl font-bold text-foreground font-serif">Order Placed Successfully!</h1>
             <p className="text-sm text-muted-foreground mt-1">Order #{order.orderNumber}</p>
           </div>
         )}
@@ -58,7 +58,7 @@ export default async function OrderPage({ params }: Props) {
         {order.paymentStatus === "FAILED" && (
           <div className="text-center mb-6">
             <div className="text-4xl mb-3">❌</div>
-            <h1 className="text-xl font-bold text-destructive">Payment Failed</h1>
+            <h1 className="text-xl font-bold text-destructive font-serif">Payment Failed</h1>
             <p className="text-sm text-muted-foreground mt-1">Order #{order.orderNumber}</p>
           </div>
         )}

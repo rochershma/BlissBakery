@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/store/kuchaman-city/menu", label: "Menu", icon: UtensilsCrossed },
+  { href: "/store/menu", label: "Menu", icon: UtensilsCrossed },
   { href: "/cart", label: "Cart", icon: ShoppingBag },
   { href: "/profile", label: "Account", icon: User },
 ];

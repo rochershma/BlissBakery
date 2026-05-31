@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, X } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
 interface CategoryItem {
   id: string;
@@ -46,6 +47,8 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
   const [search, setSearch] = useState(searchQuery);
   const [showMenu, setShowMenu] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => setHydrated(true), []);
 
   const itemCount = hydrated ? getItemCount() : 0;
@@ -53,10 +56,13 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
 
   const handleSearch = (value: string) => {
     setSearch(value);
-    const params = new URLSearchParams();
-    if (value) params.set("q", value);
-    if (activeCategory) params.set("category", activeCategory);
-    router.replace(`/store/${storeSlug}/menu?${params.toString()}`);
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      const params = new URLSearchParams();
+      if (value) params.set("q", value);
+      if (activeCategory) params.set("category", activeCategory);
+      router.replace(`/store/${storeSlug}/menu?${params.toString()}`);
+    }, 350);
   };
 
   const handleAddToCart = (product: ProductItem) => {
@@ -148,19 +154,27 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                 {group.name}
                 <span className="text-xs font-normal text-muted-foreground font-sans">({group.products.length})</span>
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 stagger-children">
-                {group.products.map((product) => {
+              {(() => {
+                const INITIAL_SHOW = 8;
+                const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search;
+                const visibleProducts = isExpanded ? group.products : group.products.slice(0, INITIAL_SHOW);
+                const hasMore = group.products.length > INITIAL_SHOW && !isExpanded;
+                return (
+                  <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 stagger-children">
+                {visibleProducts.map((product) => {
                   const qty = getItemQty(product.id);
                   return (
                     <div
                       key={product.id}
-                      className="product-card bg-white rounded-xl border border-border overflow-hidden"
+                      className="product-card bg-white rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                     >
-                      {/* Product Image — compact square */}
+                      {/* Product Image */}
                       <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="block">
-                        <div className="h-28 sm:h-32 bg-muted relative overflow-hidden">
+                        <div className="aspect-square bg-muted relative overflow-hidden rounded-t-xl">
                           {product.images[0] ? (
-                            <Image src={product.images[0]} alt={product.name} fill className="object-cover product-img-zoom" sizes="(max-width:640px) 50vw,25vw" />
+                            <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw">
+                            </HoverImageCycler>
                           ) : (
                             <div className="w-full h-full bg-primary-light flex items-center justify-center text-2xl">
                               <span className="product-img-zoom">{categoryEmojis[product.categorySlug] || "🍰"}</span>
@@ -180,19 +194,19 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                       </Link>
 
                       {/* Product Info — compact */}
-                      <div className="p-2.5">
+                      <div className="p-2">
                         <div className="flex items-start gap-1 mb-0.5">
-                          <span className="inline-block w-2.5 h-2.5 mt-[3px] border border-green-600 flex-shrink-0 rounded-sm">
-                            <span className="block w-1 h-1 bg-green-600 rounded-full m-auto mt-[2px]" />
+                          <span className="inline-block w-2 h-2 mt-[3px] border border-green-600 flex-shrink-0 rounded-sm">
+                            <span className="block w-0.5 h-0.5 bg-green-600 rounded-full m-auto mt-[2px]" />
                           </span>
                           <Link
                             href={`/store/${storeSlug}/menu/${product.slug}`}
-                            className="font-semibold text-xs text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight"
+                            className="font-semibold text-[11px] text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight"
                           >
                             {product.name}
                           </Link>
                         </div>
-                        <div className="flex items-center justify-between mt-1.5">
+                        <div className="flex items-center justify-between mt-1">
                           <span className="font-bold text-foreground text-sm">
                             {product.variants.length > 0 ? (
                               <>{formatPrice(product.variants[0].price)}</>
@@ -236,6 +250,17 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                   );
                 })}
               </div>
+              {hasMore && (
+                <button
+                  onClick={() => setExpandedCats(prev => { const n = new Set(prev); n.add(group.slug); return n; })}
+                  className="mt-3 w-full py-2 text-xs font-semibold text-primary bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors"
+                >
+                  Show All {group.products.length} {group.name} →
+                </button>
+              )}
+                  </>
+                );
+              })()}
             </div>
           ))
         )}

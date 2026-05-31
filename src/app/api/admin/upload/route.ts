@@ -18,6 +18,13 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File;
     const folder = (formData.get("folder") as string) || "uploads";
 
+    // Sanitize folder — whitelist allowed folders
+    const allowedFolders = ["products", "banners", "categories", "occasions", "assets", "uploads"];
+    const cleanFolder = folder.replace(/[^a-zA-Z0-9-_]/g, "");
+    if (!allowedFolders.includes(cleanFolder)) {
+      return NextResponse.json({ success: false, message: "Invalid upload folder" }, { status: 400 });
+    }
+
     if (!file) {
       return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
     }
@@ -28,6 +35,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Invalid file type" }, { status: 400 });
     }
 
+    // Derive extension from MIME type, not filename
+    const mimeToExt: Record<string, string> = {
+      "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif", "video/mp4": "mp4",
+    };
+
     // Validate size (5MB for images, 25MB for video)
     const maxSize = file.type.startsWith("video/") ? 25 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -35,11 +47,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Create directory
-    const uploadDir = join(process.cwd(), "public", "uploads", folder);
+    const uploadDir = join(process.cwd(), "public", "uploads", cleanFolder);
     await mkdir(uploadDir, { recursive: true });
 
-    // Generate unique filename
-    const ext = file.name.split(".").pop();
+    // Generate unique filename with MIME-derived extension
+    const ext = mimeToExt[file.type] || "bin";
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
     const filepath = join(uploadDir, filename);
 

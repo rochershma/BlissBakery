@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
 import { z } from "zod";
 
+const sanitize = (s: string | undefined | null) => s?.replace(/<[^>]*>/g, "").trim() || null;
+
 const schema = z.object({
   storeSlug: z.string(),
   orderType: z.enum(["PICKUP", "DELIVERY"]),
@@ -14,10 +16,16 @@ const schema = z.object({
     quantity: z.number().min(1),
     unitPrice: z.number(),
     addOns: z.array(z.object({ name: z.string(), price: z.number() })).optional(),
+    cakeMessage: z.string().max(25).optional(),
+    occasion: z.string().max(30).optional(),
+    recipientName: z.string().max(30).optional(),
+    recipientAge: z.string().max(3).optional(),
   })),
-  specialInstructions: z.string().optional(),
-  promoCode: z.string().optional(),
-  deliveryAddress: z.string().optional(),
+  specialInstructions: z.string().max(500).optional(),
+  promoCode: z.string().max(20).optional(),
+  deliveryAddress: z.string().max(500).optional(),
+  deliveryDate: z.string().optional(),
+  deliverySlot: z.enum(["morning", "afternoon", "evening"]).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -35,11 +43,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Store not found" }, { status: 404 });
     }
 
-    // Calculate totals
-    const itemTotal = data.items.reduce((sum, item) => {
+    // Calculate totals — SERVER-SIDE price lookup (never trust client prices)
+    let itemTotal = 0;
+    const verifiedItems = [];
+    for (const item of data.items) {
+      const product = await db.product.findUnique({
+        where: { id: item.productId },
+        include: { variants: true },
+      });
+      if (!product || !product.isAvailable) {
+        return NextResponse.json({ success: false, message: `Product "${item.name}" is not available` }, { status: 400 });
+      }
+      // Determine correct price from DB
+      let serverPrice = product.basePrice;
+      if (item.variantName) {
+        const variant = product.variants.find(v => v.name === item.variantName);
+        if (variant) serverPrice = variant.price;
+      }
       const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
-      return sum + (item.unitPrice + addOnTotal) * item.quantity;
-    }, 0);
+      itemTotal += (serverPrice + addOnTotal) * item.quantity;
+      verifiedItems.push({ ...item, unitPrice: serverPrice });
+    }
 
     const packagingCharge = store.packagingCharge || 15;
     const deliveryCharge = data.orderType === "DELIVERY" ? (store.deliveryCharge || 30) : 0;
@@ -72,8 +96,10 @@ export async function POST(req: NextRequest) {
         userId: session.userId,
         storeId: store.id,
         orderType: data.orderType,
-        deliveryAddress: data.deliveryAddress,
-        specialInstructions: data.specialInstructions,
+        deliveryAddress: sanitize(data.deliveryAddress),
+        deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
+        deliverySlot: data.deliverySlot || null,
+        specialInstructions: sanitize(data.specialInstructions),
         itemTotal,
         packagingCharge,
         deliveryCharge,
@@ -84,14 +110,18 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         paymentStatus: "PENDING",
         items: {
-          create: data.items.map((item) => ({
+          create: verifiedItems.map((item) => ({
             productId: item.productId,
-            productName: item.name,
+            productName: sanitize(item.name) || item.name,
             variantName: item.variantName || null,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             addOns: item.addOns ? JSON.stringify(item.addOns) : null,
             totalPrice: (item.unitPrice + (item.addOns || []).reduce((s, a) => s + a.price, 0)) * item.quantity,
+            cakeMessage: sanitize(item.cakeMessage),
+            occasion: sanitize(item.occasion),
+            recipientName: sanitize(item.recipientName),
+            recipientAge: item.recipientAge?.replace(/\D/g, "") || null,
           })),
         },
         statusHistory: {

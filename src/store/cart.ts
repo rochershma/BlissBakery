@@ -11,6 +11,11 @@ export interface CartItem {
   unitPrice: number;
   quantity: number;
   addOns?: { name: string; price: number }[];
+  // New: cake customization
+  cakeMessage?: string;
+  occasion?: string;
+  recipientName?: string;
+  recipientAge?: string;
 }
 
 interface CartState {
@@ -40,17 +45,18 @@ export const useCartStore = create<CartState>()(
       specialInstructions: "",
 
       addItem: (item) => {
-        const { items, storeSlug } = get();
+        const { items } = get();
         const key = `${item.productId}-${item.variantName || ""}`;
         const existing = items.find(
           (i) => `${i.productId}-${i.variantName || ""}` === key
         );
 
         if (existing) {
+          if (existing.quantity >= 50) return; // Max 50 per item
           set({
             items: items.map((i) =>
               `${i.productId}-${i.variantName || ""}` === key
-                ? { ...i, quantity: i.quantity + 1 }
+                ? { ...i, quantity: Math.min(i.quantity + 1, 50) }
                 : i
             ),
           });
@@ -87,8 +93,11 @@ export const useCartStore = create<CartState>()(
 
       setStoreSlug: (slug) => {
         const current = get().storeSlug;
-        if (current && current !== slug) {
-          // Different store — clear cart
+        if (current && current !== slug && get().items.length > 0) {
+          // Different store with items — warn user (handled in UI)
+          if (typeof window !== "undefined" && !window.confirm("Switching stores will clear your cart. Continue?")) {
+            return;
+          }
           set({ items: [], storeSlug: slug, specialInstructions: "" });
         } else {
           set({ storeSlug: slug });

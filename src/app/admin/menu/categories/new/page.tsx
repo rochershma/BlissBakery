@@ -33,7 +33,7 @@ export default async function NewCategoryPage() {
         <Link href="/admin/menu" className="p-1 rounded-full hover:bg-muted transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">Add Category</h1>
+        <h1 className="text-2xl font-bold text-foreground font-serif">Add Category</h1>
       </div>
 
       <form action={createCategory} className="max-w-lg space-y-5">

@@ -3,7 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
-import { ProductImageField } from "@/components/admin/product-image-field";
+import { ProductFormFields } from "@/components/admin/product-form-fields";
+import { VariantEditor } from "@/components/admin/variant-editor";
+import { parseJsonSafe } from "@/lib/utils";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -15,6 +17,12 @@ export default async function EditProductPage({ params }: Props) {
   if (!product) return notFound();
 
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+  const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+  // Deduplicate recipients by slug
+  const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
+  allRecipients.forEach(r => { if (!recipientMap.has(r.slug)) recipientMap.set(r.slug, { slug: r.slug, name: r.name, image: r.image }); });
+  const uniqueRecipients = Array.from(recipientMap.values());
 
   async function updateProduct(formData: FormData) {
     "use server";
@@ -22,19 +30,48 @@ export default async function EditProductPage({ params }: Props) {
     const shortDesc = formData.get("shortDesc") as string;
     const description = formData.get("description") as string;
     const basePrice = parseFloat(formData.get("basePrice") as string);
+    const mrpPrice = parseFloat(formData.get("mrpPrice") as string) || null;
     const categoryId = formData.get("categoryId") as string;
     const isBestseller = formData.get("isBestseller") === "on";
     const isNew = formData.get("isNew") === "on";
     const isFeatured = formData.get("isFeatured") === "on";
     const isAvailable = formData.get("isAvailable") === "on";
     const ingredients = formData.get("ingredients") as string;
-    const imageUrl = formData.get("imageUrl") as string;
-    const images = imageUrl ? JSON.stringify([imageUrl]) : product!.images;
+    const servingInfo = formData.get("servingInfo") as string;
+    const images = formData.get("images") as string;
+    const occasionsJson = formData.get("occasions") as string;
+    const forWhomJson = formData.get("forWhom") as string;
+    const variantsJson = formData.get("variants") as string;
+    const variants: { name: string; price: number }[] = (() => {
+      try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
+    })();
 
     await db.product.update({
       where: { id },
-      data: { name, shortDesc: shortDesc || null, description: description || null, basePrice, categoryId, isBestseller, isNew, isFeatured, isAvailable, ingredients: ingredients || null, images },
+      data: {
+        name, shortDesc: shortDesc || null, description: description || null,
+        basePrice, mrpPrice, categoryId,
+        isBestseller, isNew, isFeatured, isAvailable,
+        ingredients: ingredients || null,
+        servingInfo: servingInfo || null,
+        images: images || product!.images,
+        occasions: occasionsJson || null,
+        forWhom: forWhomJson || null,
+      },
     });
+
+    // Replace all variants
+    await db.productVariant.deleteMany({ where: { productId: id } });
+    if (variants.length > 0) {
+      await db.productVariant.createMany({
+        data: variants.map((v, i) => ({
+          productId: id,
+          name: v.name,
+          price: v.price,
+          sortOrder: i,
+        })),
+      });
+    }
     revalidatePath("/admin/menu");
     redirect("/admin/menu");
   }
@@ -51,7 +88,7 @@ export default async function EditProductPage({ params }: Props) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Link href="/admin/menu" className="p-1 rounded-full hover:bg-muted transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
-          <h1 className="text-2xl font-bold text-foreground">Edit: {product.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {product.name}</h1>
         </div>
         <form action={deleteProduct}>
           <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
@@ -61,8 +98,22 @@ export default async function EditProductPage({ params }: Props) {
       </div>
 
       <form action={updateProduct} className="max-w-2xl space-y-5">
+        {/* Images + Tags (client components) */}
+        <ProductFormFields
+          defaultImages={parseJsonSafe<string[]>(product.images, [])}
+          defaultOccasions={parseJsonSafe<string[]>((product as any).occasions, [])}
+          defaultForWhom={parseJsonSafe<string[]>((product as any).forWhom, [])}
+          occasions={occasions.map(o => ({ slug: o.slug, name: o.name, image: o.image }))}
+          recipients={uniqueRecipients}
+        />
+
+        {/* Size / Weight Variants */}
+        <VariantEditor
+          defaultVariants={product.variants.map(v => ({ id: v.id, name: v.name, price: v.price }))}
+        />
+
         <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
-          <h2 className="font-semibold text-foreground">Basic Info</h2>
+          <h2 className="font-semibold text-foreground font-serif">Basic Info</h2>
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Product Name *</label>
             <input name="name" required defaultValue={product.name} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
@@ -75,17 +126,26 @@ export default async function EditProductPage({ params }: Props) {
             <label className="text-sm font-medium text-foreground block mb-1">Full Description</label>
             <textarea name="description" rows={3} defaultValue={product.description || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
           </div>
-          <ProductImageField defaultValue={product.images ? (JSON.parse(product.images as string || "[]")[0] || "") : ""} />
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Base Price (₹) *</label>
               <input name="basePrice" type="number" step="0.01" required defaultValue={product.basePrice} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
+              <label className="text-sm font-medium text-foreground block mb-1">MRP Price (₹)</label>
+              <input name="mrpPrice" type="number" step="0.01" defaultValue={(product as any).mrpPrice || ""} placeholder="For strikethrough display" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="text-sm font-medium text-foreground block mb-1">Category *</label>
               <select name="categoryId" required defaultValue={product.categoryId} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-foreground block mb-1">Serving Info</label>
+              <input name="servingInfo" defaultValue={(product as any).servingInfo || ""} placeholder="e.g., Serves 4-6 people" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
           <div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./auth-provider";
 import { X, MessageCircle, Phone, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 type Step = "phone" | "otp" | "register";
 
@@ -11,7 +12,7 @@ export function LoginModal() {
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [otpMethod, setOtpMethod] = useState<"whatsapp" | "sms">("whatsapp");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["" , "", "", "", "", ""]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
@@ -40,7 +41,7 @@ export function LoginModal() {
   function resetForm() {
     setStep("phone");
     setPhone("");
-    setOtp(["", "", "", ""]);
+    setOtp(["", "", "", "", "", ""]);
     setName("");
     setEmail("");
     setError("");
@@ -79,12 +80,12 @@ export function LoginModal() {
     setOtp(newOtp);
 
     // Auto-focus next input
-    if (value && index < 3) {
+    if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
 
-    // Auto-verify when all 4 digits entered
-    if (newOtp.every((d) => d) && newOtp.join("").length === 4) {
+    // Auto-verify when all 6 digits entered
+    if (newOtp.every((d) => d) && newOtp.join("").length === 6) {
       handleVerifyOtp(newOtp.join(""));
     }
   }
@@ -97,8 +98,8 @@ export function LoginModal() {
 
   async function handleVerifyOtp(otpValue?: string) {
     const code = otpValue || otp.join("");
-    if (code.length !== 4) {
-      setError("Enter 4-digit OTP");
+    if (code.length !== 6) {
+      setError("Enter 6-digit OTP");
       return;
     }
     setError("");
@@ -112,7 +113,7 @@ export function LoginModal() {
         // If existing user, the useEffect above will close modal
       } else {
         setError(res.message || "Invalid OTP");
-        setOtp(["", "", "", ""]);
+        setOtp(["", "", "", "", "", ""]);
         otpRefs.current[0]?.focus();
       }
     } catch {
@@ -165,8 +166,8 @@ export function LoginModal() {
         <div className="p-6 pt-8">
           {/* Logo */}
           <div className="flex justify-center mb-4">
-            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-              <span className="text-primary font-bold text-lg">bb</span>
+            <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
+              <Image src="/images/hero/AMMO6974.jpg" alt="Bliss Bakery" width={64} height={64} className="object-cover" />
             </div>
           </div>
 
@@ -265,7 +266,7 @@ export function LoginModal() {
               )}
 
               {/* OTP Inputs */}
-              <div className="flex justify-center gap-3 mb-4">
+              <div className="flex justify-center gap-2 mb-4">
                 {otp.map((digit, i) => (
                   <input
                     key={i}
@@ -276,7 +277,7 @@ export function LoginModal() {
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                    className="w-14 h-14 text-center text-xl font-bold border-2 border-border rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+                    className="w-11 h-12 text-center text-lg font-bold border-2 border-border rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
                     autoFocus={i === 0}
                   />
                 ))}
@@ -286,7 +287,7 @@ export function LoginModal() {
 
               <button
                 onClick={() => handleVerifyOtp()}
-                disabled={loading || otp.join("").length !== 4}
+                disabled={loading || otp.join("").length !== 6}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Verifying..." : "Verify OTP"}

@@ -22,7 +22,7 @@ export default function AboutPage() {
       <main className="max-w-4xl mx-auto px-4 py-12 page-enter">
         {/* Story */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Our Story</h2>
+          <h2 className="text-2xl font-bold text-foreground font-serif mb-4">Our Story</h2>
           <div className="prose prose-sm text-foreground/80 space-y-4">
             <p>
               Bliss Bakery was born from a simple belief — that everyone deserves to enjoy
@@ -72,7 +72,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center bg-gradient-to-r from-primary/10 to-secondary rounded-2xl p-8">
-          <h2 className="text-xl font-bold text-foreground mb-2">Ready to taste the bliss?</h2>
+          <h2 className="text-xl font-bold text-foreground font-serif mb-2">Ready to taste the bliss?</h2>
           <p className="text-muted-foreground mb-4">Order online or visit us at our store in Kuchaman City</p>
           <Link
             href="/"

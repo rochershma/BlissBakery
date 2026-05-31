@@ -1,18 +1,21 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, Phone, ChevronRight, Leaf, Star } from "lucide-react";
+import { MapPin, Clock, Phone, ChevronRight } from "lucide-react";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { SiteHeader } from "@/components/shared/site-header";
 import { AnnouncementBar } from "@/components/shared/announcement-bar";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { CategoryCircles } from "@/components/home/category-circles";
+import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
 const occasions = [
-  { name: "Birthday", emoji: "🎂", image: "/images/hero/premium-birthday-cake-in-delhi_ef2e52cd-d46e-46e7-a5ef-aa0bc2fdd19d.webp" },
-  { name: "Anniversary", emoji: "💕", image: "/images/hero/valentine_anniversary_17df2fc8-d068-4486-8f01-3aa5b1bf8a33.jpg" },
-  { name: "Wedding", emoji: "💍", image: "/images/hero/customised-cakes-in-delhi.webp" },
-  { name: "Festival", emoji: "🪔", image: "/images/hero/christmas_rum_cake.jpg" },
+  { name: "Birthday Cakes", image: "/images/categories/birthday.jpg", slug: "birthday" },
+  { name: "Anniversary Cakes", image: "/images/categories/anniversary.jpg", slug: "anniversary" },
+  { name: "Wedding Cakes", image: "/images/categories/wedding.jpg", slug: "wedding" },
+  { name: "Designer Cakes", image: "/images/categories/designer.jpg", slug: "designer" },
+  { name: "Festival Cakes", image: "/images/categories/festival.jpg", slug: "festival" },
+  { name: "Retirement Cakes", image: "/images/categories/retirement.jpg", slug: "retirement" },
 ];
 
 export default async function HomePage() {
@@ -31,6 +34,19 @@ export default async function HomePage() {
     where: { isBestseller: true, isAvailable: true },
     include: { category: true },
     take: 8,
+  });
+
+  // Fetch active promos for offers banner
+  const activePromos = await db.promoCode.findMany({
+    where: { isActive: true, validTo: { gt: new Date() }, validFrom: { lte: new Date() } },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
+  // Fetch occasions from DB
+  const dbOccasions = await db.occasion.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
   });
 
   const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(store.operatingHours, {});
@@ -53,26 +69,57 @@ export default async function HomePage() {
         linkUrl: b.linkUrl,
       }))} />
 
-      {/* Category Circles — Swiggy style */}
+      {/* Category Circles — with real product images */}
       <CategoryCircles
-        categories={store.categories.map(c => ({ id: c.id, name: c.name, slug: c.slug }))}
+        categories={(await Promise.all(store.categories.map(async (c) => {
+          const count = await db.product.count({ where: { categoryId: c.id, isAvailable: true } });
+          if (count === 0) return null;
+          const firstProduct = await db.product.findFirst({
+            where: { categoryId: c.id, isAvailable: true },
+            orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
+            select: { images: true },
+          });
+          const imgs = parseJsonSafe<string[]>(firstProduct?.images, []);
+          return { id: c.id, name: c.name, slug: c.slug, image: c.image, productImage: imgs[0] || null };
+        }))).filter(Boolean) as { id: string; name: string; slug: string; image: string | null; productImage: string | null }[]}
         storeSlug={store.slug}
       />
 
-      {/* Trust Badges — slim */}
-      <div className="bg-white/80 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 py-2.5">
-          <div className="flex items-center justify-center gap-5 md:gap-10 text-[11px] md:text-xs text-muted-foreground overflow-x-auto no-scrollbar">
-            <span className="flex items-center gap-1.5 flex-shrink-0"><Leaf className="w-3.5 h-3.5 text-success" />100% Vegetarian</span>
-            <span className="text-border">|</span>
-            <span className="flex items-center gap-1.5 flex-shrink-0">🥚✗ Eggless</span>
-            <span className="text-border">|</span>
-            <span className="flex items-center gap-1.5 flex-shrink-0"><Clock className="w-3.5 h-3.5 text-primary" />Same Day Pickup</span>
-            <span className="text-border">|</span>
-            <span className="flex items-center gap-1.5 flex-shrink-0"><Star className="w-3.5 h-3.5 text-primary" />Premium Quality</span>
+      {/* Shop by Occasion — horizontal scrolling slider with real images */}
+      <section className="py-6 md:py-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <p className="text-primary text-xs tracking-[0.2em] uppercase mb-0.5">For Every Celebration</p>
+              <h3 className="text-xl md:text-2xl font-bold text-foreground font-serif">Shop by Occasion</h3>
+            </div>
+            <Link href="/cakes/birthday" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+              View All <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="relative">
+            <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+            {(dbOccasions.length > 0 ? dbOccasions : occasions).map((occ) => (
+              <Link
+                key={occ.slug}
+                href={`/cakes/${occ.slug}`}
+                className="flex-shrink-0 w-[140px] md:w-[180px] group"
+              >
+                <div className="relative h-[180px] md:h-[220px] rounded-2xl overflow-hidden mb-2">
+                  <Image src={occ.image || "/images/categories/cakes.jpg"} alt={occ.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="180px" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5">
+                    <h4 className="font-serif font-bold text-sm text-white leading-tight">{occ.name}</h4>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+            {/* Scroll hint gradient */}
+            <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Bestsellers */}
       {bestsellers.length > 0 && (
@@ -92,18 +139,13 @@ export default async function HomePage() {
                   className="product-card group bg-white rounded-xl overflow-hidden border border-border"
                 >
                   <div className="aspect-square relative overflow-hidden bg-muted">
-                    <Image
-                      src={img}
-                      alt={product.name}
-                      fill
-                      className="object-cover product-img-zoom"
-                      sizes="(max-width: 640px) 50vw, 25vw"
-                    />
-                    {product.isBestseller && (
-                      <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase">
-                        Bestseller
-                      </span>
-                    )}
+                    <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
+                      {product.isBestseller && (
+                        <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase z-10">
+                          Bestseller
+                        </span>
+                      )}
+                    </HoverImageCycler>
                   </div>
                   <div className="p-3">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{product.category.name}</p>
@@ -132,56 +174,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Shop by Occasion */}
-      <section className="bg-muted/50 py-10 md:py-14">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-1">For Every Celebration</p>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground font-serif">Shop by Occasion</h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
-            {occasions.map((occ) => (
-              <Link
-                key={occ.name}
-                href={`/store/${store.slug}/menu`}
-                className="category-card group relative h-40 md:h-52 rounded-xl overflow-hidden"
-              >
-                <Image src={occ.image} alt={occ.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 25vw" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-3 left-3 text-white">
-                  <p className="text-lg mb-0.5">{occ.emoji}</p>
-                  <h4 className="font-serif font-bold text-sm">{occ.name} Cakes</h4>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
-      {store.categories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-10 md:py-14 w-full">
-          <div className="text-center mb-8">
-            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-1">Browse</p>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground font-serif">Shop by Category</h3>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3 stagger-children">
-            {store.categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/store/${store.slug}/menu?category=${cat.slug}`}
-                className="category-card group bg-white rounded-xl border border-border p-3 text-center"
-              >
-                <div className="category-icon w-12 h-12 mx-auto mb-2 rounded-full bg-primary-light flex items-center justify-center text-xl">
-                  {cat.slug === "cakes" ? "🎂" : cat.slug === "pastries" ? "🧁" : cat.slug === "brownies" ? "🍫" : cat.slug === "cookies-biscuits" ? "🍪" : cat.slug === "breads" ? "🍞" : cat.slug === "combos" ? "🎁" : cat.slug === "beverages" ? "☕" : "🍰"}
-                </div>
-                <h4 className="font-medium text-[11px] text-foreground group-hover:text-primary transition-colors leading-tight">{cat.name}</h4>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Custom Cakes CTA */}
       <section className="max-w-7xl mx-auto px-4 py-4 w-full">
         <Link
@@ -203,6 +195,38 @@ export default async function HomePage() {
             </div>
           </div>
         </Link>
+      </section>
+
+      {/* Our Promise */}
+      <section className="bg-gradient-to-b from-primary/5 to-white border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 py-10 md:py-12">
+          <div className="text-center mb-6">
+            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-0.5">Why Choose Us</p>
+            <h3 className="text-xl md:text-2xl font-bold text-foreground font-serif">Our Promise</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-2xl">🕐</div>
+              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Same Day Delivery</h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Order before 8 PM</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center text-2xl">🌿</div>
+              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">100% Veg & Eggless</h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Every product, always</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-orange-100 to-yellow-50 flex items-center justify-center text-2xl">🎂</div>
+              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Baked Fresh Daily</h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Finest ingredients only</p>
+            </div>
+            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-50 flex items-center justify-center text-2xl">💝</div>
+              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Crafted with Love</h4>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">Handmade in Kuchaman City</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Store Info */}

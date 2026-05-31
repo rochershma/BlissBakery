@@ -41,7 +41,7 @@ export default function NotFoundPage() {
           <Home className="w-4 h-4" /> Go Home
         </Link>
         <Link
-          href="/store/kuchaman-city/menu"
+          href="/"
           className="flex items-center gap-2 border border-border px-6 py-3 rounded-full font-medium text-foreground hover:bg-muted transition-colors"
         >
           Browse Menu <ArrowRight className="w-4 h-4" />
