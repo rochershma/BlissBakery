@@ -116,12 +116,12 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <SiteHeader />
-        <section className="relative aspect-[16/7] sm:aspect-[21/8] max-h-[35vh] overflow-hidden">
-          <Image src={heroImage} alt={rt.title} fill className="object-cover object-center" sizes="100vw" priority />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-2xl md:text-4xl font-bold text-white font-serif mb-2">{rt.title}</h1>
-            <p className="text-white/70 text-sm max-w-md">{rt.subtitle}</p>
+        <section className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 py-10 md:py-14 border-b border-border">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <p className="text-primary text-xs tracking-[0.25em] uppercase mb-2 font-medium">Bliss Bakery</p>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground font-serif mb-3">{rt.title}</h1>
+            <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">{rt.subtitle}</p>
+            <p className="text-xs text-muted-foreground mt-3">{products.length} cakes available</p>
           </div>
         </section>
         <nav className="max-w-7xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1">
@@ -204,13 +204,13 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Hero Banner */}
-      <section className="relative aspect-[16/7] sm:aspect-[21/8] max-h-[35vh] overflow-hidden">
-        <Image src={config.heroImage} alt={config.title} fill className="object-cover object-center" sizes="100vw" priority />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-white font-serif mb-2">{config.title}</h1>
-          <p className="text-white/70 text-sm max-w-md">{config.subtitle}</p>
+      {/* Hero Banner — clean gradient, no image needed */}
+      <section className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 py-10 md:py-14 border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-primary text-xs tracking-[0.25em] uppercase mb-2 font-medium">Bliss Bakery</p>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground font-serif mb-3">{config.title}</h1>
+          <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">{config.subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-3">{products.length} cakes available · 100% Vegetarian & Eggless</p>
         </div>
       </section>
 
