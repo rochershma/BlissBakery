@@ -82,7 +82,7 @@ echo "Environment file created at $APP_DIR/.env"
 # ---- Step 7: Install deps, migrate, build ----
 echo "[7/8] Installing dependencies & building..."
 cd "$APP_DIR"
-npm ci --omit=dev
+npm ci
 npx prisma generate
 npx prisma migrate deploy
 npm run build
