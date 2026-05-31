@@ -234,7 +234,7 @@ export default function CartPage() {
       </main>
 
       {/* Sticky Checkout Button */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
         <div className="max-w-3xl mx-auto px-4 py-3">
           <Link
             href="/checkout"

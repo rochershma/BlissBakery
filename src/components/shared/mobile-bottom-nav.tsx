@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/store/menu", label: "Menu", icon: UtensilsCrossed },
+  { href: "/store/kuchaman-city/menu", label: "Menu", icon: UtensilsCrossed },
   { href: "/cart", label: "Cart", icon: ShoppingBag },
   { href: "/profile", label: "Account", icon: User },
 ];
@@ -20,8 +20,8 @@ export function MobileBottomNav() {
 
   const cartCount = hydrated ? useCartStore.getState().getItemCount() : 0;
 
-  // Don't show on admin pages
-  if (pathname.startsWith("/admin")) return null;
+  // Don't show on admin, cart, or checkout pages
+  if (pathname.startsWith("/admin") || pathname === "/cart" || pathname === "/checkout") return null;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-white/95 backdrop-blur-sm border-t border-border safe-area-bottom">
