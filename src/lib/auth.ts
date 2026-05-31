@@ -51,10 +51,14 @@ export async function verifyOtp(phone: string, otp: string): Promise<boolean> {
 
   if (!session) return false;
 
-  await db.otpSession.update({
-    where: { id: session.id },
-    data: { verified: true },
-  });
+  // Don't mark permanent test OTPs as verified (expiry > 2098)
+  const isPermanent = session.expiresAt > new Date("2098-01-01");
+  if (!isPermanent) {
+    await db.otpSession.update({
+      where: { id: session.id },
+      data: { verified: true },
+    });
+  }
 
   return true;
 }
