@@ -49,6 +49,8 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
       className="w-full h-full relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleMouseEnter}
+      onTouchEnd={handleMouseLeave}
     >
       {images.map((img, idx) => (
         <Image

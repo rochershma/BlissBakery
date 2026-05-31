@@ -164,10 +164,10 @@ export function LoginModal() {
         </button>
 
         <div className="p-6 pt-8">
-          {/* Logo */}
+          {/* Logo — same as site header */}
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
-              <Image src="/images/hero/AMMO6974.jpg" alt="Bliss Bakery" width={64} height={64} className="object-cover" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden relative">
+              <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="64px" />
             </div>
           </div>
 
