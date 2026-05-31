@@ -33,15 +33,13 @@ export async function POST(req: NextRequest) {
         cakeSize,
         baseFlavour,
         frosting: sanitize(frosting),
-        filling: sanitize(filling),
-        shape: sanitize(shape),
         theme: sanitize(theme),
         messageOnCake: sanitize(messageOnCake),
+        designDescription: sanitize(filling) || sanitize(shape) || sanitize(specialNotes),
         preferredDate: preferredDate ? new Date(preferredDate) : null,
         referenceImages: referenceImages ? JSON.stringify(referenceImages) : null,
-        budget: budget ? parseFloat(budget) : null,
-        specialNotes: sanitize(specialNotes),
-        status: "PENDING",
+        budgetRange: budget ? String(budget) : null,
+        status: "RECEIVED",
       },
     });
 

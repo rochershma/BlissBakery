@@ -22,8 +22,8 @@ export default async function EditPromoPage({ params }: Props) {
     const maxDiscount = parseFloat(formData.get("maxDiscount") as string) || null;
     const validFrom = new Date(formData.get("validFrom") as string);
     const validTo = new Date(formData.get("validTo") as string);
-    const usageLimit = parseInt(formData.get("usageLimit") as string) || null;
-    const perUserLimit = parseInt(formData.get("perUserLimit") as string) || null;
+    const usageLimit = parseInt(formData.get("usageLimit") as string) || undefined;
+    const perUserLimit = parseInt(formData.get("perUserLimit") as string) || undefined;
     const occasionTag = (formData.get("occasionTag") as string) || null;
     const isActive = formData.get("isActive") === "on";
 
