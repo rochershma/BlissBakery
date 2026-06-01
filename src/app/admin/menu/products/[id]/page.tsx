@@ -106,6 +106,18 @@ export default async function EditProductPage({ params }: Props) {
       </div>
 
       <form action={updateProduct} className="max-w-2xl space-y-5">
+        {/* Category Selection - FIRST */}
+        <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
+          <h2 className="font-semibold text-foreground font-serif">Category</h2>
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-2">Select Category *</label>
+            <select name="categoryId" required defaultValue={product.categoryId} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+              <option value="">Choose a category...</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+
         {/* Images + Tags (client components) */}
         <ProductFormFields
           defaultImages={parseJsonSafe<string[]>(product.images, [])}
@@ -148,17 +160,9 @@ export default async function EditProductPage({ params }: Props) {
               <input name="mrpPrice" type="number" step="0.01" defaultValue={(product as any).mrpPrice || ""} placeholder="For strikethrough display" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Category *</label>
-              <select name="categoryId" required defaultValue={product.categoryId} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Serving Info</label>
-              <input name="servingInfo" defaultValue={(product as any).servingInfo || ""} placeholder="e.g., Serves 4-6 people" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-            </div>
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-1">Serving Info</label>
+            <input name="servingInfo" defaultValue={(product as any).servingInfo || ""} placeholder="e.g., Serves 4-6 people" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Ingredients</label>

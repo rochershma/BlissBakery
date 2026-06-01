@@ -16,12 +16,35 @@ interface Props {
   recipients: RecipientTag[];
 }
 
+// Mapping of occasions to relevant recipients
+const OCCASION_RECIPIENT_MAP: Record<string, string[]> = {
+  "birthday": ["for-wife", "for-husband", "for-kids", "for-friend", "for-dad", "for-mom", "for-parents"],
+  "anniversary": ["for-wife", "for-husband", "for-parents"],
+  "wedding": ["for-friend", "for-colleague"],
+  "festival": ["for-family", "for-friend"],
+  "kids-cake": ["for-kids"],
+  "designer-cakes": ["for-wife", "for-husband", "for-friend", "for-colleague", "for-parents"],
+  "engagement": ["for-friend"],
+};
+
 export function ProductFormFields({ defaultImages, defaultOccasions, defaultForWhom, occasions, recipients }: Props) {
   const [images, setImages] = useState<string[]>(defaultImages);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>(defaultOccasions);
   const [selectedForWhom, setSelectedForWhom] = useState<string[]>(defaultForWhom);
-  const [showOccasions, setShowOccasions] = useState(defaultOccasions.length > 0);
-  const [showRecipients, setShowRecipients] = useState(defaultForWhom.length > 0);
+  const [showOccasions, setShowOccasions] = useState(false);
+  const [showRecipients, setShowRecipients] = useState(false);
+
+  // Get relevant recipients based on selected occasions
+  const relevantRecipientSlugs = new Set<string>();
+  selectedOccasions.forEach(occasionSlug => {
+    const mapped = OCCASION_RECIPIENT_MAP[occasionSlug] || [];
+    mapped.forEach(slug => relevantRecipientSlugs.add(slug));
+  });
+
+  // If no occasions selected, show all recipients; otherwise filter
+  const visibleRecipients = selectedOccasions.length === 0 
+    ? recipients 
+    : recipients.filter(r => relevantRecipientSlugs.has(r.slug));
 
   return (
     <>
@@ -42,7 +65,7 @@ export function ProductFormFields({ defaultImages, defaultOccasions, defaultForW
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
         <div className="p-5 pb-3">
           <h2 className="font-semibold text-foreground font-serif">Tags & Categorization</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Select occasions and recipients to help customers find this product</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Select occasions first, then recipient tags will filter to show relevant options</p>
         </div>
 
         {/* Occasions accordion */}
@@ -88,8 +111,8 @@ export function ProductFormFields({ defaultImages, defaultOccasions, defaultForW
           </div>
         )}
 
-        {/* Recipients accordion */}
-        {recipients.length > 0 && (
+        {/* Recipients accordion - contextual based on selected occasions */}
+        {selectedOccasions.length > 0 && visibleRecipients.length > 0 && (
           <div className="border-t border-border">
             <button
               type="button"
@@ -98,7 +121,7 @@ export function ProductFormFields({ defaultImages, defaultOccasions, defaultForW
             >
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">For Whom</span>
+                <span className="text-sm font-medium text-foreground">Who is this for?</span>
                 {selectedForWhom.length > 0 && (
                   <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
                     {selectedForWhom.length} selected
@@ -110,24 +133,30 @@ export function ProductFormFields({ defaultImages, defaultOccasions, defaultForW
             {showRecipients && (
               <div className="px-5 pb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-muted-foreground">Who would you gift this to?</span>
+                  <span className="text-[10px] text-muted-foreground">Recipients relevant to selected occasions:</span>
                   <button
                     type="button"
-                    onClick={() => setSelectedForWhom(selectedForWhom.length === recipients.length ? [] : recipients.map(r => r.slug))}
+                    onClick={() => setSelectedForWhom(selectedForWhom.length === visibleRecipients.length ? [] : visibleRecipients.map(r => r.slug))}
                     className="text-[10px] text-primary font-medium hover:underline"
                   >
-                    {selectedForWhom.length === recipients.length ? "Deselect All" : "Select All"}
+                    {selectedForWhom.length === visibleRecipients.length ? "Deselect All" : "Select All"}
                   </button>
                 </div>
                 <ProductTagSelector
                   label=""
-                  tags={recipients}
+                  tags={visibleRecipients}
                   selectedSlugs={selectedForWhom}
                   onChange={setSelectedForWhom}
                   fieldName="forWhom"
                 />
               </div>
             )}
+          </div>
+        )}
+
+        {selectedOccasions.length === 0 && (
+          <div className="px-5 py-4 text-xs text-muted-foreground italic">
+            Select occasions above to see relevant recipient options
           </div>
         )}
       </div>
