@@ -99,10 +99,11 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative overflow-hidden">
           <div
             ref={scrollRef}
-            className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 scroll-smooth"
+            className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 scroll-smooth"
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
             {occasions.map((occ) => (
               <Link
@@ -127,9 +128,9 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
             ))}
           </div>
           {/* Mobile scroll hint */}
-          <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
           {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none md:hidden" />
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none md:hidden" />
           )}
         </div>
       </div>
