@@ -10,6 +10,7 @@ export default function AddressesPage() {
   const { user, loading, setShowLoginModal } = useAuth();
   const [addresses, setAddresses] = useState<{ id: string; label: string; fullAddress: string; pincode: string; isDefault: boolean }[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [newAddress, setNewAddress] = useState({ label: "Home", fullAddress: "", landmark: "", pincode: "" });
 
   useEffect(() => {
@@ -17,6 +18,46 @@ export default function AddressesPage() {
       setShowLoginModal(true);
     }
   }, [loading, user, setShowLoginModal]);
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/addresses")
+        .then((r) => r.json())
+        .then((data) => { if (data.addresses) setAddresses(data.addresses); });
+    }
+  }, [user]);
+
+  const handleSaveAddress = async () => {
+    if (!newAddress.fullAddress.trim() || !newAddress.pincode.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/addresses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAddress),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAddresses((prev) => [data.address, ...prev]);
+        setNewAddress({ label: "Home", fullAddress: "", landmark: "", pincode: "" });
+        setShowForm(false);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm("Delete this address?")) return;
+    const res = await fetch("/api/addresses", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setAddresses((prev) => prev.filter((a) => a.id !== id));
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -95,10 +136,11 @@ export default function AddressesPage() {
                 />
               </div>
               <button
-                disabled={!newAddress.fullAddress || !newAddress.pincode}
+                onClick={handleSaveAddress}
+                disabled={!newAddress.fullAddress || !newAddress.pincode || saving}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 btn-press"
               >
-                Save Address
+                {saving ? "Saving..." : "Save Address"}
               </button>
             </div>
           </div>
@@ -134,7 +176,7 @@ export default function AddressesPage() {
                     <p className="text-xs text-muted-foreground">{addr.pincode}</p>
                   </div>
                 </div>
-                <button className="p-2 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-destructive transition-colors">
+                <button onClick={() => handleDeleteAddress(addr.id)} className="p-2 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-destructive transition-colors">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
