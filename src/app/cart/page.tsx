@@ -46,16 +46,27 @@ export default function CartPage() {
           </div>
         </header>
         <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-          <div className="text-6xl mb-4">🛒</div>
-          <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
-          <p className="text-muted-foreground mb-6">Add some delicious treats from our menu!</p>
-          <Link
-            href={storeSlug ? `/store/${storeSlug}/menu` : "/"}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary-hover transition-colors"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            Browse Menu
-          </Link>
+          <div className="w-32 h-32 mb-6 rounded-full bg-primary/5 flex items-center justify-center">
+            <span className="text-6xl">🧁</span>
+          </div>
+          <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is feeling light!</h2>
+          <p className="text-muted-foreground mb-8 max-w-xs">Looks like you haven&apos;t added any treats yet. Explore our freshly baked collection!</p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+            <Link
+              href={storeSlug ? `/store/${storeSlug}/menu` : "/store/kuchaman-city/menu"}
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full font-semibold hover:bg-primary-hover transition-colors"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              Browse Menu
+            </Link>
+            <Link
+              href="/"
+              className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-primary text-primary px-5 py-3 rounded-full font-semibold hover:bg-primary/5 transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              Go Home
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -113,6 +124,9 @@ export default function CartPage() {
                   <h3 className="text-sm font-semibold text-foreground truncate">{item.name}</h3>
                   {item.variantName && (
                     <p className="text-xs text-muted-foreground">{item.variantName}</p>
+                  )}
+                  {item.flavour && (
+                    <p className="text-xs text-muted-foreground">Flavour: {item.flavour}</p>
                   )}
                   {item.addOns && item.addOns.length > 0 && (
                     <p className="text-xs text-muted-foreground">

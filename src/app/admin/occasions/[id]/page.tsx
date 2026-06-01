@@ -80,7 +80,7 @@ export default async function EditOccasionPage({ params }: Props) {
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Image</label>
-            <ImageField name="image" defaultValue={occasion.image || ""} label="Occasion Image" folder="categories" />
+            <ImageField name="image" defaultValue={occasion.image || ""} label="Occasion Image" folder="occasions" />
           </div>
           <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
             <Save className="w-4 h-4" /> Save Changes
@@ -130,7 +130,7 @@ export default async function EditOccasionPage({ params }: Props) {
               <input name="name" required placeholder="e.g., For Sister" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
-              <ImageField name="image" defaultValue="" label="Recipient Image" folder="categories" />
+              <ImageField name="image" defaultValue="" label="Recipient Image" folder="occasions" />
             </div>
           </div>
           <button type="submit" className="w-full py-2.5 rounded-xl bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors flex items-center justify-center gap-2 text-sm">

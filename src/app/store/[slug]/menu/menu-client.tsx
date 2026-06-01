@@ -209,7 +209,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                         <div className="flex items-center justify-between mt-1">
                           <span className="font-bold text-foreground text-sm">
                             {product.variants.length > 0 ? (
-                              <>{formatPrice(product.variants[0].price)}</>
+                              <><span className="text-[10px] font-normal text-muted-foreground">from </span>{formatPrice(product.variants[0].price)}</>
                             ) : (
                               formatPrice(product.basePrice)
                             )}
@@ -268,10 +268,10 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
 
       {/* Cart Bar — full-width on mobile, floating pill on desktop */}
       {itemCount > 0 && (
-        <div className="fixed bottom-4 z-50 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-auto md:min-w-[320px] md:max-w-md cart-bar-enter">
+        <div className="fixed bottom-20 md:bottom-4 z-50 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-auto md:min-w-[320px] md:max-w-md cart-bar-enter">
           <Link
             href="/cart"
-            className="flex items-center justify-between bg-primary text-primary-foreground rounded-full px-5 py-3 hover:bg-primary-hover transition-all shadow-xl shadow-primary/30 btn-press"
+            className="flex items-center justify-between bg-primary text-primary-foreground rounded-full px-4 py-2.5 md:px-5 md:py-3 hover:bg-primary-hover transition-all shadow-xl shadow-primary/30 btn-press"
           >
             <div className="flex items-center gap-2">
               <span className="font-bold">{formatPrice(subtotal)}</span>

@@ -9,6 +9,7 @@ import { AnnouncementBar } from "@/components/shared/announcement-bar";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { CategoryCircles } from "@/components/home/category-circles";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
+import { OccasionCarousel } from "@/components/home/occasion-carousel";
 
 const occasions = [
   { name: "Birthday Cakes", image: "/images/categories/birthday.jpg", slug: "birthday" },
@@ -87,41 +88,12 @@ export default async function HomePage() {
         storeSlug={store.slug}
       />
 
-      {/* Shop by Occasion — horizontal scrolling slider with real images */}
-      <section className="py-6 md:py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-primary text-xs tracking-[0.2em] uppercase mb-0.5">For Every Celebration</p>
-              <h3 className="text-xl md:text-2xl font-bold text-foreground font-serif">Shop by Occasion</h3>
-            </div>
-            <Link href="/cakes/birthday" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-              View All <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="relative">
-            <div className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
-            {(dbOccasions.length > 0 ? dbOccasions : occasions).map((occ) => (
-              <Link
-                key={occ.slug}
-                href={`/cakes/${occ.slug}`}
-                className="flex-shrink-0 w-[140px] md:w-[180px] group"
-              >
-                <div className="relative h-[180px] md:h-[220px] rounded-2xl overflow-hidden mb-2">
-                  <Image src={occ.image || "/images/categories/cakes.jpg"} alt={occ.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="180px" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                    <h4 className="font-serif font-bold text-sm text-white leading-tight">{occ.name}</h4>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-            {/* Scroll hint gradient */}
-            <div className="absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
-          </div>
-        </div>
-      </section>
+      {/* Shop by Occasion — auto-sliding carousel */}
+      <OccasionCarousel occasions={(dbOccasions.length > 0 ? dbOccasions : occasions).map(o => ({
+        name: o.name,
+        slug: o.slug,
+        image: o.image || "/images/categories/cakes.jpg",
+      }))} />
 
       {/* Bestsellers */}
       {bestsellers.length > 0 && (
@@ -156,9 +128,9 @@ export default async function HomePage() {
                     </h4>
                     <div className="flex items-center justify-between mt-2">
                       <span className="font-bold text-foreground">{formatPrice(product.basePrice)}</span>
-                      <span className="add-btn text-[10px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">
-                        ADD +
-                      </span>
+                      {product.mrpPrice && product.mrpPrice > product.basePrice && (
+                        <span className="text-xs text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
+                      )}
                     </div>
                   </div>
                 </Link>

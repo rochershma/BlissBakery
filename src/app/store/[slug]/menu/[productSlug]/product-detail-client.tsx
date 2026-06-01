@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare, Ruler, X } from "lucide-react";
 import Link from "next/link";
 
 const OCCASIONS = [
@@ -26,6 +26,7 @@ interface Props {
     image?: string;
     categorySlug?: string;
     servingInfo?: string;
+    flavours?: string[];
     variants: { id: string; name: string; price: number }[];
     addOns: { id: string; name: string; price: number }[];
   };
@@ -41,6 +42,9 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   );
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const [selectedStoreAddOns, setSelectedStoreAddOns] = useState<Set<string>>(new Set());
+  const [selectedFlavour, setSelectedFlavour] = useState<string>(
+    (product.flavours && product.flavours.length > 0) ? product.flavours[0] : ""
+  );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -49,6 +53,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const [recipientName, setRecipientName] = useState("");
   const [recipientAge, setRecipientAge] = useState("");
   const [cakeMessage, setCakeMessage] = useState("");
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   useEffect(() => setHydrated(true), []);
 
@@ -78,6 +83,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         variantName: selectedVariant?.name,
         unitPrice,
         addOns: allAddOns.length > 0 ? allAddOns : undefined,
+        flavour: selectedFlavour || undefined,
         cakeMessage: cakeMessage.trim() || undefined,
         occasion: occasion || undefined,
         recipientName: recipientName.trim() || undefined,
@@ -115,6 +121,65 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           {product.servingInfo && (
             <p className="text-[10px] text-muted-foreground mt-1">🍽️ {product.servingInfo}</p>
           )}
+          <button
+            onClick={() => setShowSizeGuide(true)}
+            className="flex items-center gap-1 text-[11px] text-primary font-medium mt-2 hover:underline"
+          >
+            <Ruler className="w-3 h-3" /> Size Guide
+          </button>
+        </div>
+      )}
+
+      {/* Size Guide Modal */}
+      {showSizeGuide && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowSizeGuide(false)}>
+          <div className="bg-white rounded-2xl p-5 max-w-sm w-[calc(100%-2rem)] shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif font-bold text-lg text-foreground">📐 Size Guide</h3>
+              <button onClick={() => setShowSizeGuide(false)} className="p-1 rounded-full hover:bg-muted"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="space-y-0 text-sm">
+              <div className="flex justify-between py-2 border-b border-border bg-muted/30 px-3 rounded-t-lg font-semibold text-foreground">
+                <span>Size</span><span>Serves</span><span>Ideal For</span>
+              </div>
+              {[
+                { size: "0.5 Kg", serves: "4-6", ideal: "Small gathering" },
+                { size: "1 Kg", serves: "8-10", ideal: "Medium party" },
+                { size: "1.5 Kg", serves: "12-15", ideal: "Birthday party" },
+                { size: "2 Kg", serves: "18-20", ideal: "Large celebration" },
+                { size: "3 Kg", serves: "25-30", ideal: "Big event" },
+              ].map((row) => (
+                <div key={row.size} className="flex justify-between py-2 px-3 border-b border-border last:border-0 text-muted-foreground">
+                  <span className="font-medium text-foreground w-16">{row.size}</span>
+                  <span className="w-14 text-center">{row.serves}</span>
+                  <span className="text-right flex-1">{row.ideal}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-3 text-center">Serving sizes are approximate and may vary by cake design.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Flavour Selector — only if product has flavours */}
+      {product.flavours && product.flavours.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Choose Flavour</h3>
+          <div className="flex flex-wrap gap-2">
+            {product.flavours.map((f) => (
+              <button
+                key={f}
+                onClick={() => setSelectedFlavour(f)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all btn-press ${
+                  selectedFlavour === f
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-white text-foreground border-border hover:border-primary/50"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 

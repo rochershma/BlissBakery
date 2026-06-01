@@ -82,6 +82,7 @@ export default async function ProductDetailPage({ params }: Props) {
               image: heroImg,
               categorySlug: product.category.slug,
               servingInfo: (product as any).servingInfo || undefined,
+              flavours: parseJsonSafe<string[]>((product as any).flavours, []),
               variants: product.variants.map((v) => ({ id: v.id, name: v.name, price: v.price })),
               addOns: product.addOns.map((a) => ({ id: a.id, name: a.name, price: a.price })),
             }} storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, category: a.category }))} />

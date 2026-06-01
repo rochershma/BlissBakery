@@ -139,7 +139,7 @@ export default async function AdminOccasionsPage() {
             <input name="subtitle" placeholder="Short description..." className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
         </div>
-        <ImageField name="image" defaultValue="" label="Occasion Image" folder="categories" />
+        <ImageField name="image" defaultValue="" label="Occasion Image" folder="occasions" />
         <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
           <Save className="w-4 h-4" /> Add Occasion
         </button>

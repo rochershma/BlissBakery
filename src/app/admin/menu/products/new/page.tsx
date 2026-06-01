@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
 import { ProductFormFields } from "@/components/admin/product-form-fields";
 import { VariantEditor } from "@/components/admin/variant-editor";
+import { FlavourEditor } from "@/components/admin/flavour-editor";
 
 export default async function NewProductPage() {
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
@@ -32,10 +33,16 @@ export default async function NewProductPage() {
     const images = formData.get("images") as string;
     const occasionsJson = formData.get("occasions") as string;
     const forWhomJson = formData.get("forWhom") as string;
+    const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
     const variants: { name: string; price: number }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
+
+    // Auto-sync basePrice to cheapest variant if variants exist
+    const finalBasePrice = variants.length > 0
+      ? Math.min(basePrice, ...variants.map(v => v.price))
+      : basePrice;
 
     const newProduct = await db.product.create({
       data: {
@@ -43,7 +50,7 @@ export default async function NewProductPage() {
         slug: slug + "-" + Date.now().toString(36),
         shortDesc: shortDesc || null,
         description: description || null,
-        basePrice, mrpPrice,
+        basePrice: finalBasePrice, mrpPrice,
         categoryId,
         isBestseller, isNew, isFeatured, isAvailable,
         ingredients: ingredients || null,
@@ -51,6 +58,7 @@ export default async function NewProductPage() {
         images: images || null,
         occasions: occasionsJson || null,
         forWhom: forWhomJson || null,
+        flavours: flavoursJson || null,
       },
     });
 
@@ -92,6 +100,9 @@ export default async function NewProductPage() {
         {/* Size / Weight Variants */}
         <VariantEditor />
 
+        {/* Flavours */}
+        <FlavourEditor />
+
         <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
           <h2 className="font-semibold text-foreground font-serif">Basic Info</h2>
           <div>
@@ -108,8 +119,9 @@ export default async function NewProductPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Base Price (₹) *</label>
+              <label className="text-sm font-medium text-foreground block mb-1">Starting Price (₹) *</label>
               <input name="basePrice" type="number" step="0.01" required placeholder="450" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <p className="text-[10px] text-muted-foreground mt-1">Shown on product cards. Auto-set to cheapest variant if sizes added.</p>
             </div>
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">MRP Price (₹)</label>

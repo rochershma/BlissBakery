@@ -6,8 +6,29 @@ import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { useAuth } from "@/components/auth/auth-provider";
 import { formatPrice } from "@/lib/utils";
-import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat } from "lucide-react";
 import { SiteHeader } from "@/components/shared/site-header";
+
+function ProgressBar() {
+  return (
+    <div className="flex items-center justify-center gap-0 py-3">
+      <div className="flex items-center gap-1.5">
+        <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">✓</div>
+        <span className="text-[11px] font-medium text-primary">Cart</span>
+      </div>
+      <div className="w-8 h-0.5 bg-primary mx-1" />
+      <div className="flex items-center gap-1.5">
+        <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">2</div>
+        <span className="text-[11px] font-bold text-primary">Checkout</span>
+      </div>
+      <div className="w-8 h-0.5 bg-gray-200 mx-1" />
+      <div className="flex items-center gap-1.5">
+        <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-400 text-[10px] font-bold flex items-center justify-center">3</div>
+        <span className="text-[11px] text-muted-foreground">Payment</span>
+      </div>
+    </div>
+  );
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -139,6 +160,7 @@ export default function CheckoutPage() {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             addOns: item.addOns,
+            flavour: item.flavour,
             cakeMessage: item.cakeMessage,
             occasion: item.occasion,
             recipientName: item.recipientName,
@@ -210,15 +232,23 @@ export default function CheckoutPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Checkout breadcrumb */}
-      <div className="bg-white border-b border-border px-4 py-2">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <Link href="/cart" className="text-primary hover:underline flex items-center gap-1"><ArrowLeft className="w-3 h-3" /> Cart</Link>
-            <span className="text-muted-foreground">/</span>
-            <span className="font-semibold text-foreground">Checkout</span>
+      {/* Checkout breadcrumb + Progress */}
+      <div className="bg-white border-b border-border px-4 py-1">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-1">
+            <Link href="/cart" className="text-primary hover:underline flex items-center gap-1 text-xs"><ArrowLeft className="w-3 h-3" /> Back to Cart</Link>
+            {user && <span className="text-xs text-muted-foreground">{user.name || user.phone}</span>}
           </div>
-          {user && <span className="text-xs text-muted-foreground">{user.name || user.phone}</span>}
+          <ProgressBar />
+        </div>
+      </div>
+
+      {/* Trust badges */}
+      <div className="bg-gradient-to-r from-green-50 to-primary/5 border-b border-border">
+        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-center gap-4 md:gap-8 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1"><Leaf className="w-3 h-3 text-green-600" /> 100% Veg & Eggless</span>
+          <span className="flex items-center gap-1"><ChefHat className="w-3 h-3 text-primary" /> Baked Fresh</span>
+          <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-blue-600" /> Secure Checkout</span>
         </div>
       </div>
 
@@ -233,13 +263,23 @@ export default function CheckoutPage() {
           </div>
           <div className="divide-y divide-border">
             {items.map((item, idx) => (
-              <div key={`${item.productId}-${idx}`} className="px-4 py-2 flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm text-foreground truncate">
-                    {item.name} {item.variantName ? `(${item.variantName})` : ""} × {item.quantity}
-                  </span>
+              <div key={`${item.productId}-${idx}`} className="px-4 py-2.5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm bg-primary/5">🎂</div>
+                  )}
                 </div>
-                <span className="text-sm font-medium text-foreground flex-shrink-0">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-foreground truncate font-medium">{item.name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {item.variantName && `${item.variantName}`}
+                    {item.flavour && ` · ${item.flavour}`}
+                    {` × ${item.quantity}`}
+                  </p>
+                </div>
+                <span className="text-sm font-semibold text-foreground flex-shrink-0">
                   {formatPrice((item.unitPrice + (item.addOns || []).reduce((s, a) => s + a.price, 0)) * item.quantity)}
                 </span>
               </div>
@@ -396,7 +436,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Bill Details */}
-        <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
+        <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4 md:hidden">
           <div className="px-4 py-3 bg-muted/50 border-b border-border">
             <h2 className="label-premium text-foreground">Bill Details</h2>
           </div>
@@ -407,7 +447,7 @@ export default function CheckoutPage() {
             </div>
             {deliveryCharge > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery Charge</span>
+                <span className="text-muted-foreground">Delivery</span>
                 <span className="font-medium">{formatPrice(deliveryCharge)}</span>
               </div>
             )}
@@ -440,11 +480,52 @@ export default function CheckoutPage() {
           </span>
         </label>
 
-        {/* Warning */}
         <p className="text-xs text-muted-foreground text-center mb-4">
           ⚠️ Orders once placed cannot be cancelled and are non-refundable
         </p>
         </div>{/* end md:flex-1 */}
+
+        {/* RIGHT COLUMN — Bill (sticky on desktop) */}
+        <div className="hidden md:block md:w-80 md:flex-shrink-0">
+          <div className="sticky top-4 space-y-4">
+            <div className="bg-white rounded-2xl border border-border overflow-hidden">
+              <div className="px-4 py-3 bg-muted/50 border-b border-border">
+                <h2 className="label-premium text-foreground">Bill Details</h2>
+              </div>
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Item Total</span>
+                  <span className="font-medium">{formatPrice(subtotal)}</span>
+                </div>
+                {deliveryCharge > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Delivery</span>
+                    <span className="font-medium">{formatPrice(deliveryCharge)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Packaging</span>
+                  <span className="font-medium">{formatPrice(packagingCharge)}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Discount ({promoApplied?.code})</span>
+                    <span className="font-medium">-{formatPrice(discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">GST ({storeConfig.gstRate}%)</span>
+                  <span className="font-medium">{formatPrice(gst)}</span>
+                </div>
+                <div className="border-t border-border pt-2 mt-2 flex justify-between">
+                  <span className="font-bold text-foreground">Grand Total</span>
+                  <span className="font-bold text-lg text-foreground">{formatPrice(grandTotal)}</span>
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">⚠️ Non-refundable once placed</p>
+          </div>
+        </div>
         </div>{/* end md:flex */}
       </main>
 

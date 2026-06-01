@@ -11,6 +11,7 @@ export interface CartItem {
   unitPrice: number;
   quantity: number;
   addOns?: { name: string; price: number }[];
+  flavour?: string;
   // New: cake customization
   cakeMessage?: string;
   occasion?: string;

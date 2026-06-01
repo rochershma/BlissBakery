@@ -89,6 +89,7 @@ model Product {
   ingredients  String?  @db.Text
   occasions    String?  @db.Text
   forWhom      String?  @db.Text
+  flavours     String?  @db.Text
   servingInfo  String?
   categoryId   String
   category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -201,6 +202,7 @@ model OrderItem {
   addOns        String? @db.Text
   totalPrice    Float
   cakeMessage   String?
+  flavour       String?
   occasion      String?
   recipientName String?
   recipientAge  String?
