@@ -40,17 +40,17 @@ export function AdminMenuClient({ categories }: { categories: Category[] }) {
     });
   };
 
-  // Filter categories with products
-  const withProducts = categories.filter(c => c.products.length > 0);
+  // Show all categories (including empty ones)
+  const allCategories = categories;
 
   // Search filter
   const searchLower = search.toLowerCase();
-  const filtered = withProducts.map(c => ({
+  const filtered = allCategories.map(c => ({
     ...c,
     products: search
       ? c.products.filter(p => p.name.toLowerCase().includes(searchLower) || (p.shortDesc || "").toLowerCase().includes(searchLower))
       : c.products,
-  })).filter(c => c.products.length > 0);
+  })).filter(c => search ? c.products.length > 0 : true);
 
   // Tab filter
   const displayed = activeTab === "all" ? filtered : filtered.filter(c => c.slug === activeTab);
@@ -84,9 +84,9 @@ export function AdminMenuClient({ categories }: { categories: Category[] }) {
             activeTab === "all" ? "bg-primary text-primary-foreground" : "bg-white border border-border text-muted-foreground hover:bg-muted"
           }`}
         >
-          All ({withProducts.reduce((s, c) => s + c.products.length, 0)})
+          All ({allCategories.reduce((s, c) => s + c.products.length, 0)})
         </button>
-        {withProducts.map(c => (
+        {allCategories.map(c => (
           <button
             key={c.id}
             onClick={() => setActiveTab(c.slug)}
@@ -135,7 +135,7 @@ export function AdminMenuClient({ categories }: { categories: Category[] }) {
               </Link>
             </div>
 
-            {!isCollapsed && (
+            {!isCollapsed && category.products.length > 0 && (
               <div className="bg-white rounded-xl border border-border overflow-hidden">
                 <div className="divide-y divide-border">
                   {category.products.map(product => (
@@ -169,6 +169,11 @@ export function AdminMenuClient({ categories }: { categories: Category[] }) {
                     </Link>
                   ))}
                 </div>
+              </div>
+            )}
+            {!isCollapsed && category.products.length === 0 && (
+              <div className="bg-white rounded-xl border border-dashed border-border px-4 py-6 text-center text-xs text-muted-foreground">
+                No products in this category yet.
               </div>
             )}
           </div>

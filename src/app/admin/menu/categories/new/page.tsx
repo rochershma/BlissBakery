@@ -5,16 +5,25 @@ import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
 import { ImageField } from "@/components/admin/image-field";
 
-export default async function NewCategoryPage() {
+export default async function NewCategoryPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   const stores = await db.store.findMany();
   const defaultStore = stores[0];
 
   async function createCategory(formData: FormData) {
     "use server";
-    const name = formData.get("name") as string;
+    const name = (formData.get("name") as string).trim();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
     const image = (formData.get("image") as string) || null;
+
+    // Check for duplicate name
+    const existing = await db.category.findFirst({
+      where: { name: { equals: name }, storeId: defaultStore.id },
+    });
+    if (existing) {
+      redirect("/admin/menu/categories/new?error=duplicate");
+    }
 
     await db.category.create({
       data: {
@@ -40,6 +49,11 @@ export default async function NewCategoryPage() {
       </div>
 
       <form action={createCategory} className="max-w-lg space-y-5">
+        {error === "duplicate" && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+            A category with this name already exists. Please choose a different name.
+          </div>
+        )}
         <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Category Name *</label>
