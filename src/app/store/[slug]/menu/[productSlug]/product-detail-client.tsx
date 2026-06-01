@@ -23,6 +23,7 @@ interface Props {
     name: string;
     slug: string;
     basePrice: number;
+    mrpPrice?: number | null;
     image?: string;
     categorySlug?: string;
     servingInfo?: string;
@@ -148,6 +149,19 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
 
   return (
     <div className="mt-4 space-y-4">
+      {/* Dynamic Price */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg font-bold text-primary">{formatPrice(unitPrice)}</span>
+        {product.mrpPrice && product.mrpPrice > unitPrice && (
+          <>
+            <span className="text-sm text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
+            <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
+              {Math.round((product.mrpPrice - unitPrice) / product.mrpPrice * 100)}% OFF
+            </span>
+          </>
+        )}
+      </div>
+
       {/* Weight / Size Variants */}
       {product.variants.length > 0 && (
         <div>

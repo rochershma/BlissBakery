@@ -24,7 +24,7 @@ export default async function HomePage() {
   noStore(); // Make this page dynamic so banner/product changes show immediately
   const store = await db.store.findFirst({
     include: {
-      categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },
+      categories: { orderBy: { sortOrder: "asc" } },
       banners: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
     },
   });

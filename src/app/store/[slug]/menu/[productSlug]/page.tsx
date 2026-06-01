@@ -59,17 +59,6 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="flex-1">
             <p className="text-[10px] text-primary uppercase tracking-[0.15em] font-medium mb-1">{product.category.name}</p>
             <h1 className="text-xl md:text-2xl font-bold text-foreground font-serif mb-1">{product.name}</h1>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg font-bold text-primary">{formatPrice(product.basePrice)}</span>
-              {(product as any).mrpPrice && (product as any).mrpPrice > product.basePrice && (
-                <>
-                  <span className="text-sm text-muted-foreground line-through">{formatPrice((product as any).mrpPrice)}</span>
-                  <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
-                    {Math.round(((product as any).mrpPrice - product.basePrice) / (product as any).mrpPrice * 100)}% OFF
-                  </span>
-                </>
-              )}
-            </div>
             {product.description && <p className="text-sm text-muted-foreground leading-relaxed mb-3">{product.description}</p>}
             {product.ingredients && (
               <div className="mb-3 bg-muted/50 rounded-lg px-3 py-2">
@@ -79,6 +68,7 @@ export default async function ProductDetailPage({ params }: Props) {
             )}
             <ProductDetailClient storeSlug={storeSlug} product={{
               id: product.id, name: product.name, slug: product.slug, basePrice: product.basePrice,
+              mrpPrice: (product as any).mrpPrice || null,
               image: heroImg,
               categorySlug: product.category.slug,
               servingInfo: (product as any).servingInfo || undefined,
