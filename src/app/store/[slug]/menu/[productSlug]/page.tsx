@@ -14,7 +14,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const { slug: storeSlug, productSlug } = await params;
   const product = await db.product.findUnique({
     where: { slug: productSlug },
-    include: { category: true, variants: { orderBy: { sortOrder: "asc" } }, addOns: true },
+    include: { category: true, variants: { orderBy: { price: "asc" } }, addOns: true },
   });
   if (!product) return notFound();
 
