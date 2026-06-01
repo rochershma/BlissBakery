@@ -26,7 +26,7 @@ const schema = z.object({
   promoCode: z.string().max(20).optional(),
   deliveryAddress: z.string().max(500).optional(),
   deliveryDate: z.string().optional(),
-  deliverySlot: z.enum(["morning", "afternoon", "evening"]).optional(),
+  deliverySlot: z.string().max(30).optional(),
 });
 
 export async function POST(req: NextRequest) {
