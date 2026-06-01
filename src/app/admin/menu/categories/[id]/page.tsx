@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Save, Trash2, Eye, EyeOff } from "lucide-react";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
+import { ImageField } from "@/components/admin/image-field";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -19,8 +20,9 @@ export default async function EditCategoryPage({ params }: Props) {
     const name = formData.get("name") as string;
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
     const isVisible = formData.get("isVisible") === "on";
+    const image = (formData.get("image") as string) || null;
 
-    await db.category.update({ where: { id }, data: { name, sortOrder, isVisible } });
+    await db.category.update({ where: { id }, data: { name, sortOrder, isVisible, image } });
     revalidatePath("/admin/menu");
     redirect("/admin/menu");
   }
@@ -53,6 +55,11 @@ export default async function EditCategoryPage({ params }: Props) {
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Category Name *</label>
             <input name="name" required defaultValue={category.name} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-1">Category Image</label>
+            <p className="text-xs text-muted-foreground mb-2">Shown as circular icon on homepage. Upload a square image for best results.</p>
+            <ImageField name="image" defaultValue={category.image || ""} label="Category Image" folder="categories" aspectRatio="square" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Sort Order</label>

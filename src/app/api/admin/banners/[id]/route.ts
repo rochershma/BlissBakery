@@ -26,10 +26,12 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   const { title, mediaUrl, linkUrl, sortOrder, isActive } = parsed.data;
 
+  const sanitize = (s: string | null | undefined) => s != null ? s.replace(/<[^>]*>/g, "").trim() || null : s;
+
   const banner = await db.banner.update({
     where: { id },
     data: {
-      ...(title !== undefined && { title }),
+      ...(title !== undefined && { title: sanitize(title) }),
       ...(mediaUrl !== undefined && { mediaUrl }),
       ...(linkUrl !== undefined && { linkUrl }),
       ...(sortOrder !== undefined && { sortOrder }),

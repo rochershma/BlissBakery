@@ -13,7 +13,13 @@ export async function GET() {
       where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: { images: true },
+            },
+          },
+        },
       },
     });
 
@@ -33,6 +39,7 @@ export async function GET() {
           variantName: i.variantName,
           quantity: i.quantity,
           totalPrice: i.totalPrice,
+          image: i.product?.images?.[0] || null,
         })),
       })),
     });

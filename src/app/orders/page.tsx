@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/shared/site-header";
 import { useState, useEffect } from "react";
 import { ArrowLeft, Package, Clock, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 
 interface OrderItem {
@@ -13,6 +14,7 @@ interface OrderItem {
   variantName: string | null;
   quantity: number;
   totalPrice: number;
+  image: string | null;
 }
 
 interface Order {
@@ -47,6 +49,48 @@ const statusLabels: Record<string, string> = {
   PICKED_UP: "Picked Up",
   CANCELLED: "Cancelled",
 };
+
+const statusSteps = ["PENDING", "CONFIRMED", "PREPARING", "READY", "DELIVERED"];
+const deliverySteps = ["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED"];
+
+function OrderStatusTracker({ status, orderType }: { status: string; orderType: string }) {
+  if (status === "CANCELLED") {
+    return <div className="px-4 py-2 text-xs text-red-600 font-medium">❌ This order was cancelled</div>;
+  }
+  const steps = orderType === "DELIVERY" ? deliverySteps : statusSteps;
+  const labels = orderType === "DELIVERY"
+    ? ["Placed", "Confirmed", "Preparing", "Ready", "On the way", "Delivered"]
+    : ["Placed", "Confirmed", "Preparing", "Ready", "Delivered"];
+  const currentIdx = steps.indexOf(status);
+  // PICKED_UP maps to DELIVERED
+  const activeIdx = status === "PICKED_UP" ? steps.length - 1 : currentIdx;
+
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-center justify-between">
+        {steps.map((_, i) => (
+          <div key={i} className="flex items-center flex-1 last:flex-none">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
+              i <= activeIdx ? "bg-primary text-white" : "bg-gray-200 text-gray-400"
+            }`}>
+              {i <= activeIdx ? "✓" : i + 1}
+            </div>
+            {i < steps.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-1 ${i < activeIdx ? "bg-primary" : "bg-gray-200"}`} />
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between mt-1">
+        {labels.map((label, i) => (
+          <span key={i} className={`text-[9px] ${i <= activeIdx ? "text-primary font-medium" : "text-gray-400"} ${i === 0 ? "text-left" : i === labels.length - 1 ? "text-right" : "text-center"}`} style={{ width: `${100 / labels.length}%` }}>
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function OrdersPage() {
   const { user, loading, setShowLoginModal } = useAuth();
@@ -140,16 +184,32 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Items */}
-                <div className="px-4 py-2">
+                <div className="px-4 py-2 space-y-2">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex justify-between py-1 text-sm">
-                      <span className="text-foreground">
-                        {item.productName} {item.variantName ? `(${item.variantName})` : ""} × {item.quantity}
-                      </span>
-                      <span className="font-medium">{formatPrice(item.totalPrice)}</span>
+                    <div key={item.id} className="flex items-center gap-3 py-1">
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                        {item.image ? (
+                          <Image src={item.image} alt={item.productName} fill className="object-cover" sizes="48px" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-lg">🎂</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {item.productName}
+                        </p>
+                        {item.variantName && (
+                          <p className="text-xs text-muted-foreground">{item.variantName}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="text-sm font-medium text-foreground">{formatPrice(item.totalPrice)}</span>
                     </div>
                   ))}
                 </div>
+
+                {/* Status Tracker */}
+                <OrderStatusTracker status={order.status} orderType={order.orderType} />
 
                 {/* Footer */}
                 <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/30">

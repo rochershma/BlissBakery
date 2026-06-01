@@ -37,9 +37,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   const { title, mediaUrl, linkUrl, sortOrder } = parsed.data;
 
+  const sanitize = (s: string | null | undefined) => s?.replace(/<[^>]*>/g, "").trim() || null;
+
   const banner = await db.banner.create({
     data: {
-      title: title || null,
+      title: sanitize(title),
       mediaUrl,
       linkUrl: linkUrl || null,
       sortOrder: sortOrder ?? 0,

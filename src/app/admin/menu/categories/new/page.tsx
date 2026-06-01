@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
+import { ImageField } from "@/components/admin/image-field";
 
 export default async function NewCategoryPage() {
   const stores = await db.store.findMany();
@@ -13,12 +14,14 @@ export default async function NewCategoryPage() {
     const name = formData.get("name") as string;
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
+    const image = (formData.get("image") as string) || null;
 
     await db.category.create({
       data: {
         name,
         slug: slug + "-" + Date.now().toString(36),
         sortOrder,
+        image,
         storeId: defaultStore.id,
       },
     });
@@ -41,6 +44,11 @@ export default async function NewCategoryPage() {
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Category Name *</label>
             <input name="name" required placeholder="e.g., Cupcakes" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-1">Category Image</label>
+            <p className="text-xs text-muted-foreground mb-2">Shown as circular icon on homepage. Upload a square image.</p>
+            <ImageField name="image" defaultValue="" label="Category Image" folder="categories" aspectRatio="square" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Sort Order</label>
