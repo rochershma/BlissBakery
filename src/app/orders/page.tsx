@@ -243,7 +243,9 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <Link key={order.id} href={`/order/${order.id}`} className="block">
+                <OrderCard order={order} />
+              </Link>
             ))}
           </div>
         )}

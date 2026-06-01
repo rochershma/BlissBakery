@@ -46,17 +46,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
               </Link>
             );
           })}
-          <Link
-            href={`/store/${storeSlug}/custom-cakes`}
-            className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
-          >
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shadow-sm border-2 border-primary/30 group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 relative">
-              <Image src="/images/categories/designer.jpg" alt="Custom Cakes" fill className="object-cover" sizes="80px" />
-            </div>
-            <span className="text-[11px] md:text-xs font-medium text-primary text-center leading-tight">
-              Custom
-            </span>
-          </Link>
+
         </div>
       </div>
     </section>

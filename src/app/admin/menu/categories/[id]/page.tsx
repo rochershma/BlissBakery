@@ -41,13 +41,11 @@ export default async function EditCategoryPage({ params }: Props) {
           <Link href="/admin/menu" className="p-1 rounded-full hover:bg-muted transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
           <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {category.name}</h1>
         </div>
-        {category._count.products === 0 && (
-          <ConfirmDeleteForm action={deleteCategory} confirmMessage={`Delete category "${category.name}"?`}>
-            <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
-              <Trash2 className="w-4 h-4" /> Delete
-            </button>
-          </ConfirmDeleteForm>
-        )}
+        <ConfirmDeleteForm action={deleteCategory} confirmMessage={category._count.products > 0 ? `Delete category "${category.name}" and its ${category._count.products} products? This cannot be undone.` : `Delete category "${category.name}"?`}>
+          <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
+            <Trash2 className="w-4 h-4" /> Delete
+          </button>
+        </ConfirmDeleteForm>
       </div>
 
       <form action={updateCategory} className="max-w-lg space-y-5">

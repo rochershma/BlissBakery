@@ -54,7 +54,7 @@ export async function GET() {
             unitPrice: i.unitPrice,
             totalPrice: i.totalPrice,
             cakeMessage: i.cakeMessage,
-            image: parseImages(i.product?.images)?.[0] || null,
+            image: parseImages(i.product?.images ?? null)?.[0] || null,
           })),
         };
       }),
