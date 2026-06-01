@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare, ChevronDown } from "lucide-react";
 import Link from "next/link";
 
 const OCCASIONS = [
@@ -31,6 +31,56 @@ interface Props {
     addOns: { id: string; name: string; price: number }[];
   };
   storeAddOns?: { id: string; name: string; price: number; category: string }[];
+}
+
+function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Choose Flavour</h3>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-border bg-white text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
+      >
+        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
+          {selected || "Select a flavour..."}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1.5 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden animate-fade-in-up">
+          <div className="max-h-52 overflow-y-auto py-1">
+            {flavours.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => { onSelect(f); setOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                  selected === f
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {f}
+                {selected === f && <Check className="w-4 h-4 text-primary" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Props) {
@@ -125,26 +175,13 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Flavour Selector — only if product has flavours */}
+      {/* Flavour Selector — themed custom dropdown */}
       {product.flavours && product.flavours.length > 0 && (
-        <div>
-          <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Choose Flavour</h3>
-          <div className="flex flex-wrap gap-2">
-            {product.flavours.map((f) => (
-              <button
-                key={f}
-                onClick={() => setSelectedFlavour(f)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all btn-press ${
-                  selectedFlavour === f
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-white text-foreground border-border hover:border-primary/50"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
+        <FlavourDropdown
+          flavours={product.flavours}
+          selected={selectedFlavour}
+          onSelect={setSelectedFlavour}
+        />
       )}
 
       {/* Occasion, Recipient, Message — cakes only */}
