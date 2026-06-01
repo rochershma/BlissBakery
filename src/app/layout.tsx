@@ -5,6 +5,8 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { LoginModal } from "@/components/auth/login-modal";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
+import { ToastProvider } from "@/components/shared/toast";
+import { ConfirmProvider } from "@/components/shared/confirm-dialog";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -60,10 +62,14 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <AuthProvider>
-          {children}
-          <LoginModal />
-          <WhatsAppButton />
-          <MobileBottomNav />
+          <ToastProvider>
+            <ConfirmProvider>
+              {children}
+              <LoginModal />
+              <WhatsAppButton />
+              <MobileBottomNav />
+            </ConfirmProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

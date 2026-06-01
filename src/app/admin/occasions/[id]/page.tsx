@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Save, Trash2, Plus } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, Pencil } from "lucide-react";
 import { ImageField } from "@/components/admin/image-field";
 
 interface Props {
@@ -50,6 +50,17 @@ export default async function EditOccasionPage({ params }: Props) {
     "use server";
     const recipientId = formData.get("recipientId") as string;
     await db.recipient.delete({ where: { id: recipientId } });
+    revalidatePath(`/admin/occasions/${id}`);
+    redirect(`/admin/occasions/${id}`);
+  }
+
+  async function updateRecipient(formData: FormData) {
+    "use server";
+    const recipientId = formData.get("recipientId") as string;
+    const name = (formData.get("name") as string).trim();
+    if (!name) return;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^for-/, "");
+    await db.recipient.update({ where: { id: recipientId }, data: { name, slug } });
     revalidatePath(`/admin/occasions/${id}`);
     redirect(`/admin/occasions/${id}`);
   }
@@ -109,6 +120,13 @@ export default async function EditOccasionPage({ params }: Props) {
                     <p className="text-sm font-medium text-foreground">{r.name}</p>
                     <p className="text-[10px] text-muted-foreground">slug: {r.slug}</p>
                   </div>
+                  <form action={updateRecipient} className="flex items-center gap-1">
+                    <input type="hidden" name="recipientId" value={r.id} />
+                    <input name="name" defaultValue={r.name} className="w-28 px-2 py-1 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                    <button type="submit" className="p-1.5 rounded-lg text-primary hover:bg-primary/5 transition-colors" title="Save">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  </form>
                   <form action={deleteRecipient}>
                     <input type="hidden" name="recipientId" value={r.id} />
                     <button type="submit" className="p-1.5 rounded-lg text-destructive hover:bg-red-50 transition-colors">

@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat } from "lucide-react";
 import { SiteHeader } from "@/components/shared/site-header";
+import { useToast } from "@/components/shared/toast";
 
 function ProgressBar() {
   return (
@@ -52,7 +53,8 @@ export default function CheckoutPage() {
   const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
   const [availablePromos, setAvailablePromos] = useState<{ code: string; discountType: string; discountValue: number; occasionTag: string | null }[]>([]);
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [deliverySlot, setDeliverySlot] = useState("afternoon");
+  const [deliverySlot, setDeliverySlot] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => setHydrated(true), []);
 
@@ -133,11 +135,11 @@ export default function CheckoutPage() {
       return;
     }
     if (orderType === "DELIVERY" && !deliveryAddress.trim()) {
-      alert("Please enter your delivery address");
+      toast("Please enter your delivery address", "error");
       return;
     }
     if (orderType === "DELIVERY" && subtotal < storeConfig.minDeliveryOrder) {
-      alert(`Minimum order for delivery is ₹${storeConfig.minDeliveryOrder}`);
+      toast(`Minimum order for delivery is ₹${storeConfig.minDeliveryOrder}`, "error");
       return;
     }
     setProcessing(true);
@@ -176,7 +178,7 @@ export default function CheckoutPage() {
       const orderData = await orderRes.json();
 
       if (!orderData.success) {
-        alert(orderData.message || "Failed to create order");
+        toast(orderData.message || "Failed to create order", "error");
         setProcessing(false);
         return;
       }
@@ -195,10 +197,10 @@ export default function CheckoutPage() {
         clearCart();
         window.location.href = `/order/${orderData.order.id}`;
       } else {
-        alert(payData.message || "Payment failed");
+        toast(payData.message || "Payment failed", "error");
       }
     } catch (err) {
-      alert("Something went wrong. Please try again.");
+      toast("Something went wrong. Please try again.", "error");
     } finally {
       setProcessing(false);
     }
@@ -337,35 +339,78 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        {/* Delivery Date & Time */}
+        {/* When do you want it? — Modern date & time picker */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
           <h2 className="label-premium text-foreground mb-3">📅 When do you want it?</h2>
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="text-xs font-medium text-foreground block mb-1">Date</label>
-              <input
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
-                max={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-foreground block mb-1">Time Slot</label>
-              <select
-                value={deliverySlot}
-                onChange={(e) => setDeliverySlot(e.target.value)}
-                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
-              >
-                <option value="morning">Morning (8 AM - 12 PM)</option>
-                <option value="afternoon">Afternoon (12 - 4 PM)</option>
-                <option value="evening">Evening (4 - 8 PM)</option>
-              </select>
+
+          {/* Date pills — next 7 days */}
+          <div className="mb-3">
+            <label className="text-xs font-medium text-foreground block mb-2">Select Date</label>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {Array.from({ length: 7 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const iso = d.toISOString().split("T")[0];
+                const dayName = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-IN", { weekday: "short" });
+                const dateNum = d.getDate();
+                const month = d.toLocaleDateString("en-IN", { month: "short" });
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    onClick={() => setDeliveryDate(iso)}
+                    className={`flex-shrink-0 w-[72px] py-2.5 rounded-xl text-center border-2 transition-all ${
+                      deliveryDate === iso
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-white text-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className="text-[10px] font-medium">{dayName}</div>
+                    <div className="text-lg font-bold leading-tight">{dateNum}</div>
+                    <div className="text-[10px]">{month}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground">Leave empty for same-day delivery (order before 8 PM)</p>
+
+          {/* Time slots — hourly, with +2hr buffer */}
+          <div>
+            <label className="text-xs font-medium text-foreground block mb-2">Select Time</label>
+            <div className="grid grid-cols-4 gap-2">
+              {(() => {
+                const now = new Date();
+                const isToday = deliveryDate === now.toISOString().split("T")[0] || !deliveryDate;
+                const minHour = isToday ? now.getHours() + 2 : 8;
+                const slots: { label: string; value: string }[] = [];
+                for (let h = 8; h <= 21; h++) {
+                  const label = h <= 11 ? `${h} AM` : h === 12 ? `12 PM` : `${h - 12} PM`;
+                  const value = `${h}:00`;
+                  if (h >= minHour) {
+                    slots.push({ label, value });
+                  }
+                }
+                if (slots.length === 0) {
+                  return <p className="text-xs text-muted-foreground col-span-4 py-2">No slots available for today. Please select tomorrow.</p>;
+                }
+                return slots.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setDeliverySlot(s.value)}
+                    className={`py-2 rounded-xl text-xs font-medium border transition-all ${
+                      deliverySlot === s.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-white text-foreground border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ));
+              })()}
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-2">Orders need 2 hours prep time. Store hours: 8 AM – 10 PM.</p>
         </div>
 
         {/* Promo Code */}
