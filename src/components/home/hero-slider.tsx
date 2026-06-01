@@ -42,7 +42,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
-        autoplay={{ delay: 4000, disableOnInteraction: false }}
+        autoplay={{ delay: 2200, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={banners.length > 1}
         className="hero-swiper"

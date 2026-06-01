@@ -11,9 +11,17 @@ export default async function NewProductPage() {
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
-  const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
-  allRecipients.forEach(r => { if (!recipientMap.has(r.slug)) recipientMap.set(r.slug, { slug: r.slug, name: r.name, image: r.image }); });
-  const uniqueRecipients = Array.from(recipientMap.values());
+  const recipientGroups = occasions.map((occasion) => {
+    const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
+    allRecipients
+      .filter((recipient) => recipient.occasionId === occasion.id)
+      .forEach((recipient) => {
+        if (!recipientMap.has(recipient.slug)) {
+          recipientMap.set(recipient.slug, { slug: recipient.slug, name: recipient.name, image: recipient.image });
+        }
+      });
+    return { occasionSlug: occasion.slug, recipients: Array.from(recipientMap.values()) };
+  });
 
   async function createProduct(formData: FormData) {
     "use server";
@@ -35,7 +43,7 @@ export default async function NewProductPage() {
     const forWhomJson = formData.get("forWhom") as string;
     const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
-    const variants: { name: string; price: number }[] = (() => {
+    const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
 
@@ -69,6 +77,7 @@ export default async function NewProductPage() {
           productId: newProduct.id,
           name: v.name,
           price: v.price,
+          serves: v.serves || null,
           sortOrder: i,
         })),
       });
@@ -106,7 +115,7 @@ export default async function NewProductPage() {
           defaultOccasions={[]}
           defaultForWhom={[]}
           occasions={occasions.map(o => ({ slug: o.slug, name: o.name, image: o.image }))}
-          recipients={uniqueRecipients}
+          recipientGroups={recipientGroups}
         />
 
         {/* Size / Weight Variants */}

@@ -1,53 +1,114 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MultiImagePicker } from "@/components/admin/multi-image-picker";
-import { ProductTagSelector } from "@/components/admin/product-tag-selector";
-import { ChevronDown, ChevronUp, Tag, Users } from "lucide-react";
+import { Check, Tag, Users } from "lucide-react";
 
-interface OccasionTag { slug: string; name: string; image?: string | null; }
-interface RecipientTag { slug: string; name: string; image?: string | null; }
+interface OccasionTag {
+  slug: string;
+  name: string;
+  image?: string | null;
+}
+
+interface RecipientTag {
+  slug: string;
+  name: string;
+  image?: string | null;
+}
+
+interface RecipientGroup {
+  occasionSlug: string;
+  recipients: RecipientTag[];
+}
 
 interface Props {
   defaultImages: string[];
   defaultOccasions: string[];
   defaultForWhom: string[];
   occasions: OccasionTag[];
-  recipients: RecipientTag[];
+  recipientGroups: RecipientGroup[];
 }
 
-// Mapping of occasions to relevant recipients (slugs must match DB)
-const OCCASION_RECIPIENT_MAP: Record<string, string[]> = {
-  "birthday": ["wife", "husband", "kids", "friend", "dad", "mom", "father-s-day"],
-  "anniversary": ["wife", "husband", "mom"],
-  "wedding": ["friend"],
-  "festival": ["friend", "mom"],
-  "kids-cake": ["kids"],
-  "designer": ["wife", "husband", "friend", "mom"],
-};
-
-export function ProductFormFields({ defaultImages, defaultOccasions, defaultForWhom, occasions, recipients }: Props) {
+export function ProductFormFields({
+  defaultImages,
+  defaultOccasions,
+  defaultForWhom,
+  occasions,
+  recipientGroups,
+}: Props) {
   const [images, setImages] = useState<string[]>(defaultImages);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>(defaultOccasions);
   const [selectedForWhom, setSelectedForWhom] = useState<string[]>(defaultForWhom);
-  const [showOccasions, setShowOccasions] = useState(false);
-  const [showRecipients, setShowRecipients] = useState(false);
 
-  // Get relevant recipients based on selected occasions
-  const relevantRecipientSlugs = new Set<string>();
-  selectedOccasions.forEach(occasionSlug => {
-    const mapped = OCCASION_RECIPIENT_MAP[occasionSlug] || [];
-    mapped.forEach(slug => relevantRecipientSlugs.add(slug));
-  });
+  const recipientGroupsByOccasion = useMemo(
+    () => new Map(recipientGroups.map((group) => [group.occasionSlug, group.recipients])),
+    [recipientGroups]
+  );
 
-  // If no occasions selected, show all recipients; otherwise filter
-  const visibleRecipients = selectedOccasions.length === 0 
-    ? recipients 
-    : recipients.filter(r => relevantRecipientSlugs.has(r.slug));
+  const selectedRecipientUniverse = useMemo(() => {
+    const allowed = new Set<string>();
+    selectedOccasions.forEach((occasionSlug) => {
+      (recipientGroupsByOccasion.get(occasionSlug) || []).forEach((recipient) => {
+        allowed.add(recipient.slug);
+      });
+    });
+    return allowed;
+  }, [selectedOccasions, recipientGroupsByOccasion]);
+
+  const selectedRecipientCount = selectedForWhom.filter((slug) => selectedRecipientUniverse.has(slug)).length;
+
+  const toggleOccasion = (occasionSlug: string) => {
+    const nextOccasions = selectedOccasions.includes(occasionSlug)
+      ? selectedOccasions.filter((slug) => slug !== occasionSlug)
+      : [...selectedOccasions, occasionSlug];
+
+    const allowed = new Set<string>();
+    nextOccasions.forEach((slug) => {
+      (recipientGroupsByOccasion.get(slug) || []).forEach((recipient) => allowed.add(recipient.slug));
+    });
+
+    setSelectedOccasions(nextOccasions);
+    setSelectedForWhom((prev) => prev.filter((slug) => allowed.has(slug)));
+  };
+
+  const toggleRecipient = (slug: string) => {
+    setSelectedForWhom((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
+  };
+
+  const toggleAllOccasions = () => {
+    if (selectedOccasions.length === occasions.length) {
+      setSelectedOccasions([]);
+      setSelectedForWhom([]);
+      return;
+    }
+
+    const allOccasionSlugs = occasions.map((occasion) => occasion.slug);
+    const allRecipients = new Set<string>();
+    allOccasionSlugs.forEach((slug) => {
+      (recipientGroupsByOccasion.get(slug) || []).forEach((recipient) => allRecipients.add(recipient.slug));
+    });
+
+    setSelectedOccasions(allOccasionSlugs);
+    setSelectedForWhom(Array.from(allRecipients));
+  };
+
+  const toggleAllForOccasion = (occasionSlug: string) => {
+    const recipientsForOccasion = recipientGroupsByOccasion.get(occasionSlug) || [];
+    const recipientSlugs = recipientsForOccasion.map((recipient) => recipient.slug);
+    const allSelected = recipientSlugs.length > 0 && recipientSlugs.every((slug) => selectedForWhom.includes(slug));
+
+    setSelectedForWhom((prev) => {
+      if (allSelected) {
+        return prev.filter((slug) => !recipientSlugs.includes(slug));
+      }
+      const next = new Set(prev);
+      recipientSlugs.forEach((slug) => next.add(slug));
+      return Array.from(next);
+    });
+  };
 
   return (
     <>
-      {/* Multi-Image Upload */}
       <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
         <h2 className="font-semibold text-foreground font-serif">Product Images</h2>
         <MultiImagePicker
@@ -60,104 +121,128 @@ export function ProductFormFields({ defaultImages, defaultOccasions, defaultForW
         <input type="hidden" name="images" value={JSON.stringify(images)} />
       </div>
 
-      {/* Occasion & Recipient Tags — accordion style */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
         <div className="p-5 pb-3">
           <h2 className="font-semibold text-foreground font-serif">Tags & Categorization</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Select occasions first, then recipient tags will filter to show relevant options</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Pick one or more occasions, then choose recipient subtags inside each selected occasion.
+          </p>
         </div>
 
-        {/* Occasions accordion */}
-        {occasions.length > 0 && (
-          <div className="border-t border-border">
-            <button
-              type="button"
-              onClick={() => setShowOccasions(!showOccasions)}
-              className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Tag className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Occasions</span>
-                {selectedOccasions.length > 0 && (
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
-                    {selectedOccasions.length} selected
-                  </span>
-                )}
-              </div>
-              {showOccasions ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        <div className="border-t border-border px-5 py-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Tag className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Occasions</span>
+              {selectedOccasions.length > 0 && (
+                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                  {selectedOccasions.length} selected
+                </span>
+              )}
+            </div>
+            <button type="button" onClick={toggleAllOccasions} className="text-[11px] text-primary font-medium hover:underline">
+              {selectedOccasions.length === occasions.length ? "Clear" : "Select All"}
             </button>
-            {showOccasions && (
-              <div className="px-5 pb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-muted-foreground">Which celebrations is this for?</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedOccasions(selectedOccasions.length === occasions.length ? [] : occasions.map(o => o.slug))}
-                    className="text-[10px] text-primary font-medium hover:underline"
-                  >
-                    {selectedOccasions.length === occasions.length ? "Deselect All" : "Select All"}
-                  </button>
-                </div>
-                <ProductTagSelector
-                  label=""
-                  tags={occasions}
-                  selectedSlugs={selectedOccasions}
-                  onChange={setSelectedOccasions}
-                  fieldName="occasions"
-                />
-              </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
+            {occasions.map((occasion) => {
+              const active = selectedOccasions.includes(occasion.slug);
+              return (
+                <button
+                  key={occasion.slug}
+                  type="button"
+                  onClick={() => toggleOccasion(occasion.slug)}
+                  className={`relative text-left rounded-xl border px-3 py-2.5 transition-all ${
+                    active
+                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                      : "border-border bg-white hover:border-primary/40"
+                  }`}
+                >
+                  {active && <Check className="w-3.5 h-3.5 text-primary absolute top-2 right-2" />}
+                  <div className="pr-5 text-xs font-semibold text-foreground">{occasion.name}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-border px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">Who Is This For?</span>
+            {selectedRecipientCount > 0 && (
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
+                {selectedRecipientCount} selected
+              </span>
             )}
           </div>
-        )}
 
-        {/* Recipients accordion - contextual based on selected occasions */}
-        {selectedOccasions.length > 0 && visibleRecipients.length > 0 && (
-          <div className="border-t border-border">
-            <button
-              type="button"
-              onClick={() => setShowRecipients(!showRecipients)}
-              className="w-full flex items-center justify-between px-5 py-3 hover:bg-muted/30 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Who is this for?</span>
-                {selectedForWhom.length > 0 && (
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
-                    {selectedForWhom.length} selected
-                  </span>
-                )}
-              </div>
-              {showRecipients ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-            </button>
-            {showRecipients && (
-              <div className="px-5 pb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-muted-foreground">Recipients relevant to selected occasions:</span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedForWhom(selectedForWhom.length === visibleRecipients.length ? [] : visibleRecipients.map(r => r.slug))}
-                    className="text-[10px] text-primary font-medium hover:underline"
-                  >
-                    {selectedForWhom.length === visibleRecipients.length ? "Deselect All" : "Select All"}
-                  </button>
-                </div>
-                <ProductTagSelector
-                  label=""
-                  tags={visibleRecipients}
-                  selectedSlugs={selectedForWhom}
-                  onChange={setSelectedForWhom}
-                  fieldName="forWhom"
-                />
-              </div>
-            )}
-          </div>
-        )}
+          {selectedOccasions.length === 0 && (
+            <div className="rounded-xl border border-dashed border-border bg-muted/20 px-3 py-4 text-xs text-muted-foreground">
+              Select at least one occasion to unlock recipient subtags.
+            </div>
+          )}
 
-        {selectedOccasions.length === 0 && (
-          <div className="px-5 py-4 text-xs text-muted-foreground italic">
-            Select occasions above to see relevant recipient options
-          </div>
-        )}
+          {selectedOccasions.length > 0 && (
+            <div className="space-y-3">
+              {selectedOccasions.map((occasionSlug) => {
+                const occasion = occasions.find((item) => item.slug === occasionSlug);
+                const recipientsForOccasion = recipientGroupsByOccasion.get(occasionSlug) || [];
+                const selectedForThisOccasion = recipientsForOccasion.filter((recipient) =>
+                  selectedForWhom.includes(recipient.slug)
+                );
+
+                return (
+                  <div key={occasionSlug} className="rounded-2xl border border-border bg-gradient-to-br from-white to-muted/20 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">{occasion?.name || occasionSlug}</div>
+                        <div className="text-[11px] text-muted-foreground">{selectedForThisOccasion.length} selected</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleAllForOccasion(occasionSlug)}
+                        className="text-[11px] text-primary font-medium hover:underline"
+                      >
+                        {recipientsForOccasion.length > 0 && recipientsForOccasion.every((recipient) => selectedForWhom.includes(recipient.slug))
+                          ? "Deselect All"
+                          : "Select All"}
+                      </button>
+                    </div>
+
+                    {recipientsForOccasion.length === 0 ? (
+                      <p className="text-[11px] text-muted-foreground">No recipient tags configured for this occasion yet.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {recipientsForOccasion.map((recipient) => {
+                          const active = selectedForWhom.includes(recipient.slug);
+                          return (
+                            <button
+                              key={`${occasionSlug}-${recipient.slug}`}
+                              type="button"
+                              onClick={() => toggleRecipient(recipient.slug)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                                active
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-white text-foreground border-border hover:border-primary/40"
+                              }`}
+                            >
+                              {recipient.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <input type="hidden" name="occasions" value={JSON.stringify(selectedOccasions)} />
+        <input type="hidden" name="forWhom" value={JSON.stringify(selectedForWhom)} />
       </div>
     </>
   );

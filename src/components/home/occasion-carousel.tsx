@@ -32,7 +32,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
     el.scrollBy({ left: amount, behavior: "smooth" });
   }, []);
 
-  // Auto-slide every 3.5s
+  // Auto-slide every 1.8s
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -44,7 +44,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
         } else {
           scroll("right");
         }
-      }, 3500);
+      }, 1800);
     };
 
     startAutoSlide();

@@ -105,6 +105,7 @@ model Product {
 model ProductVariant {
   id          String  @id @default(cuid())
   name        String
+  serves      String?
   price       Float
   isAvailable Boolean @default(true)
   sortOrder   Int     @default(0)
