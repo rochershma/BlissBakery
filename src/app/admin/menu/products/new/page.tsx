@@ -8,7 +8,7 @@ import { VariantEditor } from "@/components/admin/variant-editor";
 import { FlavourEditor } from "@/components/admin/flavour-editor";
 
 export default async function NewProductPage() {
-  const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const categories = await db.category.findMany({ where: { isVisible: true }, orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const recipientGroups = occasions.map((occasion) => {

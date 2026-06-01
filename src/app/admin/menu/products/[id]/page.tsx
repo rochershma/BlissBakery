@@ -17,7 +17,7 @@ export default async function EditProductPage({ params }: Props) {
   const product = await db.product.findUnique({ where: { id }, include: { variants: true, addOns: true } });
   if (!product) return notFound();
 
-  const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
+  const categories = await db.category.findMany({ where: { isVisible: true }, orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const recipientGroups = occasions.map((occasion) => {
