@@ -66,7 +66,7 @@ export default async function NewCategoryPage({ searchParams }: { searchParams: 
           </div>
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Sort Order</label>
-            <input name="sortOrder" type="number" defaultValue={10} placeholder="0" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input name="sortOrder" inputMode="numeric" defaultValue={10} placeholder="0" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             <p className="text-xs text-muted-foreground mt-1">Lower numbers appear first</p>
           </div>
         </div>

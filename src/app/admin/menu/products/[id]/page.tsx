@@ -160,12 +160,12 @@ export default async function EditProductPage({ params }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Starting Price (₹) *</label>
-              <input name="basePrice" type="number" step="0.01" required defaultValue={product.basePrice} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="basePrice" inputMode="decimal" required defaultValue={product.basePrice} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               <p className="text-[10px] text-muted-foreground mt-1">Auto-set to cheapest variant if sizes added.</p>
             </div>
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">MRP Price (₹)</label>
-              <input name="mrpPrice" type="number" step="0.01" defaultValue={(product as any).mrpPrice || ""} placeholder="For strikethrough display" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="mrpPrice" inputMode="decimal" defaultValue={(product as any).mrpPrice || ""} placeholder="For strikethrough display" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
           <div>

@@ -102,7 +102,7 @@ export default async function AdminAddOnsPage() {
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Price (₹) *</label>
-            <input name="price" type="number" step="1" required placeholder="50" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            <input name="price" inputMode="decimal" required placeholder="50" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Category</label>

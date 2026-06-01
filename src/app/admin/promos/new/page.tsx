@@ -57,17 +57,17 @@ export default function NewPromoPage() {
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Discount Value *</label>
-              <input name="discountValue" type="number" step="0.01" required placeholder="10" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="discountValue" inputMode="decimal" required placeholder="10" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Min Order Value (₹)</label>
-              <input name="minOrderValue" type="number" step="0.01" placeholder="300" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="minOrderValue" inputMode="decimal" placeholder="300" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Max Discount (₹)</label>
-              <input name="maxDiscount" type="number" step="0.01" placeholder="100" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="maxDiscount" inputMode="decimal" placeholder="100" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,11 +83,11 @@ export default function NewPromoPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Total Usage Limit</label>
-              <input name="usageLimit" type="number" placeholder="1000" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="usageLimit" inputMode="numeric" placeholder="1000" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Per User Limit</label>
-              <input name="perUserLimit" type="number" defaultValue={1} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="perUserLimit" inputMode="numeric" defaultValue={1} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm cursor-pointer">

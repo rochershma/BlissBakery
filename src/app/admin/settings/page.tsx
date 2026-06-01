@@ -20,11 +20,12 @@ export default async function AdminSettingsPage() {
     const email = formData.get("email") as string;
     const fssaiLicense = formData.get("fssaiLicense") as string;
     const gstNumber = formData.get("gstNumber") as string;
-    const deliveryCharge = parseFloat(formData.get("deliveryCharge") as string) || 0;
-    const packagingCharge = parseFloat(formData.get("packagingCharge") as string) || 0;
-    const gstRate = parseFloat(formData.get("gstRate") as string) || 5;
-    const deliveryRadius = parseFloat(formData.get("deliveryRadius") as string) || 10;
-    const minDeliveryOrder = parseFloat(formData.get("minDeliveryOrder") as string) || 200;
+    const deliveryCharge = Math.max(0, parseFloat(formData.get("deliveryCharge") as string) || 0);
+    const packagingCharge = Math.max(0, parseFloat(formData.get("packagingCharge") as string) || 0);
+    const gstEnabled = formData.get("gstEnabled") === "on";
+    const gstRate = gstEnabled ? Math.max(0, Math.min(28, parseFloat(formData.get("gstRate") as string) || 0)) : 0;
+    const deliveryRadius = Math.max(0, parseFloat(formData.get("deliveryRadius") as string) || 10);
+    const minDeliveryOrder = Math.max(0, parseFloat(formData.get("minDeliveryOrder") as string) || 0);
     const staffWhatsApp = formData.get("staffWhatsApp") as string;
     const isOpen = formData.get("isOpen") === "on";
 
@@ -101,29 +102,36 @@ export default async function AdminSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Delivery Charge (₹)</label>
-              <input name="deliveryCharge" type="number" step="0.01" defaultValue={store.deliveryCharge || 0} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="deliveryCharge" inputMode="decimal" defaultValue={store.deliveryCharge || 0} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Packaging Charge (₹)</label>
-              <input name="packagingCharge" type="number" step="0.01" defaultValue={store.packagingCharge || 0} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="packagingCharge" inputMode="decimal" defaultValue={store.packagingCharge || 0} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
-              <label className="text-xs font-medium text-foreground block mb-1">GST Rate (%)</label>
-              <input name="gstRate" type="number" step="0.01" defaultValue={store.gstRate} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <label className="text-xs font-medium text-foreground block mb-1">GST</label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" name="gstEnabled" defaultChecked={store.gstRate > 0} className="w-4 h-4 accent-primary" />
+                  Enable GST
+                </label>
+                <input name="gstRate" inputMode="decimal" placeholder="e.g., 5" defaultValue={store.gstRate > 0 ? store.gstRate : ''} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <p className="text-[10px] text-muted-foreground">Set to 0 or uncheck to disable GST</p>
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Delivery Radius (km)</label>
-              <input name="deliveryRadius" type="number" step="0.5" defaultValue={store.deliveryRadius || 10} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="deliveryRadius" inputMode="decimal" defaultValue={store.deliveryRadius || 10} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Min Delivery Order (₹)</label>
-              <input name="minDeliveryOrder" type="number" step="1" defaultValue={store.minDeliveryOrder || 200} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="minDeliveryOrder" inputMode="decimal" defaultValue={store.minDeliveryOrder || 200} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Staff WhatsApp No.</label>
-              <input name="staffWhatsApp" placeholder="9602831559" defaultValue={store.staffWhatsApp || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="staffWhatsApp" inputMode="tel" placeholder="9602831559" defaultValue={store.staffWhatsApp || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
         </div>

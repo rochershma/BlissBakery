@@ -79,18 +79,18 @@ export default async function EditPromoPage({ params }: Props) {
             </div>
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Discount Value *</label>
-              <input name="discountValue" type="number" step="0.01" required defaultValue={promo.discountValue} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="discountValue" inputMode="decimal" required defaultValue={promo.discountValue} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Min Order Value (₹)</label>
-              <input name="minOrderValue" type="number" step="0.01" defaultValue={promo.minOrderValue || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="minOrderValue" inputMode="decimal" defaultValue={promo.minOrderValue || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Max Discount (₹)</label>
-              <input name="maxDiscount" type="number" step="0.01" defaultValue={promo.maxDiscount || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="maxDiscount" inputMode="decimal" defaultValue={promo.maxDiscount || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
 
@@ -108,11 +108,11 @@ export default async function EditPromoPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Total Usage Limit</label>
-              <input name="usageLimit" type="number" defaultValue={promo.usageLimit || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="usageLimit" inputMode="numeric" defaultValue={promo.usageLimit || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Per User Limit</label>
-              <input name="perUserLimit" type="number" defaultValue={promo.perUserLimit || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="perUserLimit" inputMode="numeric" defaultValue={promo.perUserLimit || ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
           </div>
 
