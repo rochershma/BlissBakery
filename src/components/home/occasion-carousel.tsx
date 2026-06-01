@@ -127,11 +127,6 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
               </Link>
             ))}
           </div>
-          {/* Mobile scroll hint */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
-          {canScrollLeft && (
-            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none md:hidden" />
-          )}
         </div>
       </div>
     </section>
