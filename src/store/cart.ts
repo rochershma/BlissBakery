@@ -47,16 +47,17 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) => {
         const { items } = get();
-        const key = `${item.productId}-${item.variantName || ""}`;
+        // Include customization in dedup key so different messages/flavours are separate items
+        const key = `${item.productId}-${item.variantName || ""}-${item.flavour || ""}-${item.cakeMessage || ""}-${item.occasion || ""}-${item.recipientName || ""}`;
         const existing = items.find(
-          (i) => `${i.productId}-${i.variantName || ""}` === key
+          (i) => `${i.productId}-${i.variantName || ""}-${i.flavour || ""}-${i.cakeMessage || ""}-${i.occasion || ""}-${i.recipientName || ""}` === key
         );
 
         if (existing) {
-          if (existing.quantity >= 50) return; // Max 50 per item
+          if (existing.quantity >= 50) return;
           set({
             items: items.map((i) =>
-              `${i.productId}-${i.variantName || ""}` === key
+              `${i.productId}-${i.variantName || ""}-${i.flavour || ""}-${i.cakeMessage || ""}-${i.occasion || ""}-${i.recipientName || ""}` === key
                 ? { ...i, quantity: Math.min(i.quantity + 1, 50) }
                 : i
             ),

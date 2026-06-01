@@ -54,6 +54,10 @@ export async function GET() {
             unitPrice: i.unitPrice,
             totalPrice: i.totalPrice,
             cakeMessage: i.cakeMessage,
+            flavour: i.flavour,
+            occasion: i.occasion,
+            recipientName: i.recipientName,
+            recipientAge: i.recipientAge,
             image: parseImages(i.product?.images ?? null)?.[0] || null,
           })),
         };

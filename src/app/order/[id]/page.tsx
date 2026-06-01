@@ -115,6 +115,13 @@ export default async function OrderPage({ params }: Props) {
                     {item.cakeMessage && (
                       <p className="text-[11px] text-primary italic mt-0.5">&ldquo;{item.cakeMessage}&rdquo;</p>
                     )}
+                    {(item.occasion || item.recipientName) && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {item.occasion && <span className="capitalize">{item.occasion}</span>}
+                        {item.recipientName && <span> for {item.recipientName}</span>}
+                        {item.recipientAge && <span> ({item.recipientAge} yrs)</span>}
+                      </p>
+                    )}
                   </div>
                   <span className="text-sm font-semibold text-foreground">{formatPrice(item.totalPrice)}</span>
                 </div>

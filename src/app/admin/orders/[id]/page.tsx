@@ -68,8 +68,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                     </div>
                     <span className="font-medium">{formatPrice(item.totalPrice)}</span>
                   </div>
-                  {((item as any).cakeMessage || (item as any).occasion || (item as any).recipientName) && (
+                  {((item as any).flavour || (item as any).cakeMessage || (item as any).occasion || (item as any).recipientName) && (
                     <div className="mt-1.5 bg-primary/5 rounded-lg px-3 py-2 text-xs space-y-0.5">
+                      {(item as any).flavour && (
+                        <p className="text-foreground">Flavour: <span className="font-medium">{(item as any).flavour}</span></p>
+                      )}
                       {(item as any).cakeMessage && (
                         <p className="text-primary font-semibold">Cake Message: &ldquo;{(item as any).cakeMessage}&rdquo;</p>
                       )}
