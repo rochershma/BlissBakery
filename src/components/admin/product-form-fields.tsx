@@ -16,15 +16,14 @@ interface Props {
   recipients: RecipientTag[];
 }
 
-// Mapping of occasions to relevant recipients
+// Mapping of occasions to relevant recipients (slugs must match DB)
 const OCCASION_RECIPIENT_MAP: Record<string, string[]> = {
-  "birthday": ["for-wife", "for-husband", "for-kids", "for-friend", "for-dad", "for-mom", "for-parents"],
-  "anniversary": ["for-wife", "for-husband", "for-parents"],
-  "wedding": ["for-friend", "for-colleague"],
-  "festival": ["for-family", "for-friend"],
-  "kids-cake": ["for-kids"],
-  "designer-cakes": ["for-wife", "for-husband", "for-friend", "for-colleague", "for-parents"],
-  "engagement": ["for-friend"],
+  "birthday": ["wife", "husband", "kids", "friend", "dad", "mom", "father-s-day"],
+  "anniversary": ["wife", "husband", "mom"],
+  "wedding": ["friend"],
+  "festival": ["friend", "mom"],
+  "kids-cake": ["kids"],
+  "designer": ["wife", "husband", "friend", "mom"],
 };
 
 export function ProductFormFields({ defaultImages, defaultOccasions, defaultForWhom, occasions, recipients }: Props) {
