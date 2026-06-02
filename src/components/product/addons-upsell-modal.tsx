@@ -67,11 +67,18 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
   ].filter((g) => g.items.length > 0);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] bg-black/40" onClick={onClose}>
+      {/* Full-screen on mobile, centered modal on desktop */}
       <div
-        className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[90vh] flex flex-col"
+        className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white md:w-full md:max-w-xl md:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 flex flex-col"
+        style={{ maxHeight: "calc(100vh - 40px)", height: storeAddOns.length > 0 ? "auto" : "auto" }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle — mobile */}
+        <div className="md:hidden flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 rounded-full bg-border" />
+        </div>
+
         {/* Success header with product info */}
         <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-5 py-4">
           <div className="flex items-center gap-3">
