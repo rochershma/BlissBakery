@@ -10,6 +10,8 @@
 | Task 5: Image Zoom/Lightbox | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
 | Task 6: Search Bar in Header | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
 | Task 8: Add-on Upsell Modal | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
+| **Add-to-Cart Redesign** | `76598b1` | ✅ DEPLOYED | June 2, 2026 |
+| **Admin Add-Ons with Images** | `76598b1` | ✅ DEPLOYED | June 2, 2026 |
 
 ---
 
