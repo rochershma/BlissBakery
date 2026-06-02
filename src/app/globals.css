@@ -95,16 +95,25 @@ body {
   user-select: none;
 }
 
-/* Re-enable selection only where user needs to copy/type */
+/* Re-enable selection only where user needs to type */
 input, textarea, select, [contenteditable="true"] {
   -webkit-user-select: text;
   user-select: text;
 }
 
-/* Allow selection on actual readable content like descriptions */
-p, article, .selectable {
+/* Allow selection on standalone content paragraphs (not inside links/buttons/cards) */
+main > div > div > p,
+article p,
+.selectable {
   -webkit-user-select: text;
   user-select: text;
+}
+
+/* Never allow selection inside interactive containers regardless of child type */
+a *, button *, label *, nav *,
+.product-card *, .category-card * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 h1, h2, h3, h4 {
