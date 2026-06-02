@@ -28,7 +28,7 @@ export default function NotFoundPage() {
       </div>
       <h1 className="text-3xl font-bold text-foreground font-serif mb-2">Page Not Found</h1>
       <p className="text-muted-foreground mb-6 max-w-sm">
-        Oops! This page doesn&apos;t exist. But our delicious cakes do!
+        Oops! This page doesn&apos;t exist. But our delicious cakes do! Explore our freshly baked collection.
       </p>
       <p className="text-sm text-muted-foreground mb-4">
         Redirecting to home in <span className="font-bold text-primary">{countdown}s</span>...
@@ -41,7 +41,7 @@ export default function NotFoundPage() {
           <Home className="w-4 h-4" /> Go Home
         </Link>
         <Link
-          href="/"
+          href="/store/kuchaman-city/menu"
           className="flex items-center gap-2 border border-border px-6 py-3 rounded-full font-medium text-foreground hover:bg-muted transition-colors"
         >
           Browse Menu <ArrowRight className="w-4 h-4" />

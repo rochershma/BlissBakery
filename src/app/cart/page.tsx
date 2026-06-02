@@ -117,7 +117,7 @@ export default function CartPage() {
             {items.map((item, idx) => (
               <div key={`${item.productId}-${item.variantName || ""}-${idx}`} className="px-4 py-3 flex items-center gap-3">
                 {/* Item Image — clickable */}
-                <Link href={`/store/${storeSlug || 'kuchaman-city'}/menu/${item.productId}`} className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                <Link href={item.productSlug ? `/store/${storeSlug || 'kuchaman-city'}/menu/${item.productSlug}` : `/store/${storeSlug || 'kuchaman-city'}/menu`} className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                   {item.image ? (
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
@@ -127,7 +127,7 @@ export default function CartPage() {
 
                 {/* Item Details */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{item.name}</h3>
+                  <Link href={item.productSlug ? `/store/${storeSlug || 'kuchaman-city'}/menu/${item.productSlug}` : `/store/${storeSlug || 'kuchaman-city'}/menu`} className="text-sm font-semibold text-foreground truncate block hover:text-primary transition-colors">{item.name}</Link>
                   {item.variantName && (
                     <p className="text-xs text-muted-foreground">{item.variantName}</p>
                   )}

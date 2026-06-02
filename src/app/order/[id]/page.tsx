@@ -26,7 +26,7 @@ export default async function OrderPage({ params }: Props) {
   const order = await db.order.findUnique({
     where: { id },
     include: {
-      items: { include: { product: { select: { images: true } } } },
+      items: { include: { product: { select: { images: true, slug: true } } } },
       user: true,
       store: true,
       statusHistory: { orderBy: { createdAt: "desc" } },
@@ -98,15 +98,15 @@ export default async function OrderPage({ params }: Props) {
               const img = images[0] || null;
               return (
                 <div key={item.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border">
+                  <Link href={item.product?.slug ? `/store/kuchaman-city/menu/${item.product.slug}` : '/store/kuchaman-city/menu'} className="relative w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0 border border-border">
                     {img ? (
                       <Image src={img} alt={item.productName} fill className="object-cover" sizes="56px" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-xl bg-primary/5">🎂</div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground leading-tight">{item.productName}</p>
+                    <Link href={item.product?.slug ? `/store/kuchaman-city/menu/${item.product.slug}` : '/store/kuchaman-city/menu'} className="text-sm font-medium text-foreground leading-tight hover:text-primary transition-colors">{item.productName}</Link>
                     <p className="text-[11px] text-muted-foreground">
                       {item.variantName && `${item.variantName}`}
                       {item.flavour && ` · ${item.flavour}`}

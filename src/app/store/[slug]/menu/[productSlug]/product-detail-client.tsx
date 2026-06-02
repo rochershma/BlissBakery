@@ -128,6 +128,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
     for (let i = 0; i < quantity; i++) {
       addItem({
         productId: product.id,
+        productSlug: product.slug,
         name: product.name,
         image: product.image,
         variantName: selectedVariant?.name,
