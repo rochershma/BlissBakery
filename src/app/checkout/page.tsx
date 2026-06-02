@@ -145,13 +145,29 @@ export default function CheckoutPage() {
       setShowLoginModal(true);
       return;
     }
-    if (orderType === "DELIVERY" && !deliveryAddress.trim()) {
-      toast("Please enter your delivery address", "error");
-      return;
-    }
-    if (orderType === "DELIVERY" && subtotal < storeConfig.minDeliveryOrder) {
-      toast(`Minimum order for delivery is ₹${storeConfig.minDeliveryOrder}`, "error");
-      return;
+    if (orderType === "DELIVERY") {
+      if (!deliveryAddress.trim()) {
+        toast("Please select or enter a delivery address", "error");
+        return;
+      }
+      // Validate pincode — must be 6 digits and match store pincode
+      const pincodeMatch = deliveryAddress.match(/\d{6}/);
+      const enteredPin = selectedAddressId
+        ? savedAddresses.find((a) => a.id === selectedAddressId)?.pincode
+        : newAddr.pincode;
+      const pin = enteredPin || (pincodeMatch ? pincodeMatch[0] : "");
+      if (!pin || pin.length !== 6) {
+        toast("Please enter a valid 6-digit pincode", "error");
+        return;
+      }
+      if (pin !== "341508") {
+        toast("We only deliver to pincode 341508 (Kuchaman City)", "error");
+        return;
+      }
+      if (subtotal < storeConfig.minDeliveryOrder) {
+        toast(`Minimum order for delivery is ₹${storeConfig.minDeliveryOrder}`, "error");
+        return;
+      }
     }
     setProcessing(true);
 
@@ -389,21 +405,27 @@ export default function CheckoutPage() {
                       value={newAddr.pincode}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-                        setNewAddr({ ...newAddr, pincode: val });
-                        if (val.length === 6) {
-                          const full = [newAddr.flatHouse, newAddr.streetArea, newAddr.landmark, newAddr.city, val].filter(Boolean).join(", ");
+                        const updated = { ...newAddr, pincode: val };
+                        setNewAddr(updated);
+                        if (val.length === 6 && val === "341508") {
+                          const full = [updated.flatHouse, updated.streetArea, updated.landmark, updated.city, val].filter(Boolean).join(", ");
                           setDeliveryAddress(full);
                           setSelectedAddressId("");
+                        } else {
+                          setDeliveryAddress("");
                         }
                       }}
-                      placeholder="Pincode *"
+                      placeholder="6-digit Pincode *"
                       inputMode="numeric"
                       maxLength={6}
                       className={`px-3 py-2.5 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-                        newAddr.pincode.length === 6 && newAddr.pincode !== "341508" ? "border-red-400" : "border-border"
+                        newAddr.pincode.length > 0 && (newAddr.pincode.length < 6 || newAddr.pincode !== "341508") ? "border-red-400" : newAddr.pincode === "341508" ? "border-green-400" : "border-border"
                       }`}
                     />
                   </div>
+                  {newAddr.pincode.length > 0 && newAddr.pincode.length < 6 && (
+                    <p className="text-xs text-amber-600">Enter 6-digit pincode ({6 - newAddr.pincode.length} more digits)</p>
+                  )}
                   {newAddr.pincode.length === 6 && newAddr.pincode !== "341508" && (
                     <p className="text-xs text-red-600">⚠ We deliver only to pincode 341508 (Kuchaman City)</p>
                   )}
