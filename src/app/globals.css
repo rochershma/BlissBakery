@@ -89,19 +89,20 @@ body {
   -webkit-touch-callout: none;
 }
 
-/* Prevent text selection on all non-content elements (mobile tap/hold) */
-button, a, label, [role="button"],
-nav, header, footer, aside,
-.product-card, .category-card, .btn-press,
-[class*="rounded-full"], [class*="rounded-xl"] {
+/* Global: disable text selection everywhere by default */
+* {
   -webkit-user-select: none;
   user-select: none;
-  -webkit-touch-callout: none;
 }
 
-/* Allow selection only in actual text content and inputs */
-input, textarea, [contenteditable="true"],
-article p, main > div > p, .prose {
+/* Re-enable selection only where user needs to copy/type */
+input, textarea, select, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Allow selection on actual readable content like descriptions */
+p, article, .selectable {
   -webkit-user-select: text;
   user-select: text;
 }
