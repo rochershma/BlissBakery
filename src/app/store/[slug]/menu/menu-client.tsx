@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, X } from "lucide-react";
+import { Search, X, SlidersHorizontal, ChevronDown, ArrowUpDown } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -27,6 +27,7 @@ interface ProductItem {
   isNew: boolean;
   categorySlug: string;
   categoryName: string;
+  flavours: string[];
   variants: { id: string; name: string; price: number }[];
 }
 
@@ -40,20 +41,109 @@ interface Props {
 
 const categoryEmojis: Record<string, string> = {
   cakes: "🎂", pastries: "🧁", brownies: "🍫", "cookies-biscuits": "🍪", breads: "🍞", combos: "🎁", beverages: "☕",
+  "cheese-cakes": "🧀", "cup-cakes": "🧁",
 };
+
+type SortOption = "popular" | "price-low" | "price-high" | "newest" | "name-az";
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "popular", label: "Popular" },
+  { value: "price-low", label: "Price: Low → High" },
+  { value: "price-high", label: "Price: High → Low" },
+  { value: "newest", label: "Newest First" },
+  { value: "name-az", label: "Name: A → Z" },
+];
+
+const PRICE_RANGES = [
+  { label: "Under ₹500", min: 0, max: 500 },
+  { label: "₹500 – ₹1,000", min: 500, max: 1000 },
+  { label: "₹1,000 – ₹2,000", min: 1000, max: 2000 },
+  { label: "Above ₹2,000", min: 2000, max: Infinity },
+];
 
 export function MenuClient({ storeSlug, categories, products, activeCategory, searchQuery }: Props) {
   const router = useRouter();
   const { addItem, items, getItemCount, getSubtotal, setStoreSlug } = useCartStore();
   const [search, setSearch] = useState(searchQuery);
-  const [showMenu, setShowMenu] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => setHydrated(true), []);
 
+  // Sort & Filter state
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
+  const [showSort, setShowSort] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFlavours, setSelectedFlavours] = useState<Set<string>>(new Set());
+  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
+  const [selectedWeights, setSelectedWeights] = useState<Set<string>>(new Set());
+
   const itemCount = hydrated ? getItemCount() : 0;
   const subtotal = hydrated ? getSubtotal() : 0;
+
+  // Extract unique flavours and weights from all products
+  const allFlavours = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => p.flavours?.forEach((f) => set.add(f)));
+    return Array.from(set).sort();
+  }, [products]);
+
+  const allWeights = useMemo(() => {
+    const set = new Set<string>();
+    products.forEach((p) => p.variants?.forEach((v) => set.add(v.name)));
+    return Array.from(set).sort((a, b) => {
+      const numA = parseFloat(a); const numB = parseFloat(b);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return a.localeCompare(b);
+    });
+  }, [products]);
+
+  const activeFilterCount = selectedFlavours.size + (selectedPriceRange !== null ? 1 : 0) + selectedWeights.size;
+
+  // Apply client-side sort & filter
+  const processedProducts = useMemo(() => {
+    let result = [...products];
+
+    // Filter by flavour
+    if (selectedFlavours.size > 0) {
+      result = result.filter((p) => p.flavours?.some((f) => selectedFlavours.has(f)));
+    }
+
+    // Filter by price range
+    if (selectedPriceRange !== null) {
+      const range = PRICE_RANGES[selectedPriceRange];
+      result = result.filter((p) => {
+        const price = p.variants.length > 0 ? p.variants[0].price : p.basePrice;
+        return price >= range.min && price < range.max;
+      });
+    }
+
+    // Filter by weight
+    if (selectedWeights.size > 0) {
+      result = result.filter((p) => p.variants?.some((v) => selectedWeights.has(v.name)));
+    }
+
+    // Sort
+    switch (sortBy) {
+      case "price-low":
+        result.sort((a, b) => (a.variants[0]?.price || a.basePrice) - (b.variants[0]?.price || b.basePrice));
+        break;
+      case "price-high":
+        result.sort((a, b) => (b.variants[0]?.price || b.basePrice) - (a.variants[0]?.price || a.basePrice));
+        break;
+      case "newest":
+        result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+        break;
+      case "name-az":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "popular":
+      default:
+        result.sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
+        break;
+    }
+
+    return result;
+  }, [products, sortBy, selectedFlavours, selectedPriceRange, selectedWeights]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -71,13 +161,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
     const price = product.variants.length > 0 ? product.variants[0].price : product.basePrice;
     const variantName = product.variants.length > 0 ? product.variants[0].name : undefined;
     const img = product.images[0] || undefined;
-    addItem({
-      productId: product.id,
-      name: product.name,
-      image: img,
-      variantName,
-      unitPrice: price,
-    });
+    addItem({ productId: product.id, name: product.name, image: img, variantName, unitPrice: price });
   };
 
   const getItemQty = (productId: string) => {
@@ -85,25 +169,37 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
     return items.filter((i) => i.productId === productId).reduce((sum, i) => sum + i.quantity, 0);
   };
 
-  // Group products by category for display
+  const clearAllFilters = () => {
+    setSelectedFlavours(new Set());
+    setSelectedPriceRange(null);
+    setSelectedWeights(new Set());
+    setSortBy("popular");
+  };
+
+  const toggleFlavour = (f: string) => setSelectedFlavours((prev) => { const n = new Set(prev); n.has(f) ? n.delete(f) : n.add(f); return n; });
+  const toggleWeight = (w: string) => setSelectedWeights((prev) => { const n = new Set(prev); n.has(w) ? n.delete(w) : n.add(w); return n; });
+
+  // Group products by category
   const grouped = categories
     .map((cat) => ({
       ...cat,
-      products: products.filter((p) => p.categorySlug === cat.slug),
+      products: processedProducts.filter((p) => p.categorySlug === cat.slug),
     }))
     .filter((g) => g.products.length > 0);
 
+  const totalVisible = processedProducts.length;
+
   return (
     <div className="flex-1 flex flex-col">
-      {/* Combined Search + Categories — compact single sticky bar */}
+      {/* Sticky toolbar */}
       <div className="sticky top-[57px] z-40 bg-white/95 backdrop-blur-sm border-b border-border">
-        {/* Search — slim */}
+        {/* Search */}
         <div className="max-w-7xl mx-auto px-4 pt-2 pb-1.5">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search menu..."
+              placeholder="Search cakes, pastries..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-full pl-9 pr-8 py-2 rounded-lg bg-muted/60 border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
@@ -115,37 +211,232 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
             )}
           </div>
         </div>
-        {/* Category chips — compact scroll */}
-        <div className="max-w-7xl mx-auto px-4 pb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
-          <Link
-            href={`/store/${storeSlug}/menu`}
-            className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              !activeCategory ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
-            }`}
-          >
-            All
-          </Link>
-          {categories.map((cat) => (
+
+        {/* Category chips + Sort/Filter */}
+        <div className="max-w-7xl mx-auto px-4 pb-2 flex items-center gap-2">
+          <div className="flex-1 flex gap-1.5 overflow-x-auto no-scrollbar">
             <Link
-              key={cat.id}
-              href={`/store/${storeSlug}/menu?category=${cat.slug}`}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                activeCategory === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+              href={`/store/${storeSlug}/menu`}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                !activeCategory ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
               }`}
             >
-              <span className="text-sm">{categoryEmojis[cat.slug] || "🍰"}</span>
-              {cat.name}
+              All
             </Link>
-          ))}
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/store/${storeSlug}/menu?category=${cat.slug}`}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
+                  activeCategory === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+                }`}
+              >
+                <span className="text-sm">{categoryEmojis[cat.slug] || "🍰"}</span>
+                {cat.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Sort & Filter buttons */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              onClick={() => setShowSort(!showSort)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ${
+                sortBy !== "popular" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <ArrowUpDown className="w-3 h-3" />
+              <span className="hidden sm:inline">Sort</span>
+            </button>
+            <button
+              onClick={() => setShowFilters(true)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors relative ${
+                activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <SlidersHorizontal className="w-3 h-3" />
+              <span className="hidden sm:inline">Filter</span>
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Sort dropdown */}
+        {showSort && (
+          <div className="max-w-7xl mx-auto px-4 pb-2">
+            <div className="bg-white border border-border rounded-xl shadow-lg p-1 flex flex-wrap gap-1">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => { setSortBy(opt.value); setShowSort(false); }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    sortBy === opt.value ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Active filters strip */}
+        {activeFilterCount > 0 && (
+          <div className="max-w-7xl mx-auto px-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="text-[10px] text-muted-foreground flex-shrink-0">{totalVisible} results</span>
+            {Array.from(selectedFlavours).map((f) => (
+              <span key={f} className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
+                {f}
+                <button onClick={() => toggleFlavour(f)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
+              </span>
+            ))}
+            {selectedPriceRange !== null && (
+              <span className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
+                {PRICE_RANGES[selectedPriceRange].label}
+                <button onClick={() => setSelectedPriceRange(null)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
+              </span>
+            )}
+            {Array.from(selectedWeights).map((w) => (
+              <span key={w} className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
+                {w}
+                <button onClick={() => toggleWeight(w)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
+              </span>
+            ))}
+            <button onClick={clearAllFilters} className="flex-shrink-0 text-[10px] text-destructive font-medium hover:underline">
+              Clear all
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Filter Drawer — bottom sheet on mobile, side panel on desktop */}
+      {showFilters && (
+        <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setShowFilters(false)}>
+          <div
+            className="absolute inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto md:w-80 bg-white md:rounded-none rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom md:slide-in-from-right duration-300 flex flex-col"
+            style={{ maxHeight: "85vh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Drag handle — mobile */}
+            <div className="md:hidden flex justify-center pt-2 pb-1">
+              <div className="w-10 h-1 rounded-full bg-border" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+              <div>
+                <h3 className="text-base font-bold text-foreground">Filters</h3>
+                {activeFilterCount > 0 && (
+                  <p className="text-[10px] text-muted-foreground">{activeFilterCount} active · {totalVisible} results</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {activeFilterCount > 0 && (
+                  <button onClick={clearAllFilters} className="text-xs text-destructive font-medium hover:underline">
+                    Clear All
+                  </button>
+                )}
+                <button onClick={() => setShowFilters(false)} className="p-1.5 rounded-full hover:bg-muted">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter sections */}
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
+              {/* Price Range */}
+              <div>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Price Range</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {PRICE_RANGES.map((range, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedPriceRange(selectedPriceRange === idx ? null : idx)}
+                      className={`px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all ${
+                        selectedPriceRange === idx
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-border text-foreground hover:border-primary/30"
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Flavours */}
+              {allFlavours.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Flavour</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {allFlavours.map((f) => (
+                      <button
+                        key={f}
+                        onClick={() => toggleFlavour(f)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all ${
+                          selectedFlavours.has(f)
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border text-foreground hover:border-primary/30"
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Weight */}
+              {allWeights.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Weight / Size</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {allWeights.map((w) => (
+                      <button
+                        key={w}
+                        onClick={() => toggleWeight(w)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all ${
+                          selectedWeights.has(w)
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border text-foreground hover:border-primary/30"
+                        }`}
+                      >
+                        {w}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Apply button */}
+            <div className="border-t border-border px-5 py-3 safe-area-bottom">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors text-sm"
+              >
+                Show {totalVisible} Results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Products */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-4 w-full">
-        {grouped.length === 0 ? (
+        {processedProducts.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-3xl mb-2">🔍</p>
-            <p className="text-sm text-muted-foreground">No products found.</p>
+            <p className="text-sm text-muted-foreground mb-3">No products match your filters.</p>
+            {activeFilterCount > 0 && (
+              <button onClick={clearAllFilters} className="text-sm text-primary font-medium hover:underline">
+                Clear all filters
+              </button>
+            )}
           </div>
         ) : (
           grouped.map((group) => (
@@ -157,7 +448,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
               </h2>
               {(() => {
                 const INITIAL_SHOW = 8;
-                const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search;
+                const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search || activeFilterCount > 0;
                 const visibleProducts = isExpanded ? group.products : group.products.slice(0, INITIAL_SHOW);
                 const hasMore = group.products.length > INITIAL_SHOW && !isExpanded;
                 return (
@@ -166,35 +457,24 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                 {visibleProducts.map((product) => {
                   const qty = getItemQty(product.id);
                   return (
-                    <div
-                      key={product.id}
-                      className="product-card bg-white rounded-xl border border-border overflow-hidden"
-                    >
-                      {/* Product Image */}
+                    <div key={product.id} className="product-card bg-white rounded-xl border border-border overflow-hidden">
                       <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="block">
                         <div className="aspect-square bg-muted relative overflow-hidden rounded-t-xl">
                           {product.images[0] ? (
-                            <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw">
-                            </HoverImageCycler>
+                            <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw" />
                           ) : (
                             <div className="w-full h-full bg-primary-light flex items-center justify-center text-2xl">
                               <span className="product-img-zoom">{categoryEmojis[product.categorySlug] || "🍰"}</span>
                             </div>
                           )}
-                          {/* Top-left badges */}
                           <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5 z-10">
                             {product.isBestseller && (
-                              <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                                ★ BEST
-                              </span>
+                              <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">★ BEST</span>
                             )}
                             {product.isNew && (
-                              <span className="bg-accent text-accent-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                                NEW
-                              </span>
+                              <span className="bg-accent text-accent-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
                             )}
                           </div>
-                          {/* % OFF badge — top right */}
                           {product.mrpPrice && product.mrpPrice > product.basePrice && (
                             <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10">
                               {Math.round(((product.mrpPrice - product.basePrice) / product.mrpPrice) * 100)}% OFF
@@ -202,34 +482,23 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                           )}
                         </div>
                       </Link>
-
-                      {/* Product Info — compact */}
                       <div className="p-2">
-                        {/* Eggless badge */}
                         <div className="flex items-center gap-1 mb-1">
                           <span className="inline-flex items-center gap-0.5 bg-green-50 text-green-700 text-[8px] font-semibold px-1.5 py-0.5 rounded-full border border-green-200">
                             <svg className="w-2 h-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
                             Eggless
                           </span>
                         </div>
-                        <div className="flex items-start gap-1 mb-0.5">
-                          <Link
-                            href={`/store/${storeSlug}/menu/${product.slug}`}
-                            className="font-semibold text-[11px] text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight"
-                          >
-                            {product.name}
-                          </Link>
-                        </div>
-                        {/* Earliest delivery */}
+                        <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="font-semibold text-[11px] text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight">
+                          {product.name}
+                        </Link>
                         <p className="text-[9px] text-muted-foreground mt-0.5 mb-1">🚚 Earliest: <span className="font-medium text-foreground">Today</span></p>
                         <div className="flex items-center justify-between mt-1">
                           <div className="flex items-baseline gap-1">
                             <span className="font-bold text-foreground text-sm">
                               {product.variants.length > 0 ? (
                                 <><span className="text-[10px] font-normal text-muted-foreground">from </span>{formatPrice(product.variants[0].price)}</>
-                              ) : (
-                                formatPrice(product.basePrice)
-                              )}
+                              ) : formatPrice(product.basePrice)}
                             </span>
                             {product.mrpPrice && product.mrpPrice > product.basePrice && (
                               <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
@@ -237,31 +506,12 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                           </div>
                           {qty > 0 ? (
                             <div className="flex items-center gap-1.5 bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
-                              <button
-                                onClick={() => {
-                                  const item = items.find((i) => i.productId === product.id);
-                                  if (item) {
-                                    const { updateQuantity } = useCartStore.getState();
-                                    updateQuantity(product.id, item.quantity - 1, item.variantName);
-                                  }
-                                }}
-                                className="text-[10px] font-bold w-4 h-4 flex items-center justify-center"
-                              >
-                                −
-                              </button>
+                              <button onClick={() => { const item = items.find((i) => i.productId === product.id); if (item) useCartStore.getState().updateQuantity(product.id, item.quantity - 1, item.variantName); }} className="text-[10px] font-bold w-4 h-4 flex items-center justify-center">−</button>
                               <span className="text-[10px] font-bold min-w-[12px] text-center">{qty}</span>
-                              <button
-                                onClick={() => handleAddToCart(product)}
-                                className="text-[10px] font-bold w-4 h-4 flex items-center justify-center"
-                              >
-                                +
-                              </button>
+                              <button onClick={() => handleAddToCart(product)} className="text-[10px] font-bold w-4 h-4 flex items-center justify-center">+</button>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => handleAddToCart(product)}
-                              className="add-btn text-[10px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold hover:bg-primary hover:text-primary-foreground transition-all"
-                            >
+                            <button onClick={() => handleAddToCart(product)} className="add-btn text-[10px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold hover:bg-primary hover:text-primary-foreground transition-all">
                               ADD +
                             </button>
                           )}

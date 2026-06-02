@@ -89,6 +89,7 @@ export default async function MenuPage({ params, searchParams }: Props) {
           isNew: p.isNew,
           categorySlug: p.categorySlug,
           categoryName: p.categoryName,
+          flavours: parseJsonSafe<string[]>((p as any).flavours, []),
           variants: p.variants?.map((v) => ({ id: v.id, name: v.name, price: v.price })) || [],
         }))}
         activeCategory={activeCategory || null}
