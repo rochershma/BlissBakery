@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
-  const { label, fullAddress, landmark, pincode } = body;
+  const { label, fullAddress, landmark, city, state, pincode } = body;
 
   if (!fullAddress?.trim() || !pincode?.trim()) {
     return NextResponse.json({ error: "Address and pincode are required" }, { status: 400 });
@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
       label: sanitize(label) || "Home",
       fullAddress: sanitize(fullAddress)!,
       landmark: sanitize(landmark),
+      city: sanitize(city),
+      state: sanitize(state),
       pincode: pincode.trim(),
     },
   });

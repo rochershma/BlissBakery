@@ -145,6 +145,8 @@ model Address {
   label       String?
   fullAddress String   @db.Text
   landmark    String?
+  city        String?
+  state       String?
   pincode     String
   latitude    Float?
   longitude   Float?

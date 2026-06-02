@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { useAuth } from "@/components/auth/auth-provider";
 import { formatPrice } from "@/lib/utils";
-import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat } from "lucide-react";
+import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat, Check } from "lucide-react";
 import { SiteHeader } from "@/components/shared/site-header";
 import { useToast } from "@/components/shared/toast";
 
@@ -55,10 +55,21 @@ export default function CheckoutPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("");
   const { toast } = useToast();
+  const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string; fullAddress: string; landmark: string | null; city: string | null; pincode: string }[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>("");
+  const [showNewAddress, setShowNewAddress] = useState(false);
+  const [newAddr, setNewAddr] = useState({ flatHouse: "", streetArea: "", landmark: "", city: "Kuchaman City", pincode: "" });
 
   useEffect(() => setHydrated(true), []);
 
-  // Fetch store config (charges from DB)
+  // Fetch store config + saved addresses
+  useEffect(() => {
+    fetch("/api/addresses").then((r) => r.json()).then((data) => {
+      if (data.addresses) setSavedAddresses(data.addresses);
+    }).catch(() => {});
+  }, []);
+
+  // Fetch store config
   useEffect(() => {
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig(data);
@@ -322,18 +333,87 @@ export default function CheckoutPage() {
             </div>
           )}
           {orderType === "DELIVERY" && (
-            <div className="mt-3 bg-muted rounded-lg p-3 space-y-2">
+            <div className="mt-3 space-y-3">
               <p className="text-xs font-medium text-foreground">Delivery Address</p>
-              <textarea
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                placeholder="Full address with landmark, area, pincode..."
-                rows={2}
-                className="w-full px-3 py-2 rounded-lg border border-border text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none bg-white"
-              />
-              {orderType === "DELIVERY" && !deliveryAddress.trim() && (
-                <p className="text-[10px] text-destructive">* Delivery address is required</p>
+
+              {/* Saved addresses */}
+              {savedAddresses.length > 0 && !showNewAddress && (
+                <div className="space-y-2">
+                  {savedAddresses.map((addr) => {
+                    const notDeliverable = addr.pincode !== "341508";
+                    return (
+                      <button
+                        key={addr.id}
+                        type="button"
+                        disabled={notDeliverable}
+                        onClick={() => {
+                          setSelectedAddressId(addr.id);
+                          setDeliveryAddress([addr.fullAddress, addr.city, addr.pincode].filter(Boolean).join(", "));
+                        }}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
+                          notDeliverable
+                            ? "opacity-50 border-red-200 bg-red-50 cursor-not-allowed"
+                            : selectedAddressId === addr.id
+                              ? "border-primary bg-primary/5"
+                              : "border-border bg-white hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-foreground">{addr.label || "Address"}</span>
+                          {notDeliverable && <span className="text-[9px] text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">Not deliverable</span>}
+                          {!notDeliverable && selectedAddressId === addr.id && <Check className="w-4 h-4 text-primary" />}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">{addr.fullAddress}</p>
+                        <p className="text-[10px] text-muted-foreground">{[addr.city, addr.pincode].filter(Boolean).join(" - ")}</p>
+                      </button>
+                    );
+                  })}
+                  <button type="button" onClick={() => setShowNewAddress(true)} className="w-full py-2.5 rounded-xl border-2 border-dashed border-border text-xs font-medium text-primary hover:border-primary/50 transition-colors">
+                    + Add New Address
+                  </button>
+                </div>
               )}
+
+              {/* New address form (shown if no saved addresses or user clicks add new) */}
+              {(savedAddresses.length === 0 || showNewAddress) && (
+                <div className="bg-muted/30 rounded-xl p-3 space-y-2.5">
+                  {showNewAddress && (
+                    <button type="button" onClick={() => setShowNewAddress(false)} className="text-xs text-primary hover:underline">← Back to saved addresses</button>
+                  )}
+                  <input value={newAddr.flatHouse} onChange={(e) => setNewAddr({ ...newAddr, flatHouse: e.target.value })} placeholder="Flat / House No. / Building *" className="w-full px-3 py-2.5 rounded-lg border border-border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input value={newAddr.streetArea} onChange={(e) => setNewAddr({ ...newAddr, streetArea: e.target.value })} placeholder="Street / Area / Locality *" className="w-full px-3 py-2.5 rounded-lg border border-border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <input value={newAddr.landmark} onChange={(e) => setNewAddr({ ...newAddr, landmark: e.target.value })} placeholder="Landmark (optional)" className="w-full px-3 py-2.5 rounded-lg border border-border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} placeholder="City *" className="px-3 py-2.5 rounded-lg border border-border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                    <input
+                      value={newAddr.pincode}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+                        setNewAddr({ ...newAddr, pincode: val });
+                        if (val.length === 6) {
+                          const full = [newAddr.flatHouse, newAddr.streetArea, newAddr.landmark, newAddr.city, val].filter(Boolean).join(", ");
+                          setDeliveryAddress(full);
+                          setSelectedAddressId("");
+                        }
+                      }}
+                      placeholder="Pincode *"
+                      inputMode="numeric"
+                      maxLength={6}
+                      className={`px-3 py-2.5 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                        newAddr.pincode.length === 6 && newAddr.pincode !== "341508" ? "border-red-400" : "border-border"
+                      }`}
+                    />
+                  </div>
+                  {newAddr.pincode.length === 6 && newAddr.pincode !== "341508" && (
+                    <p className="text-xs text-red-600">⚠ We deliver only to pincode 341508 (Kuchaman City)</p>
+                  )}
+                  {newAddr.pincode.length === 6 && newAddr.pincode === "341508" && (
+                    <p className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> Delivery available</p>
+                  )}
+                </div>
+              )}
+
+              {!deliveryAddress.trim() && <p className="text-[10px] text-destructive">* Select or enter a delivery address</p>}
               <p className="text-[10px] text-muted-foreground">Delivery charge: {formatPrice(storeConfig.deliveryCharge)} · Min order: {formatPrice(storeConfig.minDeliveryOrder)}</p>
             </div>
           )}
