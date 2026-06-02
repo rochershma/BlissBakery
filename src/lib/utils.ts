@@ -6,12 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
+  if (isNaN(price)) return "\u20b90";
+  const formatted = new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(price);
+    maximumFractionDigits: 0,
+  }).format(Math.round(price));
+  return `\u20b9${formatted}`;
 }
 
 export function generateOrderNumber(prefix: string = "BB"): string {

@@ -151,7 +151,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
     <div className="space-y-5">
       {/* Dynamic Price */}
       <div className="flex items-baseline gap-3">
-        <span className="text-2xl md:text-3xl font-bold text-foreground font-serif">{formatPrice(unitPrice)}</span>
+        <span className="text-2xl md:text-3xl font-bold text-foreground">{formatPrice(unitPrice)}</span>
         {product.mrpPrice && product.mrpPrice > unitPrice && (
           <>
             <span className="text-base text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>

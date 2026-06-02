@@ -85,6 +85,13 @@ body {
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: 0.01em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent text selection on interactive elements (mobile) */
+button, a, label, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 h1, h2, h3, h4 {

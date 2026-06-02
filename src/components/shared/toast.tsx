@@ -25,9 +25,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const addToast = useCallback((message: string, type: ToastType = "success") => {
-    const id = ++toastId;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000);
+    // Prevent duplicate toasts with same message
+    setToasts((prev) => {
+      if (prev.some((t) => t.message === message)) return prev;
+      const id = ++toastId;
+      setTimeout(() => setToasts((p) => p.filter((t) => t.id !== id)), 3000);
+      // Keep max 2 visible
+      const trimmed = prev.length >= 2 ? prev.slice(-1) : prev;
+      return [...trimmed, { id, message, type }];
+    });
   }, []);
 
   const removeToast = useCallback((id: number) => {
