@@ -48,7 +48,7 @@ function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[];
 
   return (
     <div ref={ref} className="relative max-w-[220px]">
-      <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Choose Flavour</h3>
+      <p className="text-sm font-semibold text-foreground mb-2.5">Choose Flavour</p>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -148,14 +148,14 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const toggleStoreAddOn = (id: string) => setSelectedStoreAddOns(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="space-y-5">
       {/* Dynamic Price */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg font-bold text-primary">{formatPrice(unitPrice)}</span>
+      <div className="flex items-baseline gap-3">
+        <span className="text-2xl md:text-3xl font-bold text-foreground font-serif">{formatPrice(unitPrice)}</span>
         {product.mrpPrice && product.mrpPrice > unitPrice && (
           <>
-            <span className="text-sm text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
-            <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">
+            <span className="text-base text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">
               {Math.round((product.mrpPrice - unitPrice) / product.mrpPrice * 100)}% OFF
             </span>
           </>
@@ -165,15 +165,15 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {/* Weight / Size Variants */}
       {product.variants.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Select Weight</h3>
+          <p className="text-sm font-semibold text-foreground mb-2.5">Select Size</p>
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => (
               <button
                 key={v.id}
                 onClick={() => setSelectedVariant(v)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all btn-press ${
+                className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
                   selectedVariant?.id === v.id
-                    ? "bg-primary text-primary-foreground border-primary"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
                     : "bg-white text-foreground border-border hover:border-primary/50"
                 }`}
               >
@@ -183,7 +183,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           </div>
           {(selectedVariant?.serves || product.servingInfo) && (
             <p className="text-xs text-muted-foreground mt-2">
-              Serving size: <span className="font-medium text-foreground">{selectedVariant?.serves || product.servingInfo}</span>
+              🍽️ {selectedVariant?.serves || product.servingInfo}
             </p>
           )}
         </div>
@@ -198,20 +198,20 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         />
       )}
 
-      {/* Occasion, Recipient, Message — cakes only */}
+      {/* Occasion, Message — cakes only */}
       {isCake && (
       <>
       <div>
-        <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">For What Occasion?</h3>
+        <p className="text-sm font-semibold text-foreground mb-2.5">Occasion</p>
         <div className="flex flex-wrap gap-2">
           {OCCASIONS.map((o) => (
             <button
               key={o.key}
               onClick={() => setOccasion(occasion === o.key ? "" : o.key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
                 occasion === o.key
-                  ? "bg-primary/10 text-primary border-primary"
-                  : "bg-white text-muted-foreground border-border hover:border-primary/30"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-white text-foreground border-border hover:border-primary/40 hover:bg-muted/30"
               }`}
             >
               {o.emoji} {o.label}
@@ -220,33 +220,35 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       </div>
 
-      {/* Recipient Name + Age (if birthday) */}
+      {/* Age on Cake (if birthday) */}
       {occasion === "birthday" && (
       <div>
-        <h3 className="text-xs font-semibold text-foreground mb-1.5">Age on Cake</h3>
+        <p className="text-sm font-semibold text-foreground mb-2">Age on Cake</p>
         <input
           value={recipientAge}
           onChange={(e) => setRecipientAge(e.target.value.replace(/\D/g, ""))}
           placeholder="e.g., 25"
           maxLength={3}
-          className="w-24 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+          className="w-24 px-4 py-2.5 rounded-xl border-2 border-border text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground transition-colors"
         />
       </div>
       )}
 
       {/* Cake Message */}
       <div>
-        <h3 className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
-          <MessageSquare className="w-3 h-3 text-primary" /> Message on Cake
-        </h3>
-        <input
-          value={cakeMessage}
-          onChange={(e) => setCakeMessage(e.target.value)}
-          placeholder="e.g., Happy Birthday Raj!"
-          maxLength={50}
-          className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
-        />
-        <p className="text-[10px] text-muted-foreground mt-0.5 text-right">{cakeMessage.length}/50</p>
+        <p className="text-sm font-semibold text-foreground mb-2 flex items-center gap-1.5">
+          <MessageSquare className="w-4 h-4 text-primary" /> Message on Cake
+        </p>
+        <div className="relative">
+          <input
+            value={cakeMessage}
+            onChange={(e) => setCakeMessage(e.target.value)}
+            placeholder="e.g., Happy Birthday Raj! 🎂"
+            maxLength={50}
+            className="w-full px-4 py-3 rounded-xl border-2 border-border text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60 transition-colors"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">{cakeMessage.length}/50</span>
+        </div>
       </div>
       </>
       )}
@@ -254,20 +256,20 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {/* Product Add-ons */}
       {product.addOns.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider">Customize</h3>
-          <div className="space-y-1.5">
+          <p className="text-sm font-semibold text-foreground mb-2.5">Customize</p>
+          <div className="space-y-2">
             {product.addOns.map((addon) => (
               <label
                 key={addon.id}
-                className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-colors text-sm ${
+                className={`flex items-center justify-between p-3 rounded-xl border-2 cursor-pointer transition-all text-sm ${
                   selectedAddOns.has(addon.id) ? "bg-primary/5 border-primary" : "bg-white border-border hover:border-primary/30"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={selectedAddOns.has(addon.id)} onChange={() => toggleAddOn(addon.id)} className="w-3.5 h-3.5 accent-primary" />
-                  <span>{addon.name}</span>
+                <div className="flex items-center gap-2.5">
+                  <input type="checkbox" checked={selectedAddOns.has(addon.id)} onChange={() => toggleAddOn(addon.id)} className="w-4 h-4 accent-primary" />
+                  <span className="font-medium">{addon.name}</span>
                 </div>
-                <span className="font-medium text-muted-foreground">+{formatPrice(addon.price)}</span>
+                <span className="font-semibold text-muted-foreground">+{formatPrice(addon.price)}</span>
               </label>
             ))}
           </div>
@@ -277,14 +279,14 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {/* Store-Level Add-Ons (Gifts & Extras) — cakes only */}
       {isCake && storeAddOns.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-foreground mb-2 uppercase tracking-wider flex items-center gap-1">
-            <Gift className="w-3 h-3 text-primary" /> Add Something Extra
-          </h3>
-          <div className="grid grid-cols-2 gap-1.5">
+          <p className="text-sm font-semibold text-foreground mb-2.5 flex items-center gap-1.5">
+            <Gift className="w-4 h-4 text-primary" /> Add Something Extra
+          </p>
+          <div className="grid grid-cols-2 gap-2">
             {storeAddOns.map((addon) => (
               <label
                 key={addon.id}
-                className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors text-xs ${
+                className={`flex items-center gap-2.5 p-2.5 rounded-xl border-2 cursor-pointer transition-all text-xs ${
                   selectedStoreAddOns.has(addon.id) ? "bg-primary/5 border-primary" : "bg-white border-border hover:border-primary/30"
                 }`}
               >
