@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Leaf } from "lucide-react";
+import { Leaf, ZoomIn } from "lucide-react";
+import { ImageLightbox } from "./image-lightbox";
 
 interface Props {
   images: string[];
@@ -12,12 +13,16 @@ interface Props {
 
 export function ProductImageGallery({ images, name, isBestseller }: Props) {
   const [activeIdx, setActiveIdx] = useState(0);
+  const [showLightbox, setShowLightbox] = useState(false);
   const activeImg = images[activeIdx] || images[0];
 
   return (
     <div className="space-y-2">
       {/* Main Image */}
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
+      <div
+        className="relative aspect-square rounded-xl overflow-hidden bg-muted group cursor-zoom-in"
+        onClick={() => setShowLightbox(true)}
+      >
         <Image
           src={activeImg}
           alt={name}
@@ -29,13 +34,17 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
         />
         <div className="absolute top-2 left-2 flex gap-1">
           <span className="bg-white/90 backdrop-blur-sm text-[9px] font-medium text-green-700 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-            <Leaf className="w-2.5 h-2.5" />Veg
+            <Leaf className="w-2.5 h-2.5" />100% Eggless
           </span>
           {isBestseller && (
             <span className="bg-primary text-primary-foreground text-[9px] font-medium px-1.5 py-0.5 rounded-full">
               ★ Best
             </span>
           )}
+        </div>
+        {/* Zoom hint */}
+        <div className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <ZoomIn className="w-3 h-3" /> Tap to zoom
         </div>
         {/* Image counter */}
         {images.length > 1 && (
@@ -63,6 +72,16 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Lightbox */}
+      {showLightbox && (
+        <ImageLightbox
+          images={images}
+          name={name}
+          startIndex={activeIdx}
+          onClose={() => setShowLightbox(false)}
+        />
       )}
     </div>
   );

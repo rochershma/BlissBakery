@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useCartStore } from "@/store/cart";
+import { SearchOverlay } from "./search-overlay";
 import {
   ShoppingBag,
+  Search,
   User,
   LogOut,
   Package,
@@ -22,6 +24,7 @@ export function SiteHeader() {
   const { user, loading, setShowLoginModal, logout } = useAuth();
   const [hydrated, setHydrated] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setHydrated(true), []);
@@ -41,6 +44,7 @@ export function SiteHeader() {
   const itemCount = hydrated ? items.reduce((s, i) => s + i.quantity, 0) : 0;
 
   return (
+    <>
     <header className="sticky top-0 z-50 glass-header border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
         {/* Logo — always routes to home */}
@@ -54,8 +58,17 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        {/* Right side: Cart + Profile */}
-        <div className="flex items-center gap-2">
+        {/* Right side: Search + Cart + Profile */}
+        <div className="flex items-center gap-1">
+          {/* Search */}
+          <button
+            onClick={() => setShowSearch(true)}
+            className="p-2 rounded-full hover:bg-primary-light transition-colors"
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5 text-foreground" />
+          </button>
+
           {/* Cart */}
           <Link
             href="/cart"
@@ -196,5 +209,9 @@ export function SiteHeader() {
         </div>
       </div>
     </header>
+
+    {/* Search Overlay */}
+    {showSearch && <SearchOverlay onClose={() => setShowSearch(false)} />}
+    </>
   );
 }

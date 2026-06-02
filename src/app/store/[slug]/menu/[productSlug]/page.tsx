@@ -103,7 +103,7 @@ export default async function ProductDetailPage({ params }: Props) {
               flavours: parseJsonSafe<string[]>((product as any).flavours, []),
               variants: product.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, serves: v.serves || undefined })),
               addOns: product.addOns.map((a) => ({ id: a.id, name: a.name, price: a.price })),
-            }} storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, category: a.category }))} />
+            }} storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, category: a.category, image: a.image }))} />
 
             {/* Delivery Info */}
             <div className="mt-6 bg-gradient-to-r from-primary/5 to-transparent rounded-xl p-4 border border-primary/10">

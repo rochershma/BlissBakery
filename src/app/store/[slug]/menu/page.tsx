@@ -83,6 +83,7 @@ export default async function MenuPage({ params, searchParams }: Props) {
           slug: p.slug,
           shortDesc: p.shortDesc,
           basePrice: p.basePrice,
+          mrpPrice: p.mrpPrice || null,
           images: parseJsonSafe<string[]>(p.images, []),
           isBestseller: p.isBestseller,
           isNew: p.isNew,

@@ -5,6 +5,7 @@ import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
 
 const OCCASIONS = [
   { key: "birthday", label: "Birthday", emoji: "🎂" },
@@ -31,7 +32,7 @@ interface Props {
     variants: { id: string; name: string; price: number; serves?: string }[];
     addOns: { id: string; name: string; price: number }[];
   };
-  storeAddOns?: { id: string; name: string; price: number; category: string }[];
+  storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
 }
 
 function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
@@ -98,6 +99,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [showUpsell, setShowUpsell] = useState(false);
 
   // Cake customization
   const [occasion, setOccasion] = useState("");
@@ -142,7 +144,12 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       });
     }
     setAdded(true);
-    setTimeout(() => setAdded(false), 2500);
+    // Show add-ons upsell if store has add-ons (Bakingo-style)
+    if (storeAddOns.length > 0) {
+      setShowUpsell(true);
+    } else {
+      setTimeout(() => setAdded(false), 2500);
+    }
   };
 
   const toggleAddOn = (id: string) => setSelectedAddOns(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -329,6 +336,16 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           <span className="text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"} in cart</span>
           <span className="font-semibold text-primary">{formatPrice(cartSubtotal)} →</span>
         </Link>
+      )}
+
+      {/* Add-ons Upsell Modal (Bakingo-style) */}
+      {showUpsell && storeAddOns.length > 0 && (
+        <AddOnsUpsellModal
+          storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, image: a.image || null, category: a.category }))}
+          productName={product.name}
+          storeSlug={storeSlug}
+          onClose={() => { setShowUpsell(false); setAdded(false); }}
+        />
       )}
     </div>
   );

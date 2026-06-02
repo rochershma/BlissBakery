@@ -29,6 +29,7 @@ interface CartState {
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (productId: string, variantName?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantName?: string) => void;
+  updateItemAddOns: (productId: string, addOns: { name: string; price: number }[], variantName?: string) => void;
   clearCart: () => void;
   setStoreSlug: (slug: string) => void;
   setOrderType: (type: "PICKUP" | "DELIVERY") => void;
@@ -86,6 +87,16 @@ export const useCartStore = create<CartState>()(
           items: get().items.map((i) =>
             i.productId === productId && (i.variantName || "") === (variantName || "")
               ? { ...i, quantity }
+              : i
+          ),
+        });
+      },
+
+      updateItemAddOns: (productId, addOns, variantName) => {
+        set({
+          items: get().items.map((i) =>
+            i.productId === productId && (i.variantName || "") === (variantName || "")
+              ? { ...i, addOns }
               : i
           ),
         });

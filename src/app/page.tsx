@@ -120,13 +120,27 @@ export default async function HomePage() {
                         </span>
                       )}
                     </HoverImageCycler>
+                    {/* % OFF badge */}
+                    {product.mrpPrice && product.mrpPrice > product.basePrice && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10">
+                        {Math.round(((product.mrpPrice - product.basePrice) / product.mrpPrice) * 100)}% OFF
+                      </span>
+                    )}
                   </div>
                   <div className="p-3">
+                    {/* Eggless + Delivery badges */}
+                    <div className="flex items-center gap-1.5 mb-1.5">
+                      <span className="inline-flex items-center gap-0.5 bg-green-50 text-green-700 text-[8px] font-semibold px-1.5 py-0.5 rounded-full border border-green-200">
+                        <svg className="w-2 h-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                        Eggless
+                      </span>
+                      <span className="text-[8px] text-muted-foreground">🚚 Today</span>
+                    </div>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{product.category.name}</p>
                     <h4 className="font-serif font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 mt-0.5 leading-snug">
                       {product.name}
                     </h4>
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-baseline gap-1.5 mt-2">
                       <span className="font-bold text-foreground">{formatPrice(product.basePrice)}</span>
                       {product.mrpPrice && product.mrpPrice > product.basePrice && (
                         <span className="text-xs text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>

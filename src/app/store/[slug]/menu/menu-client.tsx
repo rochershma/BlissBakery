@@ -21,6 +21,7 @@ interface ProductItem {
   slug: string;
   shortDesc: string | null;
   basePrice: number;
+  mrpPrice: number | null;
   images: string[];
   isBestseller: boolean;
   isNew: boolean;
@@ -180,14 +181,23 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                               <span className="product-img-zoom">{categoryEmojis[product.categorySlug] || "🍰"}</span>
                             </div>
                           )}
-                          {product.isBestseller && (
-                            <span className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                              ★ BEST
-                            </span>
-                          )}
-                          {product.isNew && (
-                            <span className="absolute top-1.5 left-1.5 bg-accent text-accent-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
-                              NEW
+                          {/* Top-left badges */}
+                          <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5 z-10">
+                            {product.isBestseller && (
+                              <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+                                ★ BEST
+                              </span>
+                            )}
+                            {product.isNew && (
+                              <span className="bg-accent text-accent-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+                                NEW
+                              </span>
+                            )}
+                          </div>
+                          {/* % OFF badge — top right */}
+                          {product.mrpPrice && product.mrpPrice > product.basePrice && (
+                            <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10">
+                              {Math.round(((product.mrpPrice - product.basePrice) / product.mrpPrice) * 100)}% OFF
                             </span>
                           )}
                         </div>
@@ -195,10 +205,14 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
 
                       {/* Product Info — compact */}
                       <div className="p-2">
-                        <div className="flex items-start gap-1 mb-0.5">
-                          <span className="inline-block w-2 h-2 mt-[3px] border border-green-600 flex-shrink-0 rounded-sm">
-                            <span className="block w-0.5 h-0.5 bg-green-600 rounded-full m-auto mt-[2px]" />
+                        {/* Eggless badge */}
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className="inline-flex items-center gap-0.5 bg-green-50 text-green-700 text-[8px] font-semibold px-1.5 py-0.5 rounded-full border border-green-200">
+                            <svg className="w-2 h-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
+                            Eggless
                           </span>
+                        </div>
+                        <div className="flex items-start gap-1 mb-0.5">
                           <Link
                             href={`/store/${storeSlug}/menu/${product.slug}`}
                             className="font-semibold text-[11px] text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight"
@@ -206,14 +220,21 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                             {product.name}
                           </Link>
                         </div>
+                        {/* Earliest delivery */}
+                        <p className="text-[9px] text-muted-foreground mt-0.5 mb-1">🚚 Earliest: <span className="font-medium text-foreground">Today</span></p>
                         <div className="flex items-center justify-between mt-1">
-                          <span className="font-bold text-foreground text-sm">
-                            {product.variants.length > 0 ? (
-                              <><span className="text-[10px] font-normal text-muted-foreground">from </span>{formatPrice(product.variants[0].price)}</>
-                            ) : (
-                              formatPrice(product.basePrice)
+                          <div className="flex items-baseline gap-1">
+                            <span className="font-bold text-foreground text-sm">
+                              {product.variants.length > 0 ? (
+                                <><span className="text-[10px] font-normal text-muted-foreground">from </span>{formatPrice(product.variants[0].price)}</>
+                              ) : (
+                                formatPrice(product.basePrice)
+                              )}
+                            </span>
+                            {product.mrpPrice && product.mrpPrice > product.basePrice && (
+                              <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
                             )}
-                          </span>
+                          </div>
                           {qty > 0 ? (
                             <div className="flex items-center gap-1.5 bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
                               <button
