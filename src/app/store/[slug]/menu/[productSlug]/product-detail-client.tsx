@@ -144,12 +144,8 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       });
     }
     setAdded(true);
-    // Show add-ons upsell if store has add-ons (Bakingo-style)
-    if (storeAddOns.length > 0) {
-      setShowUpsell(true);
-    } else {
-      setTimeout(() => setAdded(false), 2500);
-    }
+    // Always show upsell/confirmation modal (premium flow)
+    setShowUpsell(true);
   };
 
   const toggleAddOn = (id: string) => setSelectedAddOns(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -284,29 +280,6 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Store-Level Add-Ons (Gifts & Extras) — cakes only */}
-      {isCake && storeAddOns.length > 0 && (
-        <div>
-          <p className="text-sm font-semibold text-foreground mb-2.5 flex items-center gap-1.5">
-            <Gift className="w-4 h-4 text-primary" /> Add Something Extra
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {storeAddOns.map((addon) => (
-              <label
-                key={addon.id}
-                className={`flex items-center gap-2.5 p-2.5 rounded-xl border-2 cursor-pointer transition-all text-xs ${
-                  selectedStoreAddOns.has(addon.id) ? "bg-primary/5 border-primary" : "bg-white border-border hover:border-primary/30"
-                }`}
-              >
-                <input type="checkbox" checked={selectedStoreAddOns.has(addon.id)} onChange={() => toggleStoreAddOn(addon.id)} className="w-3 h-3 accent-primary flex-shrink-0" />
-                <span className="flex-1 truncate">{addon.name}</span>
-                <span className="text-muted-foreground font-medium flex-shrink-0">+{formatPrice(addon.price)}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Quantity + Add to Cart */}
       <div className="flex items-center gap-3">
         <div className="flex items-center border border-border rounded-full">
@@ -319,15 +292,9 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           </button>
         </div>
 
-        {added ? (
-          <Link href="/cart" className="flex-1 flex items-center justify-center gap-2 bg-success text-white py-3 rounded-xl font-semibold animate-scale-pop transition-colors">
-            <Check className="w-4 h-4" /> Added! View Cart →
-          </Link>
-        ) : (
-          <button onClick={handleAddToCart} className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:bg-primary-hover transition-colors btn-press">
-            <ShoppingCart className="w-4 h-4" /> Add to Cart · {formatPrice(totalPrice)}
-          </button>
-        )}
+        <button onClick={handleAddToCart} className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:bg-primary-hover transition-colors btn-press">
+          <ShoppingCart className="w-4 h-4" /> Add to Cart · {formatPrice(totalPrice)}
+        </button>
       </div>
 
       {/* Cart summary */}
@@ -339,10 +306,13 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       )}
 
       {/* Add-ons Upsell Modal (Bakingo-style) */}
-      {showUpsell && storeAddOns.length > 0 && (
+      {showUpsell && (
         <AddOnsUpsellModal
           storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, image: a.image || null, category: a.category }))}
           productName={product.name}
+          productImage={product.image}
+          unitPrice={unitPrice}
+          variantName={selectedVariant?.name}
           storeSlug={storeSlug}
           onClose={() => { setShowUpsell(false); setAdded(false); }}
         />

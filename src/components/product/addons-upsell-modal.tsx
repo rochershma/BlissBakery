@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { X, ShoppingCart, ChevronRight, Check, Plus } from "lucide-react";
+import { X, ShoppingCart, ChevronRight, Check, Plus, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 
@@ -18,13 +18,16 @@ interface AddOnItem {
 interface Props {
   storeAddOns: AddOnItem[];
   productName: string;
+  productImage?: string;
+  unitPrice: number;
+  variantName?: string;
   storeSlug: string;
   onClose: () => void;
 }
 
-export function AddOnsUpsellModal({ storeAddOns, productName, storeSlug, onClose }: Props) {
+export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unitPrice, variantName, storeSlug, onClose }: Props) {
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
-  const { items, addItem, getItemCount } = useCartStore();
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const toggle = (id: string) => {
     setSelectedAddOns((prev) => {
@@ -38,118 +41,131 @@ export function AddOnsUpsellModal({ storeAddOns, productName, storeSlug, onClose
     .filter((a) => selectedAddOns.has(a.id))
     .reduce((sum, a) => sum + a.price, 0);
 
-  const handleAddAndContinue = () => {
-    // Add selected add-ons to the most recently added cart item
-    const lastItem = items[items.length - 1];
-    if (lastItem && selectedAddOns.size > 0) {
-      const addOns = storeAddOns
+  const handleAddSelected = () => {
+    if (selectedAddOns.size === 0) { onClose(); return; }
+    setAddingToCart(true);
+
+    // Find the most recent cart item matching this product
+    const { items, updateItemAddOns } = useCartStore.getState();
+    const lastItem = [...items].reverse().find((i) => i.name === productName);
+    if (lastItem) {
+      const newAddOns = storeAddOns
         .filter((a) => selectedAddOns.has(a.id))
         .map((a) => ({ name: a.name, price: a.price }));
-
       const existingAddOns = lastItem.addOns || [];
-      const { updateItemAddOns } = useCartStore.getState();
-      if (updateItemAddOns) {
-        updateItemAddOns(lastItem.productId, [...existingAddOns, ...addOns], lastItem.variantName);
-      }
+      updateItemAddOns(lastItem.productId, [...existingAddOns, ...newAddOns], lastItem.variantName);
     }
-    onClose();
+
+    setTimeout(() => onClose(), 300);
   };
 
   // Group by category
-  const gifts = storeAddOns.filter((a) => a.category === "GIFT");
-  const decorations = storeAddOns.filter((a) => a.category === "DECORATION");
-  const accessories = storeAddOns.filter((a) => a.category === "ACCESSORY");
-  const allGroups = [
-    { label: "🎁 Gift Items", items: gifts },
-    { label: "🎉 Decorations", items: decorations },
-    { label: "✨ Extras", items: accessories },
+  const groups = [
+    { key: "GIFT", label: "Gifts", emoji: "🎁", items: storeAddOns.filter((a) => a.category === "GIFT") },
+    { key: "DECORATION", label: "Decorations", emoji: "🎉", items: storeAddOns.filter((a) => a.category === "DECORATION") },
+    { key: "ACCESSORY", label: "Extras", emoji: "✨", items: storeAddOns.filter((a) => a.category === "ACCESSORY") },
   ].filter((g) => g.items.length > 0);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={onClose}>
       <div
-        className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[85vh] flex flex-col"
+        className="bg-white w-full max-w-lg md:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                <Check className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Added to cart!</p>
-                <p className="text-[11px] text-muted-foreground truncate max-w-[200px]">{productName}</p>
+        {/* Success header with product info */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100 px-5 py-4">
+          <div className="flex items-center gap-3">
+            {/* Product thumbnail */}
+            <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 relative bg-muted border border-border">
+              {productImage ? (
+                <Image src={productImage} alt={productName} fill className="object-cover" sizes="56px" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl">🎂</div>
+              )}
+              {/* Checkmark overlay */}
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-sm">
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-green-800 flex items-center gap-1.5">
+                <Check className="w-4 h-4" /> Added to cart
+              </p>
+              <p className="text-xs text-green-700/70 truncate">{productName}</p>
+              <p className="text-xs text-green-700/70">
+                {variantName && <>{variantName} · </>}{formatPrice(unitPrice)}
+              </p>
+            </div>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-green-100 transition-colors flex-shrink-0">
+              <X className="w-5 h-5 text-green-700/50" />
+            </button>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-            <X className="w-5 h-5 text-muted-foreground" />
-          </button>
         </div>
 
-        {/* Subtitle */}
-        <div className="px-5 py-3 bg-primary/5 border-b border-border">
-          <p className="text-sm font-semibold text-foreground">🎁 Make it extra special!</p>
-          <p className="text-[11px] text-muted-foreground">Add gifts & accessories to your order</p>
-        </div>
-
-        {/* Add-ons Grid */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {allGroups.map((group) => (
-            <div key={group.label}>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{group.label}</p>
-              <div className="grid grid-cols-2 gap-2.5">
-                {group.items.map((addon) => {
-                  const isSelected = selectedAddOns.has(addon.id);
-                  return (
-                    <button
-                      key={addon.id}
-                      onClick={() => toggle(addon.id)}
-                      className={`relative rounded-xl border-2 overflow-hidden text-left transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary/5 ring-1 ring-primary/20"
-                          : "border-border hover:border-primary/30 bg-white"
-                      }`}
-                    >
-                      {/* Image */}
-                      <div className="aspect-square relative bg-muted">
-                        {addon.image ? (
-                          <Image src={addon.image} alt={addon.name} fill className="object-cover" sizes="200px" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-3xl bg-gradient-to-br from-primary/10 to-accent/10">
-                            {addon.category === "GIFT" ? "🎁" : addon.category === "DECORATION" ? "🎉" : "✨"}
-                          </div>
-                        )}
-                        {/* Selection indicator */}
-                        {isSelected ? (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center">
-                            <Check className="w-3.5 h-3.5" />
-                          </div>
-                        ) : (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/80 backdrop-blur-sm border border-border flex items-center justify-center">
-                            <Plus className="w-3.5 h-3.5 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      {/* Info */}
-                      <div className="p-2">
-                        <p className="text-[11px] font-semibold text-foreground line-clamp-1">{addon.name}</p>
-                        <p className="text-xs font-bold text-primary">+{formatPrice(addon.price)}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+        {/* Add-ons section */}
+        {storeAddOns.length > 0 && (
+          <>
+            <div className="px-5 py-3 border-b border-border bg-white">
+              <p className="text-sm font-bold text-foreground">Make it extra special ✨</p>
+              <p className="text-[11px] text-muted-foreground">Add gifts & accessories to your order</p>
             </div>
-          ))}
-        </div>
 
-        {/* Footer Actions */}
-        <div className="border-t border-border px-5 py-4 space-y-2.5 bg-white">
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
+              {groups.map((group) => (
+                <div key={group.key}>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                    {group.emoji} {group.label}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {group.items.map((addon) => {
+                      const isSelected = selectedAddOns.has(addon.id);
+                      return (
+                        <button
+                          key={addon.id}
+                          onClick={() => toggle(addon.id)}
+                          className={`relative rounded-xl border-2 overflow-hidden text-left transition-all active:scale-95 ${
+                            isSelected
+                              ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
+                              : "border-border hover:border-primary/30 bg-white"
+                          }`}
+                        >
+                          <div className="aspect-square relative bg-muted">
+                            {addon.image ? (
+                              <Image src={addon.image} alt={addon.name} fill className="object-cover" sizes="150px" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-primary/5 to-accent/10">
+                                {addon.category === "GIFT" ? "🎁" : addon.category === "DECORATION" ? "🎉" : "✨"}
+                              </div>
+                            )}
+                            {/* Selection indicator */}
+                            <div className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+                              isSelected ? "bg-primary shadow-sm" : "bg-white/80 backdrop-blur-sm border border-border/50"
+                            }`}>
+                              {isSelected ? (
+                                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                              ) : (
+                                <Plus className="w-3 h-3 text-muted-foreground" />
+                              )}
+                            </div>
+                          </div>
+                          <div className="px-1.5 py-1.5">
+                            <p className="text-[10px] font-medium text-foreground line-clamp-1 leading-tight">{addon.name}</p>
+                            <p className="text-[10px] font-bold text-primary">+{formatPrice(addon.price)}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Footer CTAs */}
+        <div className="border-t border-border px-5 py-4 bg-white safe-area-bottom">
           {selectedAddOns.size > 0 && (
-            <div className="flex items-center justify-between text-sm mb-1">
+            <div className="flex items-center justify-between text-xs mb-2.5 px-1">
               <span className="text-muted-foreground">{selectedAddOns.size} add-on{selectedAddOns.size > 1 ? "s" : ""} selected</span>
               <span className="font-bold text-foreground">+{formatPrice(addOnTotal)}</span>
             </div>
@@ -163,19 +179,25 @@ export function AddOnsUpsellModal({ storeAddOns, productName, storeSlug, onClose
             >
               <ShoppingCart className="w-4 h-4" /> View Cart
             </Link>
+
             {selectedAddOns.size > 0 ? (
               <button
-                onClick={handleAddAndContinue}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover transition-colors btn-press"
+                onClick={handleAddSelected}
+                disabled={addingToCart}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover transition-colors btn-press disabled:opacity-70"
               >
-                Add +{formatPrice(addOnTotal)} <ChevronRight className="w-4 h-4" />
+                {addingToCart ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>Add {formatPrice(addOnTotal)} <ArrowRight className="w-4 h-4" /></>
+                )}
               </button>
             ) : (
               <button
                 onClick={onClose}
-                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-muted text-foreground text-sm font-semibold hover:bg-primary/10 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover transition-colors"
               >
-                Continue Shopping <ChevronRight className="w-4 h-4" />
+                Continue Shopping <ArrowRight className="w-4 h-4" />
               </button>
             )}
           </div>
