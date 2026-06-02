@@ -6,6 +6,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import { ProductFormFields } from "@/components/admin/product-form-fields";
 import { VariantEditor } from "@/components/admin/variant-editor";
 import { FlavourEditor } from "@/components/admin/flavour-editor";
+import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 
 export default async function NewProductPage() {
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
@@ -25,12 +26,14 @@ export default async function NewProductPage() {
 
   async function createProduct(formData: FormData) {
     "use server";
-    const name = formData.get("name") as string;
+    await requireAdmin();
+    const name = sanitizeMax(formData.get("name") as string, 200) || "";
+    if (!name) return;
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const shortDesc = formData.get("shortDesc") as string;
-    const description = formData.get("description") as string;
-    const basePrice = parseFloat(formData.get("basePrice") as string);
-    const mrpPrice = parseFloat(formData.get("mrpPrice") as string) || null;
+    const shortDesc = sanitizeMax(formData.get("shortDesc") as string, 300);
+    const description = sanitizeMax(formData.get("description") as string, 2000);
+    const basePrice = Math.max(0, parseFloat(formData.get("basePrice") as string) || 0);
+    const mrpPrice = Math.max(0, parseFloat(formData.get("mrpPrice") as string) || 0) || null;
     const categoryId = formData.get("categoryId") as string;
     const isBestseller = formData.get("isBestseller") === "on";
     const isNew = formData.get("isNew") === "on";

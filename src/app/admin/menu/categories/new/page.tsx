@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
 import { ImageField } from "@/components/admin/image-field";
-
+import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 export default async function NewCategoryPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   const stores = await db.store.findMany();
@@ -12,6 +12,7 @@ export default async function NewCategoryPage({ searchParams }: { searchParams: 
 
   async function createCategory(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = (formData.get("name") as string).trim();
     const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;

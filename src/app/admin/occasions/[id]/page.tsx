@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Save, Trash2, Plus, Pencil } from "lucide-react";
 import { ImageField } from "@/components/admin/image-field";
+import { requireAdmin } from "@/lib/server-utils";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,6 +21,7 @@ export default async function EditOccasionPage({ params }: Props) {
 
   async function updateOccasion(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     const subtitle = formData.get("subtitle") as string;
     const image = formData.get("image") as string;
@@ -34,6 +36,7 @@ export default async function EditOccasionPage({ params }: Props) {
 
   async function addRecipient(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     const image = formData.get("image") as string;
     if (!name.trim()) return;
@@ -48,6 +51,7 @@ export default async function EditOccasionPage({ params }: Props) {
 
   async function deleteRecipient(formData: FormData) {
     "use server";
+    await requireAdmin();
     const recipientId = formData.get("recipientId") as string;
     await db.recipient.delete({ where: { id: recipientId } });
     revalidatePath(`/admin/occasions/${id}`);
@@ -56,6 +60,7 @@ export default async function EditOccasionPage({ params }: Props) {
 
   async function updateRecipient(formData: FormData) {
     "use server";
+    await requireAdmin();
     const recipientId = formData.get("recipientId") as string;
     const name = (formData.get("name") as string).trim();
     if (!name) return;

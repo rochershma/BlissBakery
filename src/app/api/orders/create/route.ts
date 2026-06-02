@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     for (const item of data.items) {
       const product = await db.product.findUnique({
         where: { id: item.productId },
-        include: { variants: true },
+        include: { variants: true, addOns: true },
       });
       if (!product || !product.isAvailable) {
         return NextResponse.json({ success: false, message: `Product "${item.name}" is not available` }, { status: 400 });
@@ -61,9 +61,23 @@ export async function POST(req: NextRequest) {
         const variant = product.variants.find(v => v.name === item.variantName);
         if (variant) serverPrice = variant.price;
       }
-      const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
+      // Verify add-on prices from DB (never trust client prices)
+      const verifiedAddOns = (item.addOns || []).map(clientAddon => {
+        const dbAddon = product.addOns.find(a => a.name === clientAddon.name);
+        return { name: clientAddon.name, price: dbAddon ? dbAddon.price : 0 };
+      });
+      // Also check store-level add-ons
+      const storeAddOns = await db.storeAddOn.findMany({ where: { storeId: store.id, isActive: true } });
+      const allVerifiedAddOns = verifiedAddOns.map(a => {
+        if (a.price === 0) {
+          const storeAddon = storeAddOns.find(sa => sa.name === a.name);
+          if (storeAddon) return { name: a.name, price: storeAddon.price };
+        }
+        return a;
+      });
+      const addOnTotal = allVerifiedAddOns.reduce((s, a) => s + a.price, 0);
       itemTotal += (serverPrice + addOnTotal) * item.quantity;
-      verifiedItems.push({ ...item, unitPrice: serverPrice });
+      verifiedItems.push({ ...item, unitPrice: serverPrice, addOns: allVerifiedAddOns.length > 0 ? allVerifiedAddOns : undefined });
     }
 
     const packagingCharge = store.packagingCharge || 15;

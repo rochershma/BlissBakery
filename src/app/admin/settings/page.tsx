@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Clock, MapPin, Phone, Mail, Store } from "lucide-react";
 import { parseJsonSafe } from "@/lib/utils";
+import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 
 export default async function AdminSettingsPage() {
   const store = await db.store.findFirst();
@@ -11,7 +12,8 @@ export default async function AdminSettingsPage() {
 
   async function updateSettings(formData: FormData) {
     "use server";
-    const name = formData.get("name") as string;
+    await requireAdmin();
+    const name = sanitizeMax(formData.get("name") as string, 100) || "Store";
     const tagline = formData.get("tagline") as string;
     const description = formData.get("description") as string;
     const address = formData.get("address") as string;

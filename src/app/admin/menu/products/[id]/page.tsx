@@ -7,6 +7,7 @@ import { ProductFormFields } from "@/components/admin/product-form-fields";
 import { VariantEditor } from "@/components/admin/variant-editor";
 import { FlavourEditor } from "@/components/admin/flavour-editor";
 import { parseJsonSafe } from "@/lib/utils";
+import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -34,11 +35,12 @@ export default async function EditProductPage({ params }: Props) {
 
   async function updateProduct(formData: FormData) {
     "use server";
-    const name = formData.get("name") as string;
-    const shortDesc = formData.get("shortDesc") as string;
-    const description = formData.get("description") as string;
-    const basePrice = parseFloat(formData.get("basePrice") as string);
-    const mrpPrice = parseFloat(formData.get("mrpPrice") as string) || null;
+    await requireAdmin();
+    const name = sanitizeMax(formData.get("name") as string, 200) || "";
+    const shortDesc = sanitizeMax(formData.get("shortDesc") as string, 300);
+    const description = sanitizeMax(formData.get("description") as string, 2000);
+    const basePrice = Math.max(0, parseFloat(formData.get("basePrice") as string) || 0);
+    const mrpPrice = Math.max(0, parseFloat(formData.get("mrpPrice") as string) || 0) || null;
     const categoryId = formData.get("categoryId") as string;
     const isBestseller = formData.get("isBestseller") === "on";
     const isNew = formData.get("isNew") === "on";
@@ -94,6 +96,7 @@ export default async function EditProductPage({ params }: Props) {
 
   async function deleteProduct() {
     "use server";
+    await requireAdmin();
     await db.product.delete({ where: { id } });
     revalidatePath("/admin/menu");
     redirect("/admin/menu");

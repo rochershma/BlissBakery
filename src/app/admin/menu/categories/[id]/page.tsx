@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Save, Trash2, Eye, EyeOff } from "lucide-react";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 import { ImageField } from "@/components/admin/image-field";
+import { requireAdmin } from "@/lib/server-utils";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -17,6 +18,7 @@ export default async function EditCategoryPage({ params }: Props) {
 
   async function updateCategory(formData: FormData) {
     "use server";
+    await requireAdmin();
     const name = formData.get("name") as string;
     const sortOrder = parseInt(formData.get("sortOrder") as string) || 0;
     const isVisible = formData.get("isVisible") === "on";
@@ -29,6 +31,7 @@ export default async function EditCategoryPage({ params }: Props) {
 
   async function deleteCategory() {
     "use server";
+    await requireAdmin();
     await db.category.delete({ where: { id } });
     revalidatePath("/admin/menu");
     redirect("/admin/menu");

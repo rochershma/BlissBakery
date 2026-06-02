@@ -6,7 +6,7 @@ import { z } from "zod";
 
 const schema = z.object({
   phone: z.string().regex(/^[6-9]\d{9}$/, "Invalid phone number"),
-  otp: z.string().length(6, "OTP must be 6 digits"),
+  otp: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
 });
 
 export async function POST(req: NextRequest) {
