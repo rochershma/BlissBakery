@@ -8,7 +8,13 @@ import { useState, useEffect } from "react";
 
 export default function CartPage() {
   const [hydrated, setHydrated] = useState(false);
-  useEffect(() => setHydrated(true), []);
+  const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, gstRate: 0 });
+  useEffect(() => {
+    setHydrated(true);
+    fetch("/api/store/config").then(r => r.json()).then(data => {
+      if (data.packagingCharge !== undefined) setStoreConfig({ packagingCharge: data.packagingCharge ?? 15, gstRate: data.gstRate ?? 0 });
+    }).catch(() => {});
+  }, []);
 
   const {
     items,
@@ -110,14 +116,14 @@ export default function CartPage() {
           <div className="divide-y divide-border">
             {items.map((item, idx) => (
               <div key={`${item.productId}-${item.variantName || ""}-${idx}`} className="px-4 py-3 flex items-center gap-3">
-                {/* Item Image */}
-                <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                {/* Item Image — clickable */}
+                <Link href={`/store/${storeSlug || 'kuchaman-city'}/menu/${item.productId}`} className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                   {item.image ? (
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full bg-primary-light flex items-center justify-center text-xl">🎂</div>
                   )}
-                </div>
+                </Link>
 
                 {/* Item Details */}
                 <div className="flex-1 min-w-0">
@@ -224,16 +230,18 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Packaging</span>
-              <span className="font-medium text-foreground">{formatPrice(15)}</span>
+              <span className="font-medium text-foreground">{formatPrice(storeConfig.packagingCharge)}</span>
             </div>
+            {storeConfig.gstRate > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">GST (5%)</span>
-              <span className="font-medium text-foreground">{formatPrice((subtotal + 15) * 0.05)}</span>
+              <span className="text-muted-foreground">GST ({storeConfig.gstRate}%)</span>
+              <span className="font-medium text-foreground">{formatPrice((subtotal + storeConfig.packagingCharge) * storeConfig.gstRate / 100)}</span>
             </div>
+            )}
             <div className="border-t border-border pt-2 mt-2 flex justify-between">
               <span className="font-bold text-foreground">Grand Total</span>
               <span className="font-bold text-lg text-foreground">
-                {formatPrice(subtotal + 15 + (subtotal + 15) * 0.05)}
+                {formatPrice(subtotal + storeConfig.packagingCharge + (subtotal + storeConfig.packagingCharge) * storeConfig.gstRate / 100)}
               </span>
             </div>
           </div>
@@ -255,7 +263,7 @@ export default function CartPage() {
             className="flex items-center justify-between bg-primary text-primary-foreground rounded-xl px-5 py-3.5 hover:bg-primary-hover transition-colors w-full btn-press"
           >
             <span className="font-bold text-lg">
-              {formatPrice(subtotal + 15 + subtotal * 0.05)}
+              {formatPrice(subtotal + storeConfig.packagingCharge + (subtotal + storeConfig.packagingCharge) * storeConfig.gstRate / 100)}
             </span>
             <span className="flex items-center gap-1 font-semibold">
               Proceed to Checkout →

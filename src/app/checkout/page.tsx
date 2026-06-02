@@ -598,10 +598,12 @@ export default function CheckoutPage() {
                 <span className="font-medium">-{formatPrice(discount)}</span>
               </div>
             )}
+            {storeConfig.gstRate > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">GST ({storeConfig.gstRate}%)</span>
               <span className="font-medium">{formatPrice(gst)}</span>
             </div>
+            )}
             <div className="border-t border-border pt-2 mt-2 flex justify-between">
               <span className="font-bold text-foreground">Grand Total</span>
               <span className="font-bold text-lg text-foreground">{formatPrice(grandTotal)}</span>
@@ -650,10 +652,12 @@ export default function CheckoutPage() {
                     <span className="font-medium">-{formatPrice(discount)}</span>
                   </div>
                 )}
+                {storeConfig.gstRate > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">GST ({storeConfig.gstRate}%)</span>
                   <span className="font-medium">{formatPrice(gst)}</span>
                 </div>
+                )}
                 <div className="border-t border-border pt-2 mt-2 flex justify-between">
                   <span className="font-bold text-foreground">Grand Total</span>
                   <span className="font-bold text-lg text-foreground">{formatPrice(grandTotal)}</span>
