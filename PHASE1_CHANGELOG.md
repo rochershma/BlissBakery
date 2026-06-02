@@ -4,12 +4,12 @@
 | Milestone | Git Commit | Status | Date |
 |-----------|-----------|--------|------|
 | **BASELINE (pre-Phase 1)** | `52a51da` | ✅ All features working | June 2, 2026 |
-| Task 1: Hero Banner (already exists) | — | ✅ Verified working | — |
-| Task 2: 100% Eggless Badge | pending | ⏳ | — |
-| Task 3: Earliest Delivery label | pending | ⏳ | — |
-| Task 5: Image Zoom/Lightbox | pending | ⏳ | — |
-| Task 6: Search Bar in Header | pending | ⏳ | — |
-| Task 8: Add-on Page after Add-to-Cart | pending | ⏳ | — |
+| Task 1: Hero Banner (already exists) | `52a51da` | ✅ Verified working | June 2, 2026 |
+| Task 2: 100% Eggless Badge | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
+| Task 3: Earliest Delivery + % OFF | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
+| Task 5: Image Zoom/Lightbox | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
+| Task 6: Search Bar in Header | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
+| Task 8: Add-on Upsell Modal | `ae05749` | ✅ DEPLOYED | June 2, 2026 |
 
 ---
 
