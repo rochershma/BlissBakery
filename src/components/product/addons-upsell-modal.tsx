@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { X, ShoppingCart, ChevronRight, Check, Plus, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
@@ -28,6 +29,7 @@ interface Props {
 export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unitPrice, variantName, storeSlug, onClose }: Props) {
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const [addingToCart, setAddingToCart] = useState(false);
+  const router = useRouter();
 
   const toggle = (id: string) => {
     setSelectedAddOns((prev) => {
@@ -56,7 +58,7 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
       updateItemAddOns(lastItem.productId, [...existingAddOns, ...newAddOns], lastItem.variantName);
     }
 
-    setTimeout(() => onClose(), 300);
+    setTimeout(() => { onClose(); router.push("/cart"); }, 300);
   };
 
   // Group by category
