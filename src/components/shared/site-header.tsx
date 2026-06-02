@@ -37,8 +37,8 @@ export function SiteHeader() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showProfile]);
 
-  const { getItemCount } = useCartStore();
-  const itemCount = hydrated ? getItemCount() : 0;
+  const items = useCartStore((s) => s.items);
+  const itemCount = hydrated ? items.reduce((s, i) => s + i.quantity, 0) : 0;
 
   return (
     <header className="sticky top-0 z-50 glass-header border-b border-border shadow-sm">

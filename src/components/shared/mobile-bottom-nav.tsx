@@ -18,8 +18,8 @@ export function MobileBottomNav() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const { getItemCount } = useCartStore();
-  const cartCount = hydrated ? getItemCount() : 0;
+  const cartItems = useCartStore((s) => s.items);
+  const cartCount = hydrated ? cartItems.reduce((s, i) => s + i.quantity, 0) : 0;
 
   // Don't show on admin, cart, or checkout pages
   if (pathname.startsWith("/admin") || pathname === "/cart" || pathname === "/checkout") return null;
