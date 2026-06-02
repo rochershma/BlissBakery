@@ -86,12 +86,24 @@ body {
   line-height: 1.6;
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
 }
 
-/* Prevent text selection on interactive elements (mobile) */
-button, a, label, [role="button"] {
+/* Prevent text selection on all non-content elements (mobile tap/hold) */
+button, a, label, [role="button"],
+nav, header, footer, aside,
+.product-card, .category-card, .btn-press,
+[class*="rounded-full"], [class*="rounded-xl"] {
   -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Allow selection only in actual text content and inputs */
+input, textarea, [contenteditable="true"],
+article p, main > div > p, .prose {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 h1, h2, h3, h4 {
