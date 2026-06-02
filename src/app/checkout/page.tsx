@@ -50,7 +50,7 @@ export default function CheckoutPage() {
   const [promoError, setPromoError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
+  const [storeConfig, setStoreConfig] = useState({ pincode: "341508", city: "Kuchaman City", packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
   const [availablePromos, setAvailablePromos] = useState<{ code: string; discountType: string; discountValue: number; occasionTag: string | null }[]>([]);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("");
@@ -160,8 +160,8 @@ export default function CheckoutPage() {
         toast("Please enter a valid 6-digit pincode", "error");
         return;
       }
-      if (pin !== "341508") {
-        toast("We only deliver to pincode 341508 (Kuchaman City)", "error");
+      if (pin !== storeConfig.pincode) {
+        toast(`We only deliver to pincode ${storeConfig.pincode} (${storeConfig.city})`, "error");
         return;
       }
       if (subtotal < storeConfig.minDeliveryOrder) {
@@ -356,7 +356,7 @@ export default function CheckoutPage() {
               {savedAddresses.length > 0 && !showNewAddress && (
                 <div className="space-y-2">
                   {savedAddresses.map((addr) => {
-                    const notDeliverable = addr.pincode !== "341508";
+                    const notDeliverable = addr.pincode !== storeConfig.pincode;
                     return (
                       <button
                         key={addr.id}
@@ -407,7 +407,7 @@ export default function CheckoutPage() {
                         const val = e.target.value.replace(/\D/g, "").slice(0, 6);
                         const updated = { ...newAddr, pincode: val };
                         setNewAddr(updated);
-                        if (val.length === 6 && val === "341508") {
+                        if (val.length === 6 && val === storeConfig.pincode) {
                           const full = [updated.flatHouse, updated.streetArea, updated.landmark, updated.city, val].filter(Boolean).join(", ");
                           setDeliveryAddress(full);
                           setSelectedAddressId("");
@@ -419,17 +419,17 @@ export default function CheckoutPage() {
                       inputMode="numeric"
                       maxLength={6}
                       className={`px-3 py-2.5 rounded-lg border text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-                        newAddr.pincode.length > 0 && (newAddr.pincode.length < 6 || newAddr.pincode !== "341508") ? "border-red-400" : newAddr.pincode === "341508" ? "border-green-400" : "border-border"
+                        newAddr.pincode.length > 0 && (newAddr.pincode.length < 6 || newAddr.pincode !== storeConfig.pincode) ? "border-red-400" : newAddr.pincode === storeConfig.pincode ? "border-green-400" : "border-border"
                       }`}
                     />
                   </div>
                   {newAddr.pincode.length > 0 && newAddr.pincode.length < 6 && (
                     <p className="text-xs text-amber-600">Enter 6-digit pincode ({6 - newAddr.pincode.length} more digits)</p>
                   )}
-                  {newAddr.pincode.length === 6 && newAddr.pincode !== "341508" && (
-                    <p className="text-xs text-red-600">⚠ We deliver only to pincode 341508 (Kuchaman City)</p>
+                  {newAddr.pincode.length === 6 && newAddr.pincode !== storeConfig.pincode && (
+                    <p className="text-xs text-red-600">⚠ We deliver only to pincode {storeConfig.pincode} ({storeConfig.city})</p>
                   )}
-                  {newAddr.pincode.length === 6 && newAddr.pincode === "341508" && (
+                  {newAddr.pincode.length === 6 && newAddr.pincode === storeConfig.pincode && (
                     <p className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> Delivery available</p>
                   )}
                 </div>

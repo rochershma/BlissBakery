@@ -18,9 +18,7 @@ interface Address {
   isDefault: boolean;
 }
 
-const STORE_PINCODE = "341508";
-
-const emptyForm = { label: "Home", flatHouse: "", streetArea: "", landmark: "", city: "Kuchaman City", state: "Rajasthan", pincode: "" };
+const emptyForm = { label: "Home", flatHouse: "", streetArea: "", landmark: "", city: "", state: "Rajasthan", pincode: "" };
 
 export default function AddressesPage() {
   const { user, loading, setShowLoginModal } = useAuth();
@@ -30,6 +28,8 @@ export default function AddressesPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [pincodeError, setPincodeError] = useState("");
+  const [storePin, setStorePin] = useState("");
+  const [storeCity, setStoreCity] = useState("");
 
   useEffect(() => {
     if (!loading && !user) setShowLoginModal(true);
@@ -40,24 +40,28 @@ export default function AddressesPage() {
       fetch("/api/addresses").then((r) => r.json()).then((data) => {
         if (data.addresses) setAddresses(data.addresses);
       });
+      fetch("/api/store/config").then((r) => r.json()).then((data) => {
+        if (data.pincode) setStorePin(data.pincode);
+        if (data.city) setStoreCity(data.city);
+      });
     }
   }, [user]);
 
   const validatePincode = (pin: string) => {
-    if (pin.length !== 6) { setPincodeError(""); return; }
-    if (pin !== STORE_PINCODE) {
-      setPincodeError(`We currently deliver only to ${STORE_PINCODE} (Kuchaman City). Your pincode is not serviceable.`);
+    if (pin.length !== 6 || !storePin) { setPincodeError(""); return; }
+    if (pin !== storePin) {
+      setPincodeError(`We currently deliver only to ${storePin} (${storeCity || "Store area"}). Your pincode is not serviceable.`);
     } else {
       setPincodeError("");
     }
   };
 
   const handleSave = async () => {
-    if (!form.flatHouse.trim() || !form.streetArea.trim() || !form.pincode.trim() || !form.city.trim()) {
+    if (!form.flatHouse.trim() || !form.streetArea.trim() || !form.pincode.trim()) {
       toast("Please fill all required fields", "error");
       return;
     }
-    if (form.pincode !== STORE_PINCODE) {
+    if (storePin && form.pincode !== storePin) {
       toast("This pincode is not deliverable", "error");
       return;
     }
@@ -217,7 +221,7 @@ export default function AddressesPage() {
                   setForm({ ...form, pincode: val });
                   validatePincode(val);
                 }}
-                placeholder="e.g., 341508"
+                placeholder="6-digit Pincode"
                 inputMode="numeric"
                 maxLength={6}
                 className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 ${
