@@ -111,7 +111,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 <Truck className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-foreground">Delivery & Pickup</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Same-day delivery available. Order 2 hours before your desired slot.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Same-day delivery available. Order 3 hours before your desired slot.</p>
                   <p className="text-xs text-muted-foreground">Free pickup from store.</p>
                 </div>
               </div>
