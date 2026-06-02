@@ -167,7 +167,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
                   return (
                     <div
                       key={product.id}
-                      className="product-card bg-white rounded-xl border border-border overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                      className="product-card bg-white rounded-xl border border-border overflow-hidden"
                     >
                       {/* Product Image */}
                       <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="block">
