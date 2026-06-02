@@ -17,7 +17,7 @@ const schema = z.object({
     unitPrice: z.number(),
     addOns: z.array(z.object({ name: z.string(), price: z.number() })).optional(),
     flavour: z.string().max(50).optional(),
-    cakeMessage: z.string().max(25).optional(),
+    cakeMessage: z.string().max(50).optional(),
     occasion: z.string().max(30).optional(),
     recipientName: z.string().max(30).optional(),
     recipientAge: z.string().max(3).optional(),

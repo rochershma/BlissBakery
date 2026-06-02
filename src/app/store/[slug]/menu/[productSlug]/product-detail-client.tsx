@@ -221,30 +221,18 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       </div>
 
       {/* Recipient Name + Age (if birthday) */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <h3 className="text-xs font-semibold text-foreground mb-1.5">Recipient&apos;s Name</h3>
-          <input
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="e.g., Raj"
-            maxLength={30}
-            className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
-          />
-        </div>
-        {occasion === "birthday" && (
-          <div>
-            <h3 className="text-xs font-semibold text-foreground mb-1.5">Age</h3>
-            <input
-              value={recipientAge}
-              onChange={(e) => setRecipientAge(e.target.value.replace(/\D/g, ""))}
-              placeholder="e.g., 25"
-              maxLength={3}
-              className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
-            />
-          </div>
-        )}
+      {occasion === "birthday" && (
+      <div>
+        <h3 className="text-xs font-semibold text-foreground mb-1.5">Age on Cake</h3>
+        <input
+          value={recipientAge}
+          onChange={(e) => setRecipientAge(e.target.value.replace(/\D/g, ""))}
+          placeholder="e.g., 25"
+          maxLength={3}
+          className="w-24 px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
+        />
       </div>
+      )}
 
       {/* Cake Message */}
       <div>
@@ -255,10 +243,10 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           value={cakeMessage}
           onChange={(e) => setCakeMessage(e.target.value)}
           placeholder="e.g., Happy Birthday Raj!"
-          maxLength={25}
+          maxLength={50}
           className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground"
         />
-        <p className="text-[10px] text-muted-foreground mt-0.5 text-right">{cakeMessage.length}/25</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5 text-right">{cakeMessage.length}/50</p>
       </div>
       </>
       )}
