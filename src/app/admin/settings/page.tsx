@@ -29,6 +29,8 @@ export default async function AdminSettingsPage() {
     const deliveryRadius = Math.max(0, parseFloat(formData.get("deliveryRadius") as string) || 10);
     const minDeliveryOrder = Math.max(0, parseFloat(formData.get("minDeliveryOrder") as string) || 0);
     const staffWhatsApp = formData.get("staffWhatsApp") as string;
+    const latitude = parseFloat(formData.get("latitude") as string) || null;
+    const longitude = parseFloat(formData.get("longitude") as string) || null;
     const isOpen = formData.get("isOpen") === "on";
 
     // Parse operating hours
@@ -46,6 +48,7 @@ export default async function AdminSettingsPage() {
         name, tagline, description, address, city, phone, email,
         fssaiLicense, gstNumber, deliveryCharge, packagingCharge, gstRate,
         deliveryRadius, minDeliveryOrder, staffWhatsApp: staffWhatsApp || null,
+        latitude, longitude,
         operatingHours: JSON.stringify(hours), isOpen,
       },
     });
@@ -135,7 +138,16 @@ export default async function AdminSettingsPage() {
               <label className="text-xs font-medium text-foreground block mb-1">Staff WhatsApp No.</label>
               <input name="staffWhatsApp" inputMode="tel" placeholder="9602831559" defaultValue={store.staffWhatsApp || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Map Latitude</label>
+              <input name="latitude" inputMode="decimal" placeholder="27.1517" defaultValue={store.latitude || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Map Longitude</label>
+              <input name="longitude" inputMode="decimal" placeholder="74.8560" defaultValue={store.longitude || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
           </div>
+          <p className="text-[10px] text-muted-foreground mt-2">Lat/Lng are used for the Google Maps pickup link on checkout. Find your coordinates at <a href="https://maps.google.com" target="_blank" rel="noopener" className="text-primary hover:underline">maps.google.com</a>.</p>
         </div>
 
         {/* Operating Hours */}

@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, CreditCard } from "lucide-react";
 import { OrderStatusUpdater } from "../order-status-updater";
 
@@ -23,7 +24,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
     include: {
       user: true,
       store: true,
-      items: true,
+      items: { include: { product: true } },
       statusHistory: { orderBy: { createdAt: "desc" } },
     },
   });
@@ -58,34 +59,64 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               <h2 className="label-premium text-foreground">Order Items</h2>
             </div>
             <div className="divide-y divide-border">
-              {order.items.map((item) => (
-                <div key={item.id} className="px-4 py-2.5 text-sm">
-                  <div className="flex justify-between">
-                    <div>
-                      <span className="font-medium text-foreground">{item.productName}</span>
-                      {item.variantName && <span className="text-muted-foreground"> ({item.variantName})</span>}
-                      <span className="text-muted-foreground"> × {item.quantity}</span>
+              {order.items.map((item) => {
+                const productImgs = parseJsonSafe<string[]>(item.product?.images, []);
+                const productImg = productImgs[0] || null;
+                const productSlug = item.product?.slug;
+                const addOns = parseJsonSafe<{name:string;price:number}[]>((item as any).addOns, []);
+                return (
+                <div key={item.id} className="px-4 py-3">
+                  <div className="flex gap-3">
+                    {/* Product image */}
+                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
+                      {productImg ? (
+                        <Image src={productImg} alt={item.productName} fill className="object-cover" sizes="56px" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xl bg-primary/5">🎂</div>
+                      )}
                     </div>
-                    <span className="font-medium">{formatPrice(item.totalPrice)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          {productSlug ? (
+                            <Link href={`/store/${order.store.slug}/menu/${productSlug}`} className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
+                              {item.productName}
+                            </Link>
+                          ) : (
+                            <span className="text-sm font-semibold text-foreground">{item.productName}</span>
+                          )}
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            {item.variantName && <span>{item.variantName}</span>}
+                            <span>× {item.quantity}</span>
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-foreground">{formatPrice(item.totalPrice)}</span>
+                      </div>
+                      {/* Customization details */}
+                      {((item as any).flavour || (item as any).cakeMessage || (item as any).occasion) && (
+                        <div className="mt-2 bg-primary/5 rounded-lg px-3 py-2 text-xs space-y-0.5">
+                          {(item as any).flavour && <p>Flavour: <span className="font-medium">{(item as any).flavour}</span></p>}
+                          {(item as any).cakeMessage && <p className="text-primary font-semibold">Message: “{(item as any).cakeMessage}”</p>}
+                          {(item as any).occasion && <p>Occasion: <span className="capitalize font-medium">{(item as any).occasion}</span></p>}
+                          {(item as any).recipientAge && <p>Age: <span className="font-medium">{(item as any).recipientAge}</span></p>}
+                        </div>
+                      )}
+                      {/* Add-ons */}
+                      {addOns.length > 0 && (
+                        <div className="mt-1.5 space-y-0.5">
+                          {addOns.map((a, i) => (
+                            <div key={i} className="flex items-center justify-between text-[11px] text-muted-foreground">
+                              <span>🎁 {a.name}</span>
+                              <span>+{formatPrice(a.price)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {((item as any).flavour || (item as any).cakeMessage || (item as any).occasion || (item as any).recipientName) && (
-                    <div className="mt-1.5 bg-primary/5 rounded-lg px-3 py-2 text-xs space-y-0.5">
-                      {(item as any).flavour && (
-                        <p className="text-foreground">Flavour: <span className="font-medium">{(item as any).flavour}</span></p>
-                      )}
-                      {(item as any).cakeMessage && (
-                        <p className="text-primary font-semibold">Cake Message: &ldquo;{(item as any).cakeMessage}&rdquo;</p>
-                      )}
-                      {(item as any).occasion && (
-                        <p className="text-foreground">Occasion: <span className="capitalize font-medium">{(item as any).occasion}</span></p>
-                      )}
-                      {(item as any).recipientName && (
-                        <p className="text-foreground">For: <span className="font-medium">{(item as any).recipientName}</span>{(item as any).recipientAge ? ` (${(item as any).recipientAge} yrs)` : ""}</p>
-                      )}
-                    </div>
-                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
             {order.specialInstructions && (
               <div className="px-4 py-2.5 bg-yellow-50 border-t border-yellow-100 text-xs text-yellow-800">
