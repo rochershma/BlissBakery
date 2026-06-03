@@ -202,12 +202,13 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
                 )}
               </button>
             ) : (
-              <button
+              <Link
+                href="/checkout"
                 onClick={onClose}
                 className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover transition-colors"
               >
-                Continue Shopping <ArrowRight className="w-4 h-4" />
-              </button>
+                Checkout <ArrowRight className="w-4 h-4" />
+              </Link>
             )}
           </div>
         </div>
