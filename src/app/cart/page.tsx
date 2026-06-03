@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageSquare, Home, ChevronRight, X, Leaf, Clock, Gift, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 
-function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { index: number }; storeSlug: string; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void }) {
+function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: CartItem & { index: number }; storeSlug: string; addOnImages: Record<string, string>; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void }) {
   const { updateQuantity } = useCartStore();
   const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
   const productPrice = item.unitPrice * item.quantity;
@@ -97,9 +97,13 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
           <div className="divide-y divide-border/30">
             {item.addOns.map((addon, addonIdx) => (
               <div key={addonIdx} className="flex items-center justify-between px-3 py-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm">
-                    🎁
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-muted">
+                    {addOnImages[addon.name] ? (
+                      <Image src={addOnImages[addon.name]} alt={addon.name} fill className="object-cover" sizes="40px" />
+                    ) : (
+                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-sm">🎁</div>
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-foreground truncate">{addon.name}</p>
@@ -133,10 +137,12 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
 export default function CartPage() {
   const [hydrated, setHydrated] = useState(false);
   const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, gstRate: 0 });
+  const [addOnImages, setAddOnImages] = useState<Record<string, string>>({});
   useEffect(() => {
     setHydrated(true);
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig({ packagingCharge: data.packagingCharge ?? 15, gstRate: data.gstRate ?? 0 });
+      if (data.addOnImages) setAddOnImages(data.addOnImages);
     }).catch(() => {});
   }, []);
 
@@ -248,6 +254,7 @@ export default function CartPage() {
                     key={`${item.productId}-${item.variantName || ""}-${idx}`}
                     item={{ ...item, index: idx }}
                     storeSlug={slug}
+                    addOnImages={addOnImages}
                     onRemoveAddOn={removeAddOn}
                   />
                 ))}

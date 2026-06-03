@@ -51,6 +51,7 @@ export default function CheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [storeConfig, setStoreConfig] = useState({ pincode: "341508", city: "Kuchaman City", packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
+  const [addOnImages, setAddOnImages] = useState<Record<string, string>>({});
   const [availablePromos, setAvailablePromos] = useState<{ code: string; discountType: string; discountValue: number; occasionTag: string | null }[]>([]);
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("");
@@ -73,6 +74,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig(data);
+      if (data.addOnImages) setAddOnImages(data.addOnImages);
     }).catch(() => {});
     // Fetch available promos
     fetch("/api/promo/list").then(r => r.json()).then(data => {
@@ -317,13 +319,20 @@ export default function CheckoutPage() {
                 </div>
                 {/* Add-ons breakdown */}
                 {item.addOns && item.addOns.length > 0 && (
-                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 space-y-0.5">
+                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 space-y-1">
                     {item.addOns.map((a, ai) => (
-                      <div key={ai} className="flex items-center justify-between text-[11px]">
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          <span className="text-xs">🎁</span> {a.name}
-                        </span>
-                        <span className="text-muted-foreground">+{formatPrice(a.price)}</span>
+                      <div key={ai} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded overflow-hidden flex-shrink-0 relative bg-muted">
+                            {addOnImages[a.name] ? (
+                              <img src={addOnImages[a.name]} alt={a.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[10px]">🎁</div>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-muted-foreground">{a.name}</span>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground">+{formatPrice(a.price)}</span>
                       </div>
                     ))}
                   </div>

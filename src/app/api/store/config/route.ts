@@ -16,6 +16,11 @@ export async function GET() {
 
   if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
+  const addOns = await db.storeAddOn.findMany({
+    where: { storeId: store.pincode ? undefined : undefined, isActive: true },
+    select: { name: true, image: true },
+  });
+
   return NextResponse.json({
     pincode: store.pincode || "341508",
     city: store.city || "Kuchaman City",
@@ -24,5 +29,6 @@ export async function GET() {
     minDeliveryOrder: store.minDeliveryOrder ?? 200,
     deliveryRadius: store.deliveryRadius ?? 10,
     gstRate: store.gstRate ?? 5,
+    addOnImages: Object.fromEntries(addOns.filter(a => a.image).map(a => [a.name, a.image])),
   });
 }
