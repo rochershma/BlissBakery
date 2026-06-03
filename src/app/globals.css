@@ -242,124 +242,79 @@ h4 { font-weight: 500; }
 .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
 .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
 .stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
-/* Stagger children — Bakingo-style pop-in entrance */
+/* Stagger children — clean fade-in entrance */
 .stagger-children > * {
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: fadeUp 0.35s ease-out both;
 }
-.stagger-children > *:nth-child(1) { animation-delay: 0.03s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.06s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.09s; }
+.stagger-children > *:nth-child(1) { animation-delay: 0s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.04s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.08s; }
 .stagger-children > *:nth-child(4) { animation-delay: 0.12s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.18s; }
-.stagger-children > *:nth-child(7) { animation-delay: 0.21s; }
-.stagger-children > *:nth-child(8) { animation-delay: 0.24s; }
-.stagger-children > *:nth-child(9) { animation-delay: 0.27s; }
-.stagger-children > *:nth-child(10) { animation-delay: 0.30s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.16s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.24s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.28s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.32s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.36s; }
 
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.92) translateY(12px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Product card — fluid hover with lift + glow */
-.product-card {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform;
+/* Shared interactive transition for all cards/tiles */
+.product-card,
+.category-card,
+.category-circle,
+.occasion-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.product-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 12px 32px -8px rgba(196, 117, 144, 0.25),
-              0 4px 12px -2px rgba(0, 0, 0, 0.08);
+.product-card:hover,
+.category-card:hover,
+.occasion-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.12);
 }
-.product-card:active {
-  transform: translateY(-2px) scale(0.99);
+.product-card:active,
+.category-card:active,
+.category-circle:active,
+.occasion-card:active {
+  transform: translateY(0) scale(0.98);
   transition-duration: 0.1s;
+}
+
+/* Category circles — subtle lift */
+.category-circle:hover {
+  transform: translateY(-3px);
 }
 
 /* Product image zoom on hover */
 .product-img-zoom {
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform;
+  transition: transform 0.4s ease;
 }
 .product-card:hover .product-img-zoom {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
-/* Category circle — springy bounce */
-.category-circle {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.3s ease;
-  will-change: transform;
-}
-.category-circle:hover {
-  transform: translateY(-4px) scale(1.08);
-  box-shadow: 0 8px 20px -4px rgba(196, 117, 144, 0.3);
-}
-.category-circle:active {
-  transform: scale(0.95);
-  transition-duration: 0.1s;
-}
-
-/* Category card — bounce + glow */
-.category-card {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.3s ease,
-              border-color 0.3s ease;
-  will-change: transform;
-}
-.category-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(196, 117, 144, 0.25);
-  border-color: var(--primary);
-}
-.category-card:hover .category-icon {
-  animation: bounceSubtle 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Occasion cards — smooth pop */
-.occasion-card {
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.35s ease;
-  will-change: transform;
-}
-.occasion-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.2);
-}
-.occasion-card:active {
-  transform: scale(0.97);
-  transition-duration: 0.1s;
-}
-
-/* Button press effect — snappy */
+/* Button press */
 .btn-press {
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.15s ease;
-  will-change: transform;
+  transition: transform 0.15s ease;
 }
 .btn-press:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
-/* ADD button — pop on hover */
+/* ADD button */
 .add-btn {
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  will-change: transform;
-}
-.add-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(196, 117, 144, 0.4);
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .add-btn:active {
-  transform: scale(0.92);
-  transition-duration: 0.1s;
+  transform: scale(0.95);
 }
 
 /* Cart bar slide up */
 .cart-bar-enter {
-  animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: slideUp 0.3s ease-out both;
 }
 
 /* Offer strip auto-scroll */
