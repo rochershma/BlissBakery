@@ -27,6 +27,20 @@ export function AssetGallery({ initialAssets }: { initialAssets: Asset[] }) {
   const [uploadFolder, setUploadFolder] = useState("products");
   const [dragOver, setDragOver] = useState(false);
 
+  const handleDelete = async (asset: Asset) => {
+    if (!confirm(`Delete "${asset.filename}"?`)) return;
+    setDeleting(asset.id);
+    try {
+      await fetch("/api/admin/assets", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: asset.id }),
+      });
+      setAssets((prev) => prev.filter((a) => a.id !== asset.id));
+    } catch {}
+    setDeleting(null);
+  };
+
   const filtered = activeFolder ? assets.filter(a => a.folder === activeFolder) : assets;
 
   const handleUpload = async (files: FileList) => {
@@ -158,6 +172,14 @@ export function AssetGallery({ initialAssets }: { initialAssets: Asset[] }) {
                     title="Copy URL"
                   >
                     {copied === asset.url ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(asset)}
+                    disabled={deleting === asset.id}
+                    className="bg-white text-destructive p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+                    title="Delete"
+                  >
+                    {deleting === asset.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                   </button>
                 </div>
               </div>

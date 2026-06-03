@@ -22,3 +22,18 @@ export async function GET(req: NextRequest) {
     assets: assets.map((a) => ({ url: a.url, filename: a.filename, folder: a.folder })),
   });
 }
+
+export async function DELETE(req: NextRequest) {
+  const session = await getSession();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = await db.user.findUnique({ where: { id: session.userId } });
+  if (!user || (user.role !== "ADMIN" && user.role !== "STAFF"))
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const { id } = await req.json();
+  if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+  await db.asset.delete({ where: { id } });
+  return NextResponse.json({ success: true });
+}

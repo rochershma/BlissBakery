@@ -13,20 +13,19 @@ interface Props {
 export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw, 25vw", children }: Props) {
   const [activeIdx, setActiveIdx] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const swiping = useRef(false);
 
-  // Cleanup interval on unmount to prevent memory leak
   useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
+  // Desktop: hover to cycle
   const handleMouseEnter = useCallback(() => {
     if (images.length <= 1) return;
-    // Immediately show next image
     setActiveIdx(1);
     if (images.length <= 2) return;
-    // Cycle through remaining images every 1.2s
     let idx = 1;
     intervalRef.current = setInterval(() => {
       idx = (idx + 1) % images.length;
@@ -35,11 +34,50 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
   }, [images.length]);
 
   const handleMouseLeave = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
     setActiveIdx(0);
+  }, []);
+
+  // Mobile: swipe to navigate
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    swiping.current = false;
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (images.length <= 1) return;
+    const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
+    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+    // Only count as swipe if horizontal movement > vertical (prevents blocking scroll)
+    if (dx > 15 && dx > dy * 1.5) {
+      swiping.current = true;
+      e.stopPropagation();
+    }
+  }, [images.length]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (images.length <= 1 || !swiping.current) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 30) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (diff > 0) {
+        // Swipe left → next
+        setActiveIdx((prev) => (prev + 1) % images.length);
+      } else {
+        // Swipe right → previous
+        setActiveIdx((prev) => (prev - 1 + images.length) % images.length);
+      }
+    }
+    swiping.current = false;
+  }, [images.length]);
+
+  // Tap on dot to go to that image
+  const goToImage = useCallback((idx: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveIdx(idx);
   }, []);
 
   if (!images[0]) return null;
@@ -49,8 +87,9 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
       className="w-full h-full relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onTouchStart={handleMouseEnter}
-      onTouchEnd={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {images.map((img, idx) => (
         <Image
@@ -64,13 +103,14 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
           loading={idx === 0 ? undefined : "lazy"}
         />
       ))}
-      {/* Dot indicators */}
+      {/* Dot indicators — tappable */}
       {images.length > 1 && (
-        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1">
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
           {images.map((_, idx) => (
-            <span
+            <button
               key={idx}
-              className={`w-1 h-1 rounded-full transition-all ${idx === activeIdx ? "bg-white w-2.5" : "bg-white/50"}`}
+              onClick={(e) => goToImage(idx, e)}
+              className={`rounded-full transition-all ${idx === activeIdx ? "bg-white w-3 h-1.5" : "bg-white/50 w-1.5 h-1.5"}`}
             />
           ))}
         </div>
