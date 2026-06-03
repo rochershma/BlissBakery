@@ -161,33 +161,31 @@ export function AssetGallery({ initialAssets }: { initialAssets: Asset[] }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtered.filter(a => a.url).map((asset) => (
-            <div key={asset.id} className="bg-white rounded-xl border border-border overflow-hidden group">
+            <div key={asset.id} className="bg-white rounded-xl border border-border overflow-hidden">
               <div className="relative aspect-square bg-muted">
                 {asset.url && <Image src={asset.url} alt={asset.filename} fill className="object-cover" sizes="200px" />}
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => handleCopy(asset.url)}
-                    className="bg-white text-foreground p-2 rounded-lg hover:bg-muted transition-colors"
-                    title="Copy URL"
-                  >
-                    {copied === asset.url ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => handleDelete(asset)}
-                    disabled={deleting === asset.id}
-                    className="bg-white text-destructive p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-                    title="Delete"
-                  >
-                    {deleting === asset.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  </button>
-                </div>
               </div>
               <div className="p-2">
                 <p className="text-[10px] text-foreground font-medium truncate">{asset.filename}</p>
-                <div className="flex items-center justify-between mt-0.5">
-                  <span className="text-[9px] text-muted-foreground">{formatSize(asset.size)}</span>
-                  <span className="text-[9px] text-primary font-medium">{asset.folder}</span>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-[9px] text-muted-foreground">{formatSize(asset.size)} · {asset.folder}</span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleCopy(asset.url)}
+                      className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Copy URL"
+                    >
+                      {copied === asset.url ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(asset)}
+                      disabled={deleting === asset.id}
+                      className="p-1 rounded text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors disabled:opacity-50"
+                      title="Delete"
+                    >
+                      {deleting === asset.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

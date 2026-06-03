@@ -58,6 +58,11 @@ export default async function MenuPage({ params, searchParams }: Props) {
       )
     : filtered;
 
+  const storeAddOns = store ? await db.storeAddOn.findMany({
+    where: { storeId: store.id, isActive: true },
+    orderBy: { sortOrder: "asc" },
+  }) : [];
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
@@ -77,6 +82,7 @@ export default async function MenuPage({ params, searchParams }: Props) {
       <MenuClient
         storeSlug={slug}
         categories={store.categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug }))}
+        storeAddOns={storeAddOns.map(a => ({ id: a.id, name: a.name, price: a.price, image: a.image, category: a.category }))}
         products={searched.map((p) => ({
           id: p.id,
           name: p.name,

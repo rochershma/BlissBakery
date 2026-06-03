@@ -8,6 +8,7 @@ import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
+import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
 
 interface CategoryItem {
   id: string;
@@ -35,6 +36,7 @@ interface Props {
   storeSlug: string;
   categories: CategoryItem[];
   products: ProductItem[];
+  storeAddOns: { id: string; name: string; price: number; image: string | null; category: string }[];
   activeCategory: string | null;
   searchQuery: string;
 }
@@ -44,14 +46,15 @@ const categoryEmojis: Record<string, string> = {
   "cheese-cakes": "🧀", "cup-cakes": "🧁",
 };
 
-export function MenuClient({ storeSlug, categories, products, activeCategory, searchQuery }: Props) {
+export function MenuClient({ storeSlug, categories, products, storeAddOns, activeCategory, searchQuery }: Props) {
   const router = useRouter();
   const { addItem, items, getItemCount, getSubtotal, setStoreSlug } = useCartStore();
   const [search, setSearch] = useState(searchQuery);
   const [hydrated, setHydrated] = useState(false);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+  const [upsellProduct, setUpsellProduct] = useState<{ name: string; image?: string; price: number; variant?: string } | null>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => setHydrated(true), []);
+  useEffect(() => setHydrated(true), []);;
 
   const itemCount = hydrated ? getItemCount() : 0;
   const subtotal = hydrated ? getSubtotal() : 0;
@@ -72,7 +75,9 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
     const price = product.variants.length > 0 ? product.variants[0].price : product.basePrice;
     const variantName = product.variants.length > 0 ? product.variants[0].name : undefined;
     const img = product.images[0] || undefined;
-    addItem({ productId: product.id, name: product.name, image: img, variantName, unitPrice: price });
+    addItem({ productId: product.id, productSlug: product.slug, name: product.name, image: img, variantName, unitPrice: price });
+    // Show upsell modal
+    setUpsellProduct({ name: product.name, image: img, price, variant: variantName });
   };
 
   const getItemQty = (productId: string) => {
@@ -241,7 +246,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
         )}
       </main>
 
-      {/* Cart Bar — full-width on mobile, floating pill on desktop */}
+      {/* Cart Bar */}
       {itemCount > 0 && (
         <div className="fixed bottom-20 md:bottom-4 z-50 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-auto md:min-w-[320px] md:max-w-md cart-bar-enter">
           <Link
@@ -257,6 +262,19 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
             </div>
           </Link>
         </div>
+      )}
+
+      {/* Add-ons Upsell Modal */}
+      {upsellProduct && (
+        <AddOnsUpsellModal
+          storeAddOns={storeAddOns}
+          productName={upsellProduct.name}
+          productImage={upsellProduct.image}
+          unitPrice={upsellProduct.price}
+          variantName={upsellProduct.variant}
+          storeSlug={storeSlug}
+          onClose={() => setUpsellProduct(null)}
+        />
       )}
     </div>
   );
