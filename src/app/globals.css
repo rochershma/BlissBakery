@@ -242,27 +242,12 @@ h4 { font-weight: 500; }
 .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
 .stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
 .stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
-/* Stagger children — clean fade-in entrance */
+/* Stagger children — no entrance animation, instant render */
 .stagger-children > * {
-  animation: fadeUp 0.35s ease-out both;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.04s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.08s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.12s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.16s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(7) { animation-delay: 0.24s; }
-.stagger-children > *:nth-child(8) { animation-delay: 0.28s; }
-.stagger-children > *:nth-child(9) { animation-delay: 0.32s; }
-.stagger-children > *:nth-child(10) { animation-delay: 0.36s; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  /* Clean instant render — no pop/fade entrance */
 }
 
-/* Shared interactive transition for all cards/tiles */
+/* Shared hover for all interactive cards */
 .product-card,
 .category-card,
 .category-circle,
