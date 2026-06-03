@@ -1,35 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  /* Bliss Bakery Premium Gold-Pink Theme */
-  --background: #FDF0EB;
+  /* Bliss Bakery — Dusty Rose Premium Theme */
+  --background: #FBF0EE;
   --foreground: #1A1A1A;
 
-  /* Primary: Warm Gold */
-  --primary: #C8A27C;
+  /* Primary: Dusty Rose */
+  --primary: #C4878E;
   --primary-foreground: #FFFFFF;
-  --primary-hover: #B8926C;
-  --primary-light: #F8E8DF;
+  --primary-hover: #B3777E;
+  --primary-light: #F8E4E6;
 
-  /* Secondary: Rose Pink (from logo) */
+  /* Secondary: Soft Rose */
   --secondary: #D4A0A0;
   --secondary-foreground: #FFFFFF;
 
-  /* Accent: Bronze */
-  --accent: #8B6E4E;
+  /* Accent: Mauve */
+  --accent: #8E6B72;
   --accent-foreground: #FFFFFF;
 
   /* Muted */
-  --muted: #F9EDE6;
-  --muted-foreground: #6B5E50;
+  --muted: #F6ECED;
+  --muted-foreground: #7A6068;
 
   /* Card */
   --card: #FFFFFF;
   --card-foreground: #1A1A1A;
 
   /* Border */
-  --border: #E8DFD4;
-  --ring: #C8A27C;
+  --border: #E8DCD9;
+  --ring: #C4878E;
 
   /* Destructive */
   --destructive: #C53030;
@@ -40,8 +40,8 @@
   --success-foreground: #FFFFFF;
 
   /* Dark surface (for premium sections) */
-  --dark-bg: #1E1916;
-  --dark-text: #F5EDE4;
+  --dark-bg: #2A1F22;
+  --dark-text: #F5EDE8;
 
   /* Radius */
   --radius: 0.75rem;

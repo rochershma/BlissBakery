@@ -38,7 +38,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   );
 
   return (
-    <section className="relative overflow-hidden bg-[#f5ebe0]">
+    <section className="relative overflow-hidden bg-[#F6ECED]">
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
