@@ -187,7 +187,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
           {/* Zoomed panel — appears to the right on desktop hover */}
           {isHovering && !isMobile && (
             <div
-              className="absolute left-[calc(100%+12px)] top-0 w-[400px] h-[400px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl z-50"
+              className="absolute left-[calc(100%+12px)] top-0 w-[400px] h-[400px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl z-[100]"
               style={{ pointerEvents: "none" }}
             >
               <div

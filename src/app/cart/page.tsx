@@ -242,7 +242,7 @@ export default function CartPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-green-800">Same-Day Delivery Available</p>
-                <p className="text-[10px] text-green-600">Order 3 hours before your desired slot · Free pickup from store</p>
+                <p className="text-[10px] text-green-600">Order 2 hours before your desired slot · Free pickup from store</p>
               </div>
             </div>
 

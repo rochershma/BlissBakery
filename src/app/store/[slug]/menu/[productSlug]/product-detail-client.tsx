@@ -8,13 +8,17 @@ import Link from "next/link";
 import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
 
 const OCCASIONS = [
-  { key: "birthday", label: "Birthday", emoji: "🎂" },
-  { key: "anniversary", label: "Anniversary", emoji: "💕" },
-  { key: "wedding", label: "Wedding", emoji: "💍" },
-  { key: "valentine", label: "Valentine", emoji: "❤️" },
-  { key: "celebration", label: "Celebration", emoji: "🎉" },
-  { key: "festival", label: "Festival", emoji: "🪔" },
-  { key: "gift", label: "Just a Gift", emoji: "🎁" },
+  { key: "birthday", label: "Birthday" },
+  { key: "anniversary", label: "Anniversary" },
+  { key: "wedding", label: "Wedding" },
+  { key: "valentine", label: "Valentine" },
+  { key: "celebration", label: "Celebration" },
+  { key: "festival", label: "Festival" },
+  { key: "baby-shower", label: "Baby Shower" },
+  { key: "retirement", label: "Retirement" },
+  { key: "farewell", label: "Farewell" },
+  { key: "congratulations", label: "Congratulations" },
+  { key: "gift", label: "Just a Gift" },
 ];
 
 interface Props {
@@ -102,7 +106,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const [showUpsell, setShowUpsell] = useState(false);
 
   // Cake customization
-  const [occasion, setOccasion] = useState("");
+  const [occasion, setOccasion] = useState("birthday");
   const [recipientName, setRecipientName] = useState("");
   const [recipientAge, setRecipientAge] = useState("");
   const [cakeMessage, setCakeMessage] = useState("");
@@ -207,20 +211,16 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       <>
       <div>
         <p className="text-sm font-semibold text-foreground mb-2.5">Occasion</p>
-        <div className="flex flex-wrap gap-2">
-          {OCCASIONS.map((o) => (
-            <button
-              key={o.key}
-              onClick={() => setOccasion(occasion === o.key ? "" : o.key)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
-                occasion === o.key
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                  : "bg-white text-foreground border-border hover:border-primary/40 hover:bg-muted/30"
-              }`}
-            >
-              {o.emoji} {o.label}
-            </button>
-          ))}
+        <div className="relative max-w-[250px]">
+          <select
+            value={occasion}
+            onChange={(e) => setOccasion(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
+          >
+            {OCCASIONS.map((o) => (
+              <option key={o.key} value={o.key}>{o.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 

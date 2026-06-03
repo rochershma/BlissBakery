@@ -19,14 +19,14 @@ const COMMON_SIZES_KG = [
   { name: "1 Kg", serves: "Serves 8-10" },
   { name: "1.5 Kg", serves: "Serves 12-15" },
   { name: "2 Kg", serves: "Serves 18-20" },
+  { name: "2.5 Kg", serves: "Serves 22-25" },
+  { name: "3 Kg", serves: "Serves 25-30" },
+  { name: "4 Kg", serves: "Serves 35-40" },
+  { name: "5 Kg", serves: "Serves 45-50" },
+  { name: "6 Kg", serves: "Serves 55-60" },
 ];
 
-const COMMON_SIZES_POUND = [
-  { name: "1 Pound", serves: "Serves 4-6" },
-  { name: "2 Pound", serves: "Serves 8-10" },
-  { name: "3 Pound", serves: "Serves 12-15" },
-  { name: "5 Pound", serves: "Serves 18-22" },
-];
+const COMMON_SIZES_POUND: { name: string; serves: string }[] = [];
 
 export function VariantEditor({ defaultVariants = [] }: Props) {
   const [variants, setVariants] = useState<Variant[]>(defaultVariants);

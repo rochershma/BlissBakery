@@ -561,7 +561,7 @@ export default function CheckoutPage() {
                   { label: "4 PM – 7 PM", value: "4pm-7pm", startHour: 16 },
                   { label: "7 PM – 10 PM", value: "7pm-10pm", startHour: 19 },
                 ];
-                const available = slots.filter((s) => !isToday || s.startHour >= currentHour + 3);
+                const available = slots.filter((s) => !isToday || s.startHour >= currentHour + 2);
                 if (available.length === 0) return <p className="text-xs text-muted-foreground col-span-2">No slots available today. Please select a future date.</p>;
                 return available.map((s) => (
                   <button
@@ -580,7 +580,7 @@ export default function CheckoutPage() {
               })()}
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-3">Orders need 3 hours prep time. Store hours: 10 AM – 10 PM.</p>
+          <p className="text-[10px] text-muted-foreground mt-3">Orders need 2 hours prep time. Store hours: 10 AM – 10 PM.</p>
         </div>
 
         {/* Promo Code */}
