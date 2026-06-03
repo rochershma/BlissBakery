@@ -30,18 +30,29 @@ export default async function ProductDetailPage({ params }: Props) {
     orderBy: { sortOrder: "asc" },
   }) : [];
 
+  const productOccasions = parseJsonSafe<string[]>(product.occasions, []);
+  const primaryOccasion = productOccasions[0] || null;
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
 
       {/* Breadcrumb */}
-      <nav className="max-w-6xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1 no-scrollbar">
-        <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1"><Home className="w-3 h-3" /> Home</Link>
-        <ChevronRight className="w-3 h-3" />
-        <Link href={`/store/${storeSlug}/menu`} className="hover:text-primary transition-colors">Menu</Link>
-        <ChevronRight className="w-3 h-3" />
-        <Link href={`/store/${storeSlug}/menu?category=${product.category.slug}`} className="hover:text-primary transition-colors">{product.category.name}</Link>
-        <ChevronRight className="w-3 h-3" />
+      <nav className="max-w-6xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1 no-scrollbar overflow-x-auto">
+        <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0"><Home className="w-3 h-3" /> Home</Link>
+        <ChevronRight className="w-3 h-3 flex-shrink-0" />
+        {primaryOccasion ? (
+          <>
+            <Link href={`/cakes/${primaryOccasion}`} className="hover:text-primary transition-colors flex-shrink-0 capitalize">{primaryOccasion.replace(/-/g, " ")} Cakes</Link>
+          </>
+        ) : (
+          <>
+            <Link href={`/store/${storeSlug}/menu`} className="hover:text-primary transition-colors flex-shrink-0">Menu</Link>
+            <ChevronRight className="w-3 h-3 flex-shrink-0" />
+            <Link href={`/store/${storeSlug}/menu?category=${product.category.slug}`} className="hover:text-primary transition-colors flex-shrink-0">{product.category.name}</Link>
+          </>
+        )}
+        <ChevronRight className="w-3 h-3 flex-shrink-0" />
         <span className="text-foreground font-medium truncate">{product.name}</span>
       </nav>
 

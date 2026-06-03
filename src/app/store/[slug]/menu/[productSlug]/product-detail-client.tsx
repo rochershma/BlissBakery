@@ -52,7 +52,7 @@ function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[];
   }, []);
 
   return (
-    <div ref={ref} className="relative max-w-[220px]">
+    <div ref={ref} className="relative">
       <p className="text-sm font-semibold text-foreground mb-2.5">Choose Flavour</p>
       <button
         type="button"
@@ -80,6 +80,58 @@ function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[];
               >
                 {f}
                 {selected === f && <Check className="w-4 h-4 text-primary" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OccasionDropdown({ occasions, selected, onSelect }: { occasions: { key: string; label: string }[]; selected: string; onSelect: (k: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selectedLabel = occasions.find((o) => o.key === selected)?.label || "Select occasion";
+
+  return (
+    <div ref={ref} className="relative">
+      <p className="text-sm font-semibold text-foreground mb-2.5">Occasion</p>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-border bg-white text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
+      >
+        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
+          {selectedLabel}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden" style={{ animation: 'fadeIn 0.1s ease-out' }}>
+          <div className="max-h-48 overflow-y-auto py-1">
+            {occasions.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => { onSelect(o.key); setOpen(false); }}
+                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                  selected === o.key
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-foreground hover:bg-muted/50"
+                }`}
+              >
+                {o.label}
+                {selected === o.key && <Check className="w-4 h-4 text-primary" />}
               </button>
             ))}
           </div>
@@ -197,30 +249,27 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Flavour Selector — themed custom dropdown */}
-      {product.flavours && product.flavours.length > 0 && (
-        <FlavourDropdown
-          flavours={product.flavours}
-          selected={selectedFlavour}
-          onSelect={setSelectedFlavour}
-        />
-      )}
-
-      {/* Occasion, Message — cakes only */}
+      {/* Flavour & Occasion — side by side, modern dropdowns */}
       {isCake && (
       <>
-      <div>
-        <p className="text-sm font-semibold text-foreground mb-2.5">Occasion</p>
-        <div className="relative max-w-[250px]">
-          <select
-            value={occasion}
-            onChange={(e) => setOccasion(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
-          >
-            {OCCASIONS.map((o) => (
-              <option key={o.key} value={o.key}>{o.label}</option>
-            ))}
-          </select>
+      <div className="flex gap-3">
+        {/* Flavour */}
+        {product.flavours && product.flavours.length > 0 && (
+          <div className="flex-1">
+            <FlavourDropdown
+              flavours={product.flavours}
+              selected={selectedFlavour}
+              onSelect={setSelectedFlavour}
+            />
+          </div>
+        )}
+        {/* Occasion */}
+        <div className={product.flavours && product.flavours.length > 0 ? "flex-1" : "w-full"}>
+          <OccasionDropdown
+            occasions={OCCASIONS}
+            selected={occasion}
+            onSelect={setOccasion}
+          />
         </div>
       </div>
 
