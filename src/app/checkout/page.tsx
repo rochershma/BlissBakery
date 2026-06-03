@@ -468,68 +468,77 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        {/* When do you want it? — Themed dropdowns */}
+        {/* When do you want it? — Modern pill-style pickers */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
           <h2 className="label-premium text-foreground mb-3">📅 When do you want it?</h2>
 
-          <div className="grid grid-cols-2 gap-3">
-            {/* Date dropdown */}
-            <div>
-              <label className="text-xs font-medium text-foreground block mb-2">Date</label>
-              <div className="relative">
-                <select
-                  value={deliveryDate}
-                  onChange={(e) => { setDeliveryDate(e.target.value); setDeliverySlot(""); }}
-                  className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
-                >
-                  <option value="">Select date...</option>
-                  {Array.from({ length: 7 }, (_, i) => {
-                    const d = new Date();
-                    d.setDate(d.getDate() + i);
-                    const iso = d.toISOString().split("T")[0];
-                    const dayName = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-IN", { weekday: "long" });
-                    const dateStr = d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-                    return <option key={iso} value={iso}>{dayName}, {dateStr}</option>;
-                  })}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Time slot dropdown */}
-            <div>
-              <label className="text-xs font-medium text-foreground block mb-2">Time Slot</label>
-              <div className="relative">
-                <select
-                  value={deliverySlot}
-                  onChange={(e) => setDeliverySlot(e.target.value)}
-                  className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors cursor-pointer"
-                >
-                  <option value="">Select time...</option>
-                  {(() => {
-                    const now = new Date();
-                    const isToday = deliveryDate === now.toISOString().split("T")[0] || !deliveryDate;
-                    const currentHour = now.getHours();
-                    const slots = [
-                      { label: "10 AM – 1 PM", value: "10am-1pm", startHour: 10 },
-                      { label: "1 PM – 4 PM", value: "1pm-4pm", startHour: 13 },
-                      { label: "4 PM – 7 PM", value: "4pm-7pm", startHour: 16 },
-                      { label: "7 PM – 10 PM", value: "7pm-10pm", startHour: 19 },
-                    ];
-                    return slots
-                      .filter((s) => !isToday || s.startHour >= currentHour + 2)
-                      .map((s) => <option key={s.value} value={s.value}>{s.label}</option>);
-                  })()}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </div>
+          {/* Date pills — horizontal scroll */}
+          <div>
+            <label className="text-xs font-medium text-foreground block mb-2">Select Date</label>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {Array.from({ length: 7 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const iso = d.toISOString().split("T")[0];
+                const dayName = i === 0 ? "Today" : i === 1 ? "Tomorrow" : d.toLocaleDateString("en-IN", { weekday: "short" });
+                const dateNum = d.getDate();
+                const month = d.toLocaleDateString("en-IN", { month: "short" });
+                const isSelected = deliveryDate === iso;
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    onClick={() => { setDeliveryDate(iso); setDeliverySlot(""); }}
+                    className={`flex-shrink-0 flex flex-col items-center px-4 py-2.5 rounded-xl border-2 transition-all min-w-[72px] ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-white text-foreground border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <span className={`text-[10px] font-medium ${isSelected ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{dayName}</span>
+                    <span className="text-lg font-bold leading-tight">{dateNum}</span>
+                    <span className={`text-[10px] ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{month}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">Orders need ~2 hours prep time. Store hours: 10 AM – 10 PM.</p>
+
+          {/* Time slot pills */}
+          <div className="mt-4">
+            <label className="text-xs font-medium text-foreground block mb-2">Select Time Slot</label>
+            <div className="grid grid-cols-2 gap-2">
+              {(() => {
+                const now = new Date();
+                const isToday = deliveryDate === now.toISOString().split("T")[0] || !deliveryDate;
+                const currentHour = now.getHours();
+                const slots = [
+                  { label: "10 AM – 1 PM", value: "10am-1pm", startHour: 10, icon: "🌅" },
+                  { label: "1 PM – 4 PM", value: "1pm-4pm", startHour: 13, icon: "☀️" },
+                  { label: "4 PM – 7 PM", value: "4pm-7pm", startHour: 16, icon: "🌤️" },
+                  { label: "7 PM – 10 PM", value: "7pm-10pm", startHour: 19, icon: "🌙" },
+                ];
+                const available = slots.filter((s) => !isToday || s.startHour >= currentHour + 3);
+                if (available.length === 0) return <p className="text-xs text-muted-foreground col-span-2">No slots available today. Please select a future date.</p>;
+                return available.map((s) => (
+                  <button
+                    key={s.value}
+                    type="button"
+                    onClick={() => setDeliverySlot(s.value)}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 text-left transition-all ${
+                      deliverySlot === s.value
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-white text-foreground border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <span className="text-base">{s.icon}</span>
+                    <span className="text-sm font-medium">{s.label}</span>
+                  </button>
+                ));
+              })()}
+            </div>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-3">Orders need 3 hours prep time. Store hours: 10 AM – 10 PM.</p>
         </div>
 
         {/* Promo Code */}
