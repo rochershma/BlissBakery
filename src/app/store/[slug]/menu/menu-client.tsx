@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, X, SlidersHorizontal, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -44,22 +44,6 @@ const categoryEmojis: Record<string, string> = {
   "cheese-cakes": "🧀", "cup-cakes": "🧁",
 };
 
-type SortOption = "popular" | "price-low" | "price-high" | "newest" | "name-az";
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "popular", label: "Popular" },
-  { value: "price-low", label: "Price: Low → High" },
-  { value: "price-high", label: "Price: High → Low" },
-  { value: "newest", label: "Newest First" },
-  { value: "name-az", label: "Name: A → Z" },
-];
-
-const PRICE_RANGES = [
-  { label: "Under ₹500", min: 0, max: 500 },
-  { label: "₹500 – ₹1,000", min: 500, max: 1000 },
-  { label: "₹1,000 – ₹2,000", min: 1000, max: 2000 },
-  { label: "Above ₹2,000", min: 2000, max: Infinity },
-];
-
 export function MenuClient({ storeSlug, categories, products, activeCategory, searchQuery }: Props) {
   const router = useRouter();
   const { addItem, items, getItemCount, getSubtotal, setStoreSlug } = useCartStore();
@@ -69,81 +53,8 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => setHydrated(true), []);
 
-  // Sort & Filter state
-  const [sortBy, setSortBy] = useState<SortOption>("popular");
-  const [showSort, setShowSort] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedFlavours, setSelectedFlavours] = useState<Set<string>>(new Set());
-  const [selectedPriceRange, setSelectedPriceRange] = useState<number | null>(null);
-  const [selectedWeights, setSelectedWeights] = useState<Set<string>>(new Set());
-
   const itemCount = hydrated ? getItemCount() : 0;
   const subtotal = hydrated ? getSubtotal() : 0;
-
-  // Extract unique flavours and weights from all products
-  const allFlavours = useMemo(() => {
-    const set = new Set<string>();
-    products.forEach((p) => p.flavours?.forEach((f) => set.add(f)));
-    return Array.from(set).sort();
-  }, [products]);
-
-  const allWeights = useMemo(() => {
-    const set = new Set<string>();
-    products.forEach((p) => p.variants?.forEach((v) => set.add(v.name)));
-    return Array.from(set).sort((a, b) => {
-      const numA = parseFloat(a); const numB = parseFloat(b);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      return a.localeCompare(b);
-    });
-  }, [products]);
-
-  const activeFilterCount = selectedFlavours.size + (selectedPriceRange !== null ? 1 : 0) + selectedWeights.size;
-
-  // Apply client-side sort & filter
-  const processedProducts = useMemo(() => {
-    let result = [...products];
-
-    // Filter by flavour
-    if (selectedFlavours.size > 0) {
-      result = result.filter((p) => p.flavours?.some((f) => selectedFlavours.has(f)));
-    }
-
-    // Filter by price range
-    if (selectedPriceRange !== null) {
-      const range = PRICE_RANGES[selectedPriceRange];
-      result = result.filter((p) => {
-        const price = p.variants.length > 0 ? p.variants[0].price : p.basePrice;
-        return price >= range.min && price < range.max;
-      });
-    }
-
-    // Filter by weight
-    if (selectedWeights.size > 0) {
-      result = result.filter((p) => p.variants?.some((v) => selectedWeights.has(v.name)));
-    }
-
-    // Sort
-    switch (sortBy) {
-      case "price-low":
-        result.sort((a, b) => (a.variants[0]?.price || a.basePrice) - (b.variants[0]?.price || b.basePrice));
-        break;
-      case "price-high":
-        result.sort((a, b) => (b.variants[0]?.price || b.basePrice) - (a.variants[0]?.price || a.basePrice));
-        break;
-      case "newest":
-        result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
-        break;
-      case "name-az":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "popular":
-      default:
-        result.sort((a, b) => (b.isBestseller ? 1 : 0) - (a.isBestseller ? 1 : 0));
-        break;
-    }
-
-    return result;
-  }, [products, sortBy, selectedFlavours, selectedPriceRange, selectedWeights]);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -169,25 +80,13 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
     return items.filter((i) => i.productId === productId).reduce((sum, i) => sum + i.quantity, 0);
   };
 
-  const clearAllFilters = () => {
-    setSelectedFlavours(new Set());
-    setSelectedPriceRange(null);
-    setSelectedWeights(new Set());
-    setSortBy("popular");
-  };
-
-  const toggleFlavour = (f: string) => setSelectedFlavours((prev) => { const n = new Set(prev); n.has(f) ? n.delete(f) : n.add(f); return n; });
-  const toggleWeight = (w: string) => setSelectedWeights((prev) => { const n = new Set(prev); n.has(w) ? n.delete(w) : n.add(w); return n; });
-
   // Group products by category
   const grouped = categories
     .map((cat) => ({
       ...cat,
-      products: processedProducts.filter((p) => p.categorySlug === cat.slug),
+      products: products.filter((p) => p.categorySlug === cat.slug),
     }))
     .filter((g) => g.products.length > 0);
-
-  const totalVisible = processedProducts.length;
 
   return (
     <div className="flex-1 flex flex-col">
@@ -211,232 +110,37 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
             )}
           </div>
         </div>
-
-        {/* Category chips + Sort/Filter */}
-        <div className="max-w-7xl mx-auto px-4 pb-2 flex items-center gap-2">
-          <div className="flex-1 flex gap-1.5 overflow-x-auto no-scrollbar">
-            <Link
-              href={`/store/${storeSlug}/menu`}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                !activeCategory ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
-              }`}
-            >
-              All
-            </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/store/${storeSlug}/menu?category=${cat.slug}`}
-                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                  activeCategory === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
-                }`}
-              >
-                <span className="text-sm">{categoryEmojis[cat.slug] || "🍰"}</span>
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-
-          {/* Sort & Filter buttons */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              onClick={() => setShowSort(!showSort)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ${
-                sortBy !== "popular" ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              <ArrowUpDown className="w-3 h-3" />
-              <span className="hidden sm:inline">Sort</span>
-            </button>
-            <button
-              onClick={() => setShowFilters(true)}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-colors relative ${
-                activeFilterCount > 0 ? "border-primary bg-primary/5 text-primary" : "border-border text-muted-foreground hover:bg-muted"
-              }`}
-            >
-              <SlidersHorizontal className="w-3 h-3" />
-              <span className="hidden sm:inline">Filter</span>
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Sort dropdown */}
-        {showSort && (
-          <div className="max-w-7xl mx-auto px-4 pb-2">
-            <div className="bg-white border border-border rounded-xl shadow-lg p-1 flex flex-wrap gap-1">
-              {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { setSortBy(opt.value); setShowSort(false); }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    sortBy === opt.value ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Active filters strip */}
-        {activeFilterCount > 0 && (
-          <div className="max-w-7xl mx-auto px-4 pb-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-            <span className="text-[10px] text-muted-foreground flex-shrink-0">{totalVisible} results</span>
-            {Array.from(selectedFlavours).map((f) => (
-              <span key={f} className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
-                {f}
-                <button onClick={() => toggleFlavour(f)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
-              </span>
-            ))}
-            {selectedPriceRange !== null && (
-              <span className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
-                {PRICE_RANGES[selectedPriceRange].label}
-                <button onClick={() => setSelectedPriceRange(null)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
-              </span>
-            )}
-            {Array.from(selectedWeights).map((w) => (
-              <span key={w} className="flex-shrink-0 inline-flex items-center gap-1 bg-primary/10 text-primary text-[10px] font-medium px-2 py-0.5 rounded-full">
-                {w}
-                <button onClick={() => toggleWeight(w)} className="hover:bg-primary/20 rounded-full p-0.5"><X className="w-2.5 h-2.5" /></button>
-              </span>
-            ))}
-            <button onClick={clearAllFilters} className="flex-shrink-0 text-[10px] text-destructive font-medium hover:underline">
-              Clear all
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Filter Drawer — bottom sheet on mobile, side panel on desktop */}
-      {showFilters && (
-        <div className="fixed inset-0 z-[100] bg-black/40" onClick={() => setShowFilters(false)}>
-          <div
-            className="absolute inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto md:w-80 bg-white md:rounded-none rounded-t-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom md:slide-in-from-right duration-300 flex flex-col"
-            style={{ maxHeight: "85vh" }}
-            onClick={(e) => e.stopPropagation()}
+        {/* Category chips */}
+        <div className="max-w-7xl mx-auto px-4 pb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
+          <Link
+            href={`/store/${storeSlug}/menu`}
+            className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              !activeCategory ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+            }`}
           >
-            {/* Drag handle — mobile */}
-            <div className="md:hidden flex justify-center pt-2 pb-1">
-              <div className="w-10 h-1 rounded-full bg-border" />
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-border">
-              <div>
-                <h3 className="text-base font-bold text-foreground">Filters</h3>
-                {activeFilterCount > 0 && (
-                  <p className="text-[10px] text-muted-foreground">{activeFilterCount} active · {totalVisible} results</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {activeFilterCount > 0 && (
-                  <button onClick={clearAllFilters} className="text-xs text-destructive font-medium hover:underline">
-                    Clear All
-                  </button>
-                )}
-                <button onClick={() => setShowFilters(false)} className="p-1.5 rounded-full hover:bg-muted">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Filter sections */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-6">
-              {/* Price Range */}
-              <div>
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Price Range</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {PRICE_RANGES.map((range, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedPriceRange(selectedPriceRange === idx ? null : idx)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border-2 transition-all ${
-                        selectedPriceRange === idx
-                          ? "border-primary bg-primary/5 text-primary"
-                          : "border-border text-foreground hover:border-primary/30"
-                      }`}
-                    >
-                      {range.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Flavours */}
-              {allFlavours.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Flavour</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {allFlavours.map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => toggleFlavour(f)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all ${
-                          selectedFlavours.has(f)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border text-foreground hover:border-primary/30"
-                        }`}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Weight */}
-              {allWeights.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-2.5">Weight / Size</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {allWeights.map((w) => (
-                      <button
-                        key={w}
-                        onClick={() => toggleWeight(w)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all ${
-                          selectedWeights.has(w)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border text-foreground hover:border-primary/30"
-                        }`}
-                      >
-                        {w}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Apply button */}
-            <div className="border-t border-border px-5 py-3 safe-area-bottom">
-              <button
-                onClick={() => setShowFilters(false)}
-                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors text-sm"
-              >
-                Show {totalVisible} Results
-              </button>
-            </div>
-          </div>
+            All
+          </Link>
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              href={`/store/${storeSlug}/menu?category=${cat.slug}`}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
+                activeCategory === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+              }`}
+            >
+              <span className="text-sm">{categoryEmojis[cat.slug] || "🍰"}</span>
+              {cat.name}
+            </Link>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Products */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-4 w-full">
-        {processedProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-3xl mb-2">🔍</p>
-            <p className="text-sm text-muted-foreground mb-3">No products match your filters.</p>
-            {activeFilterCount > 0 && (
-              <button onClick={clearAllFilters} className="text-sm text-primary font-medium hover:underline">
-                Clear all filters
-              </button>
-            )}
+            <p className="text-sm text-muted-foreground">No products found.</p>
           </div>
         ) : (
           grouped.map((group) => (
@@ -448,7 +152,7 @@ export function MenuClient({ storeSlug, categories, products, activeCategory, se
               </h2>
               {(() => {
                 const INITIAL_SHOW = 8;
-                const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search || activeFilterCount > 0;
+                const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search;
                 const visibleProducts = isExpanded ? group.products : group.products.slice(0, INITIAL_SHOW);
                 const hasMore = group.products.length > INITIAL_SHOW && !isExpanded;
                 return (
