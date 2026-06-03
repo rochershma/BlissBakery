@@ -53,16 +53,18 @@ function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[];
 
   return (
     <div ref={ref} className="relative">
-      <p className="text-sm font-semibold text-foreground mb-2.5">Choose Flavour</p>
+      <p className="text-xs font-semibold text-foreground mb-1.5">Flavour</p>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-border bg-white text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
+        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 bg-white text-sm font-medium transition-colors ${
+          open ? "border-primary ring-2 ring-primary/15" : "border-border hover:border-primary/40"
+        }`}
       >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
-          {selected || "Select flavour"}
+        <span className={selected ? "text-foreground truncate" : "text-muted-foreground"}>
+          {selected || "Select"}
         </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 flex-shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden" style={{ animation: 'fadeIn 0.1s ease-out' }}>
@@ -105,16 +107,18 @@ function OccasionDropdown({ occasions, selected, onSelect }: { occasions: { key:
 
   return (
     <div ref={ref} className="relative">
-      <p className="text-sm font-semibold text-foreground mb-2.5">Occasion</p>
+      <p className="text-xs font-semibold text-foreground mb-1.5">Occasion</p>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-border bg-white text-sm font-medium text-foreground hover:border-primary/50 transition-colors"
+        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 bg-white text-sm font-medium transition-colors ${
+          open ? "border-primary ring-2 ring-primary/15" : "border-border hover:border-primary/40"
+        }`}
       >
-        <span className={selected ? "text-foreground" : "text-muted-foreground"}>
+        <span className={selected ? "text-foreground truncate" : "text-muted-foreground"}>
           {selectedLabel}
         </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 flex-shrink-0 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div className="absolute z-50 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden" style={{ animation: 'fadeIn 0.1s ease-out' }}>
@@ -249,28 +253,24 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Flavour & Occasion — side by side, modern dropdowns */}
+      {/* Flavour & Occasion — compact row */}
       {isCake && (
       <>
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {/* Flavour */}
         {product.flavours && product.flavours.length > 0 && (
-          <div className="flex-1">
-            <FlavourDropdown
-              flavours={product.flavours}
-              selected={selectedFlavour}
-              onSelect={setSelectedFlavour}
-            />
-          </div>
+          <FlavourDropdown
+            flavours={product.flavours}
+            selected={selectedFlavour}
+            onSelect={setSelectedFlavour}
+          />
         )}
         {/* Occasion */}
-        <div className={product.flavours && product.flavours.length > 0 ? "flex-1" : "w-full"}>
-          <OccasionDropdown
-            occasions={OCCASIONS}
-            selected={occasion}
-            onSelect={setOccasion}
-          />
-        </div>
+        <OccasionDropdown
+          occasions={OCCASIONS}
+          selected={occasion}
+          onSelect={setOccasion}
+        />
       </div>
 
       {/* Age on Cake (if birthday) */}
