@@ -291,28 +291,46 @@ export default function CheckoutPage() {
             <span className="text-xs text-muted-foreground">{itemCount} items</span>
           </div>
           <div className="divide-y divide-border">
-            {items.map((item, idx) => (
-              <div key={`${item.productId}-${idx}`} className="px-4 py-2.5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm bg-primary/5">🎂</div>
-                  )}
+            {items.map((item, idx) => {
+              const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
+              return (
+              <div key={`${item.productId}-${idx}`} className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
+                    {item.image ? (
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm bg-primary/5">🎂</div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground font-semibold truncate">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {item.variantName && `${item.variantName}`}
+                      {item.flavour && ` · ${item.flavour}`}
+                      {` × ${item.quantity}`}
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-foreground flex-shrink-0">
+                    {formatPrice(item.unitPrice * item.quantity)}
+                  </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground truncate font-medium">{item.name}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {item.variantName && `${item.variantName}`}
-                    {item.flavour && ` · ${item.flavour}`}
-                    {` × ${item.quantity}`}
-                  </p>
-                </div>
-                <span className="text-sm font-semibold text-foreground flex-shrink-0">
-                  {formatPrice((item.unitPrice + (item.addOns || []).reduce((s, a) => s + a.price, 0)) * item.quantity)}
-                </span>
+                {/* Add-ons breakdown */}
+                {item.addOns && item.addOns.length > 0 && (
+                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 space-y-0.5">
+                    {item.addOns.map((a, ai) => (
+                      <div key={ai} className="flex items-center justify-between text-[11px]">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <span className="text-xs">🎁</span> {a.name}
+                        </span>
+                        <span className="text-muted-foreground">+{formatPrice(a.price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

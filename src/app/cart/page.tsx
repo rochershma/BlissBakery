@@ -10,11 +10,13 @@ import { useState, useEffect } from "react";
 function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { index: number }; storeSlug: string; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void }) {
   const { updateQuantity } = useCartStore();
   const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
+  const productPrice = item.unitPrice * item.quantity;
   const lineTotal = (item.unitPrice + addOnTotal) * item.quantity;
   const productUrl = item.productSlug ? `/store/${storeSlug}/menu/${item.productSlug}` : `/store/${storeSlug}/menu`;
 
   return (
     <div className="p-4">
+      {/* Main product row */}
       <div className="flex gap-3">
         {/* Product Image */}
         <Link href={productUrl} className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden bg-muted flex-shrink-0 relative">
@@ -23,7 +25,6 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
           ) : (
             <div className="w-full h-full bg-primary/5 flex items-center justify-center text-3xl">🎂</div>
           )}
-          {/* Veg badge */}
           <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-sm border border-green-600 flex items-center justify-center">
             <span className="w-1.5 h-1.5 bg-green-600 rounded-full" />
           </span>
@@ -36,14 +37,15 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
               <Link href={productUrl} className="text-sm font-bold text-foreground line-clamp-2 hover:text-primary transition-colors leading-snug">
                 {item.name}
               </Link>
-              {item.variantName && (
-                <p className="text-xs text-muted-foreground mt-0.5">{item.variantName}</p>
-              )}
-              {item.flavour && (
-                <p className="text-xs text-muted-foreground">🍰 {item.flavour}</p>
-              )}
+              <div className="flex items-center gap-2 mt-0.5">
+                {item.variantName && (
+                  <span className="text-[11px] text-muted-foreground">{item.variantName}</span>
+                )}
+                {item.flavour && (
+                  <span className="text-[11px] text-muted-foreground">· {item.flavour}</span>
+                )}
+              </div>
             </div>
-            {/* Remove button */}
             <button
               onClick={() => updateQuantity(item.productId, 0, item.variantName)}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors flex-shrink-0"
@@ -60,37 +62,22 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
             </div>
           )}
 
-          {/* Occasion/recipient */}
           {(item.occasion || item.recipientAge) && (
-            <div className="flex items-center gap-2 mt-1">
-              {item.occasion && (
-                <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground capitalize">{item.occasion}</span>
-              )}
-              {item.recipientAge && (
-                <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">Age: {item.recipientAge}</span>
-              )}
+            <div className="flex items-center gap-1.5 mt-1">
+              {item.occasion && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground capitalize">{item.occasion}</span>}
+              {item.recipientAge && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">Age: {item.recipientAge}</span>}
             </div>
           )}
 
-          {/* Price + Quantity */}
-          <div className="flex items-center justify-between mt-2.5">
-            <span className="text-base font-bold text-foreground">{formatPrice(lineTotal)}</span>
+          {/* Product price + Quantity — separated from add-on pricing */}
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-sm font-bold text-foreground">{formatPrice(productPrice)}</span>
             <div className="flex items-center gap-0.5 bg-primary/10 rounded-full">
-              <button
-                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantName)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors"
-              >
-                {item.quantity === 1 ? (
-                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                ) : (
-                  <Minus className="w-3.5 h-3.5 text-primary" />
-                )}
+              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantName)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+                {item.quantity === 1 ? <Trash2 className="w-3.5 h-3.5 text-destructive" /> : <Minus className="w-3.5 h-3.5 text-primary" />}
               </button>
               <span className="text-sm font-bold min-w-[28px] text-center text-primary">{item.quantity}</span>
-              <button
-                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantName)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors"
-              >
+              <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantName)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
                 <Plus className="w-3.5 h-3.5 text-primary" />
               </button>
             </div>
@@ -98,28 +85,45 @@ function CartItemCard({ item, storeSlug, onRemoveAddOn }: { item: CartItem & { i
         </div>
       </div>
 
-      {/* Add-ons as chips below */}
+      {/* Add-ons — separate section like Swiggy */}
       {item.addOns && item.addOns.length > 0 && (
-        <div className="mt-3 ml-[calc(5rem+0.75rem)] md:ml-[calc(6rem+0.75rem)]">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
-            <Gift className="w-3 h-3" /> Add-ons
-          </p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mt-3 bg-muted/50 rounded-xl border border-border/50 overflow-hidden">
+          <div className="px-3 py-1.5 border-b border-border/50 flex items-center justify-between">
+            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1">
+              <Gift className="w-3 h-3 text-primary" /> Add-ons ({item.addOns.length})
+            </p>
+            <p className="text-[10px] font-semibold text-foreground">+{formatPrice(addOnTotal)}</p>
+          </div>
+          <div className="divide-y divide-border/30">
             {item.addOns.map((addon, addonIdx) => (
-              <span
-                key={addonIdx}
-                className="inline-flex items-center gap-1 bg-primary/5 border border-primary/20 text-xs font-medium text-foreground px-2.5 py-1 rounded-full"
-              >
-                {addon.name} · {formatPrice(addon.price)}
+              <div key={addonIdx} className="flex items-center justify-between px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 text-sm">
+                    🎁
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{addon.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{formatPrice(addon.price)}</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => onRemoveAddOn(item.productId, addonIdx, item.variantName)}
-                  className="ml-0.5 p-0.5 rounded-full hover:bg-primary/20 transition-colors"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors flex-shrink-0"
+                  title="Remove add-on"
                 >
-                  <X className="w-3 h-3 text-muted-foreground" />
+                  <X className="w-4 h-4" />
                 </button>
-              </span>
+              </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Line total if add-ons present */}
+      {item.addOns && item.addOns.length > 0 && (
+        <div className="mt-2 flex items-center justify-end gap-2 text-xs">
+          <span className="text-muted-foreground">Item total:</span>
+          <span className="font-bold text-foreground">{formatPrice(lineTotal)}</span>
         </div>
       )}
     </div>
