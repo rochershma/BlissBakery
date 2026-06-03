@@ -35,9 +35,9 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
               <Link
                 key={cat.id}
                 href={`/store/${storeSlug}/menu?category=${cat.slug}`}
-                className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
+                className="flex flex-col items-center gap-1.5 flex-shrink-0 group category-circle"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shadow-sm border-2 border-white group-hover:shadow-lg group-hover:scale-110 group-hover:border-primary/50 transition-all duration-300 relative">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shadow-sm border-2 border-white relative">
                   <Image src={img} alt={cat.name} fill className="object-cover" sizes="80px" />
                 </div>
                 <span className="text-[11px] md:text-xs font-medium text-foreground text-center leading-tight group-hover:text-primary transition-colors">
