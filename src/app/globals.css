@@ -536,7 +536,7 @@ input[type="radio"] {
   border-radius: 22px;
   background: var(--chocolate);
   box-shadow: var(--shadow-premium);
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 8;
 }
 
 @media (max-width: 768px) {
