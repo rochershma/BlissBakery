@@ -59,7 +59,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
         <div className="flex items-end justify-between gap-6 mb-5">
           <div>
             <p className="section-kicker">Explore Our Menu</p>
-            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Browse by category.</h2>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Browse by category</h2>
           </div>
           <div className="hidden md:flex items-center gap-2">
             <button

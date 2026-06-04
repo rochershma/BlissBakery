@@ -51,7 +51,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
         <div className="flex items-end justify-between gap-6 mb-6">
           <div>
             <p className="section-kicker">For Every Celebration</p>
-            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion.</h2>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion</h2>
           </div>
           {/* Arrow controls — desktop */}
           <div className="hidden md:flex items-center gap-2">
