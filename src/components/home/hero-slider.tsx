@@ -37,7 +37,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   );
 
   return (
-    <div className="relative">
+    <div className="relative rounded-[28px] md:rounded-[42px] overflow-hidden shadow-lg">
       <Swiper
         modules={[Autoplay, Pagination]}
         autoplay={{ delay: 3500, disableOnInteraction: false }}
