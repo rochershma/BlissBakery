@@ -100,10 +100,8 @@
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(201, 150, 59, 0.12), transparent 34rem),
-    radial-gradient(circle at 95% 8%, rgba(177, 31, 75, 0.16), transparent 30rem),
-    linear-gradient(180deg, #fae8ed 0%, #fbedf1 40%, #fff8f6 100%),
-    var(--background);
+    linear-gradient(180deg, #fae8ed 0%, #fbedf1 30%, #fff4f2 60%, #fff8f6 100%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
