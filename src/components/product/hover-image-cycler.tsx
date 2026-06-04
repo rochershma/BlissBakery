@@ -29,13 +29,13 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
   const handleMouseEnter = useCallback(() => {
     if (images.length <= 1) return;
     delayRef.current = setTimeout(() => {
-      setActiveIdx(1);
-      if (images.length <= 2) return;
-      let idx = 1;
-      intervalRef.current = setInterval(() => {
+      let idx = 0;
+      const next = () => {
         idx = (idx + 1) % images.length;
         setActiveIdx(idx);
-      }, 1200);
+      };
+      next();
+      intervalRef.current = setInterval(next, 1200);
     }, 600);
   }, [images.length]);
 
