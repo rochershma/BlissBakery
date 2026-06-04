@@ -85,34 +85,39 @@ export function SiteHeader() {
     <>
     <header className="sticky top-0 z-50 glass-header border-b border-border/60">
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
-        <div className="flex items-center h-[56px] md:h-[64px] gap-2 md:gap-4">
+        <div className="flex items-center justify-between h-[56px] md:h-[64px]">
 
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl overflow-hidden relative bg-white shadow-sm flex-shrink-0">
-              <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="36px" priority />
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-sm font-bold text-foreground leading-none font-serif tracking-tight">Bliss Bakery</span>
-              <span className="block text-[9px] text-primary font-semibold mt-0.5">100% Veg & Eggless</span>
-            </div>
-          </Link>
+          {/* Left: Logo + Store */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl overflow-hidden relative bg-white shadow-sm flex-shrink-0">
+                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="36px" priority />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-sm font-bold text-foreground leading-none font-serif tracking-tight">Bliss Bakery</span>
+                <span className="block text-[9px] text-primary font-semibold mt-0.5">100% Veg & Eggless</span>
+              </div>
+            </Link>
 
-          {/* Store Selector */}
-          <button
-            onClick={() => setShowStoreModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/80 transition-colors flex-shrink-0 group"
-          >
-            <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-            <div className="text-left hidden md:block">
-              <span className="block text-[10px] text-muted-foreground leading-none">Delivering to</span>
-              <span className="block text-xs font-semibold text-foreground leading-tight">{currentStore.name}</span>
-            </div>
-            <ChevronDown className="w-3 h-3 text-muted-foreground" />
-          </button>
+            {/* Store Selector */}
+            <button
+              onClick={() => setShowStoreModal(true)}
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/80 transition-colors"
+            >
+              <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <div className="text-left hidden md:block">
+                <span className="block text-[10px] text-muted-foreground leading-none">Delivering to</span>
+                <span className="block text-xs font-semibold text-foreground leading-tight">{currentStore.name}</span>
+              </div>
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            </button>
+          </div>
 
-          {/* Search — Desktop inline (capped width), Mobile icon */}
-          <div ref={searchRef} className="flex-1 relative max-w-[360px] hidden md:block">
+          {/* Right: Search + Cart + Account */}
+          <div className="flex items-center gap-1.5 md:gap-3">
+            {/* Search — Desktop inline */}
+            <div ref={searchRef} className="relative max-w-[320px] w-[320px] hidden md:block">
             <div className={`flex items-center border rounded-lg transition-all h-9 ${searchOpen ? "border-primary ring-1 ring-primary/15 bg-white" : "border-border/50 bg-white/50 hover:bg-white"}`}>
               <Search className="w-3.5 h-3.5 text-muted-foreground ml-2.5 flex-shrink-0" />
               <input
@@ -169,13 +174,10 @@ export function SiteHeader() {
             )}
           </div>
 
-          {/* Spacer on mobile */}
-          <div className="flex-1 md:hidden" />
-
-          {/* Mobile search */}
-          <button onClick={openSearch} className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Search">
-            <Search className="w-5 h-5 text-foreground" />
-          </button>
+            {/* Mobile search */}
+            <button onClick={openSearch} className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Search">
+              <Search className="w-5 h-5 text-foreground" />
+            </button>
 
           {/* Cart */}
           <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
@@ -250,6 +252,7 @@ export function SiteHeader() {
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       </div>
