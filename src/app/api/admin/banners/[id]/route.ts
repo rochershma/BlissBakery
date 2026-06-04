@@ -5,6 +5,9 @@ import { z } from "zod";
 
 const updateSchema = z.object({
   title: z.string().max(200).nullable().optional(),
+  subtitle: z.string().max(1000).nullable().optional(),
+  ctaText: z.string().max(100).nullable().optional(),
+  ctaLink: z.string().max(500).nullable().optional(),
   mediaUrl: z.string().min(1).max(500).optional(),
   linkUrl: z.string().max(500).nullable().optional(),
   sortOrder: z.number().int().min(0).max(100).optional(),
@@ -24,7 +27,7 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-  const { title, mediaUrl, linkUrl, sortOrder, isActive } = parsed.data;
+  const { title, subtitle, ctaText, ctaLink, mediaUrl, linkUrl, sortOrder, isActive } = parsed.data;
 
   const sanitize = (s: string | null | undefined) => s != null ? s.replace(/<[^>]*>/g, "").trim() || null : s;
 
@@ -32,6 +35,9 @@ export async function PUT(req: NextRequest, ctx: Ctx) {
     where: { id },
     data: {
       ...(title !== undefined && { title: sanitize(title) }),
+      ...(subtitle !== undefined && { subtitle: sanitize(subtitle) }),
+      ...(ctaText !== undefined && { ctaText: sanitize(ctaText) }),
+      ...(ctaLink !== undefined && { ctaLink }),
       ...(mediaUrl !== undefined && { mediaUrl }),
       ...(linkUrl !== undefined && { linkUrl }),
       ...(sortOrder !== undefined && { sortOrder }),

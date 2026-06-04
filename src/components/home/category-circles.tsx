@@ -28,7 +28,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
   return (
     <section className="px-4 md:px-5 mt-5 md:mt-7">
       <div className="max-w-[1200px] mx-auto">
-        <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-snap-x-mandatory pb-1">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" style={{ scrollSnapType: "x mandatory" }}>
           {categories.map((cat) => {
             const img = cat.image || cat.productImage || fallbackImages[cat.slug] || "/images/categories/cakes.jpg";
             return (

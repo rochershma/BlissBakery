@@ -45,6 +45,9 @@ model Store {
 model Banner {
   id        String   @id @default(cuid())
   title     String?
+  subtitle  String?  @db.Text
+  ctaText   String?
+  ctaLink   String?
   mediaUrl  String
   mediaType String   @default("image")
   linkUrl   String?

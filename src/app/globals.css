@@ -5,10 +5,10 @@
   --background: #fbedf1;
   --foreground: #27191d;
 
-  /* Primary: Rose */
-  --primary: #b11f4b;
+  /* Primary: Soft Pink */
+  --primary: #C47590;
   --primary-foreground: #FFFFFF;
-  --primary-hover: #8f173b;
+  --primary-hover: #B3657F;
   --primary-light: #F2D4DA;
 
   /* Secondary: Crimson Rose */
@@ -29,7 +29,7 @@
 
   /* Border */
   --border: #ead4da;
-  --ring: #b11f4b;
+  --ring: #C47590;
 
   /* Destructive */
   --destructive: #922D4D;
@@ -531,9 +531,9 @@ input[type="radio"] {
 /* Premium hero */
 .hero-premium {
   position: relative;
-  min-height: 540px;
+  min-height: 400px;
   overflow: hidden;
-  border-radius: 34px;
+  border-radius: 28px;
   background: var(--chocolate);
   box-shadow: var(--shadow-premium);
 }
@@ -811,12 +811,12 @@ input[type="radio"] {
 .btn-premium-primary {
   background: var(--primary);
   color: #fff;
-  box-shadow: 0 16px 36px rgba(177, 31, 75, 0.26);
+  box-shadow: 0 16px 36px rgba(196, 117, 144, 0.26);
 }
 
 .btn-premium-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 20px 46px rgba(177, 31, 75, 0.34);
+  box-shadow: 0 20px 46px rgba(196, 117, 144, 0.34);
 }
 
 .btn-premium-secondary {
@@ -846,14 +846,14 @@ input[type="radio"] {
   color: #fff;
   font-size: 13px;
   font-weight: 800;
-  box-shadow: 0 10px 24px rgba(177, 31, 75, 0.2);
+  box-shadow: 0 10px 24px rgba(196, 117, 144, 0.2);
   transition: transform 220ms var(--ease-premium), box-shadow 220ms var(--ease-premium), background 220ms var(--ease-premium);
 }
 
 .mini-add-btn:hover {
   transform: translateY(-2px);
   background: var(--primary-hover);
-  box-shadow: 0 14px 32px rgba(177, 31, 75, 0.3);
+  box-shadow: 0 14px 32px rgba(196, 117, 144, 0.3);
 }
 
 /* Badge styles */

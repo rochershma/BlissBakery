@@ -68,6 +68,9 @@ export default async function HomePage() {
       <HeroSlider banners={store.banners.map(b => ({
         id: b.id,
         title: b.title,
+        subtitle: b.subtitle,
+        ctaText: b.ctaText,
+        ctaLink: b.ctaLink,
         mediaUrl: b.mediaUrl,
         linkUrl: b.linkUrl,
       }))} />
@@ -132,16 +135,10 @@ export default async function HomePage() {
                   <div className="p-4 md:p-[18px]">
                     <div className="flex justify-between gap-3 text-muted-foreground text-xs font-bold uppercase tracking-[0.08em]">
                       <span>{product.category.name}</span>
-                      <span>★ 4.9</span>
                     </div>
                     <h3 className="font-serif font-bold text-[19px] md:text-[22px] leading-[1.08] tracking-[-0.045em] mt-2.5 line-clamp-2 group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <span className="product-tag">Eggless</span>
-                      <span className="product-tag">Today</span>
-                      <span className="product-tag">500g</span>
-                    </div>
                     <div className="flex items-center justify-between gap-3 mt-4">
                       <span className="text-[22px] font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
                       <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>

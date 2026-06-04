@@ -25,6 +25,9 @@ export default async function AdminBannersPage() {
       <BannerManager initialBanners={banners.map(b => ({
         id: b.id,
         title: b.title,
+        subtitle: b.subtitle,
+        ctaText: b.ctaText,
+        ctaLink: b.ctaLink,
         mediaUrl: b.mediaUrl,
         linkUrl: b.linkUrl,
         sortOrder: b.sortOrder,
