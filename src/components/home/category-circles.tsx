@@ -8,7 +8,7 @@ interface Category {
   name: string;
   slug: string;
   image?: string | null;
-  /** First product image from this category, used as circle thumbnail */
+  /** First product image from this category, used as thumbnail */
   productImage?: string | null;
 }
 
@@ -26,27 +26,34 @@ const fallbackImages: Record<string, string> = {
 
 export function CategoryCircles({ categories, storeSlug }: { categories: Category[]; storeSlug: string }) {
   return (
-    <section className="py-5 md:py-6">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex gap-4 md:gap-6 overflow-x-auto no-scrollbar justify-start md:justify-center pb-2">
+    <section className="px-4 md:px-5 mt-5 md:mt-7">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-snap-x-mandatory pb-1">
           {categories.map((cat) => {
             const img = cat.image || cat.productImage || fallbackImages[cat.slug] || "/images/categories/cakes.jpg";
             return (
               <Link
                 key={cat.id}
                 href={`/store/${storeSlug}/menu?category=${cat.slug}`}
-                className="flex flex-col items-center gap-1.5 flex-shrink-0 group category-circle"
+                className="cat-card-premium flex-shrink-0 block"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden shadow-sm border-2 border-white relative">
-                  <Image src={img} alt={cat.name} fill className="object-cover" sizes="80px" />
+                <div className="w-full h-full overflow-hidden rounded-[16px]">
+                  <Image
+                    src={img}
+                    alt={cat.name}
+                    fill
+                    className="object-cover"
+                    sizes="150px"
+                  />
                 </div>
-                <span className="text-[11px] md:text-xs font-medium text-foreground text-center leading-tight group-hover:text-primary transition-colors">
+                <span className="absolute left-3 right-3 bottom-3 z-[2] text-white font-serif text-[16px] font-bold leading-[1.05] tracking-[-0.04em]"
+                  style={{ textShadow: "0 5px 16px rgba(42,31,34,0.4)" }}
+                >
                   {cat.name}
                 </span>
               </Link>
             );
           })}
-
         </div>
       </div>
     </section>

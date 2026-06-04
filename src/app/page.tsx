@@ -95,57 +95,60 @@ export default async function HomePage() {
         image: o.image || "/images/categories/cakes.jpg",
       }))} />
 
-      {/* Bestsellers */}
+      {/* Bestsellers — Premium product cards */}
       {bestsellers.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-10 md:py-14 w-full">
-          <div className="text-center mb-8">
-            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-1">Our Signatures</p>
-            <h3 className="text-2xl md:text-3xl font-bold text-foreground font-serif">Bestsellers</h3>
+        <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full">
+          <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
+            <div>
+              <p className="section-kicker">Our Signatures</p>
+              <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers made to impress.</h2>
+            </div>
+            <p className="hidden md:block text-muted-foreground text-base leading-[1.62] max-w-[410px]">
+              Premium eggless favorites with clear pricing, same-day delivery badges, and one-tap ordering.
+            </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 stagger-children">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
             {bestsellers.map((product) => {
               const imgs = parseJsonSafe<string[]>(product.images, []);
               const img = imgs[0] || "/images/hero/AMMO6974.jpg";
+              const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
+              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
               return (
                 <Link
                   key={product.id}
                   href={`/store/${store.slug}/menu/${product.slug}`}
-                  className="product-card group bg-white rounded-xl overflow-hidden border border-border"
+                  className="product-card-premium group"
                 >
-                  <div className="aspect-square relative overflow-hidden bg-muted">
+                  <div className="product-img-container relative">
                     <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
                       {product.isBestseller && (
-                        <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full tracking-wide uppercase z-10">
-                          Bestseller
-                        </span>
+                        <span className="badge-premium">Bestseller</span>
                       )}
                     </HoverImageCycler>
-                    {/* % OFF badge */}
-                    {product.mrpPrice && product.mrpPrice > product.basePrice && (
-                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full z-10">
-                        {Math.round(((product.mrpPrice - product.basePrice) / product.mrpPrice) * 100)}% OFF
-                      </span>
+                    {hasDiscount && (
+                      <span className="badge-discount">{discountPct}% OFF</span>
                     )}
                   </div>
-                  <div className="p-3">
-                    {/* Eggless + Delivery badges */}
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="inline-flex items-center gap-0.5 bg-green-50 text-green-700 text-[8px] font-semibold px-1.5 py-0.5 rounded-full border border-green-200">
-                        <svg className="w-2 h-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
-                        Eggless
-                      </span>
-                      <span className="text-[8px] text-muted-foreground">🚚 Today</span>
+                  <div className="p-4 md:p-[18px]">
+                    <div className="flex justify-between gap-3 text-muted-foreground text-xs font-bold uppercase tracking-[0.08em]">
+                      <span>{product.category.name}</span>
+                      <span>★ 4.9</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{product.category.name}</p>
-                    <h4 className="font-serif font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 mt-0.5 leading-snug">
+                    <h3 className="font-serif font-bold text-[19px] md:text-[22px] leading-[1.08] tracking-[-0.045em] mt-2.5 line-clamp-2 group-hover:text-primary transition-colors">
                       {product.name}
-                    </h4>
-                    <div className="flex items-baseline gap-1.5 mt-2">
-                      <span className="font-bold text-foreground">{formatPrice(product.basePrice)}</span>
-                      {product.mrpPrice && product.mrpPrice > product.basePrice && (
-                        <span className="text-xs text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
-                      )}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      <span className="product-tag">Eggless</span>
+                      <span className="product-tag">Today</span>
+                      <span className="product-tag">500g</span>
                     </div>
+                    <div className="flex items-center justify-between gap-3 mt-4">
+                      <span className="text-[22px] font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                      <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
+                    </div>
+                    {hasDiscount && (
+                      <span className="text-xs text-muted-foreground line-through mt-1 block">{formatPrice(product.mrpPrice!)}</span>
+                    )}
                   </div>
                 </Link>
               );
@@ -154,7 +157,7 @@ export default async function HomePage() {
           <div className="text-center mt-8">
             <Link
               href={`/store/${store.slug}/menu`}
-              className="inline-flex items-center gap-2 text-primary font-medium text-sm hover:underline"
+              className="btn-premium btn-premium-secondary text-sm inline-flex items-center gap-2"
             >
               View Full Menu <ChevronRight className="w-4 h-4" />
             </Link>
@@ -162,64 +165,99 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Custom Cakes CTA */}
-      <section className="max-w-7xl mx-auto px-4 py-4 w-full">
-        <Link
-          href={`/store/${store.slug}/custom-cakes`}
-          className="block relative h-40 md:h-52 rounded-2xl overflow-hidden group"
-        >
-          <Image
-            src="/images/hero/customised-cakes-in-delhi.webp"
-            alt="Custom Cakes"
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30" />
-          <div className="absolute inset-0 flex items-center px-6 md:px-10">
-            <div className="text-white">
-              <p className="text-primary text-xs tracking-[0.2em] uppercase mb-1">Made Just For You</p>
-              <h3 className="text-xl md:text-2xl font-bold font-serif mb-1">Design Your Dream Cake</h3>
-              <p className="text-white/70 text-sm">Custom cakes for birthdays, weddings & every celebration</p>
+      {/* Custom Cakes CTA — Premium two-column dark section */}
+      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+        <div className="custom-cta-premium">
+          <div className="p-8 md:p-[54px] flex flex-col justify-center">
+            <p className="text-[var(--gold)] text-xs font-black tracking-[0.15em] uppercase mb-2">Made Just For You</p>
+            <h2 className="text-[clamp(28px,4vw,48px)] font-serif font-bold text-white leading-[0.98] tracking-[-0.055em]">
+              Custom cakes for your exact celebration.
+            </h2>
+            <p className="text-white/[0.76] text-base md:text-lg leading-[1.7] mt-4 max-w-[510px]">
+              Share a theme, reference image, flavor, message, and delivery date. Bliss Bakery turns your idea into a handcrafted eggless cake that feels personal and premium.
+            </p>
+            <div className="flex items-center gap-3.5 mt-5 flex-col md:flex-row">
+              <Link href={`/store/${store.slug}/custom-cakes`} className="btn-premium btn-premium-primary text-sm w-full md:w-auto">
+                Design Your Cake
+              </Link>
+              <a href={`https://wa.me/91${store.phone}`} className="btn-premium btn-premium-secondary text-sm w-full md:w-auto" target="_blank" rel="noopener noreferrer">
+                Chat on WhatsApp
+              </a>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 mt-6">
+              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">1. Pick occasion</div>
+              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">2. Share reference</div>
+              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">3. Get fresh delivery</div>
             </div>
           </div>
-        </Link>
+          <div className="relative min-h-[290px] md:min-h-[430px] overflow-hidden md:rounded-r-[42px]">
+            <Image
+              src="/images/hero/customised-cakes-in-delhi.webp"
+              alt="Custom Cakes"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
+        </div>
       </section>
 
-      {/* Our Promise */}
-      <section className="bg-gradient-to-b from-primary/5 to-white border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-10 md:py-12">
-          <div className="text-center mb-6">
-            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-0.5">Why Choose Us</p>
-            <h3 className="text-xl md:text-2xl font-bold text-foreground font-serif">Our Promise</h3>
+      {/* Our Promise — Premium numbered cards */}
+      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full">
+        <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
+          <div>
+            <p className="section-kicker">Why Choose Bliss</p>
+            <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable.</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
-            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-2xl">🕐</div>
-              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Same Day Delivery</h4>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">Order before 8 PM</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-[18px]">
+          <div className="promise-card">
+            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">01</div>
+            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Same-day delivery</h3>
+            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Order before 8 PM for fast delivery across Kuchaman City.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">02</div>
+            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">100% eggless</h3>
+            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Every cake, pastry, brownie, and cookie is vegetarian and eggless.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">03</div>
+            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Baked fresh daily</h3>
+            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Small-batch baking with soft sponge, rich cream, and premium ingredients.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">04</div>
+            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Custom designs</h3>
+            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Theme cakes for birthdays, weddings, anniversaries, kids, and festivals.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews — Premium trust block */}
+      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+        <div className="reviews-premium">
+          <p className="section-kicker">Customer Proof</p>
+          <h2 className="text-[clamp(28px,3.5vw,44px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Loved for fresh taste and clean designs.</h2>
+          <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1fr_1fr] gap-4 md:gap-[18px] mt-6">
+            <div className="p-7 rounded-[22px] bg-chocolate text-white">
+              <span className="text-[var(--gold)] font-black tracking-[0.1em] text-sm">★★★★★ RATING</span>
+              <strong className="block text-[58px] font-serif leading-[1] mt-2">4.9</strong>
+              <p className="text-white/60 text-sm mt-3 leading-[1.6]">Premium trust block for reviews, orders, and repeat customers.</p>
             </div>
-            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-green-100 to-green-50 flex items-center justify-center text-2xl">🌿</div>
-              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">100% Veg & Eggless</h4>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">Every product, always</p>
+            <div className="p-6 rounded-[22px] bg-surface-blush text-[#4c363c] leading-[1.65] font-semibold text-sm">
+              &ldquo;The cake felt fresh, soft, and beautifully finished. The ordering experience was simple and delivery was on time.&rdquo;
             </div>
-            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-orange-100 to-yellow-50 flex items-center justify-center text-2xl">🎂</div>
-              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Baked Fresh Daily</h4>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">Finest ingredients only</p>
-            </div>
-            <div className="bg-white rounded-2xl border border-border p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-              <div className="w-14 h-14 mx-auto mb-2 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-50 flex items-center justify-center text-2xl">💝</div>
-              <h4 className="font-serif font-bold text-xs text-foreground mb-0.5">Crafted with Love</h4>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">Handmade in Kuchaman City</p>
+            <div className="p-6 rounded-[22px] bg-surface-blush text-[#4c363c] leading-[1.65] font-semibold text-sm">
+              &ldquo;Perfect for birthday and anniversary orders. The premium product cards make choosing much easier.&rdquo;
             </div>
           </div>
         </div>
       </section>
 
       {/* Store Info */}
-      <section className="bg-white border-y border-border py-6 mt-8">
-        <div className="max-w-7xl mx-auto px-4">
+      <section className="border-y border-border py-6 mt-16 md:mt-20">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-5">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
@@ -242,51 +280,42 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-dark-bg text-white/70">
-        <div className="max-w-7xl mx-auto px-4 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
+      {/* Footer — Premium dark */}
+      <footer className="bg-chocolate text-white/70 mt-0">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-5 py-12 md:py-[52px]">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_0.65fr_0.65fr] gap-9">
+            <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 relative bg-white p-2">
                   <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="48px" />
                 </div>
                 <div>
-                  <h4 className="font-serif font-bold text-white text-lg">Bliss Bakery</h4>
-                  <p className="text-xs text-primary">100% Veg &amp; Eggless</p>
+                  <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em]">Bliss Bakery</h3>
                 </div>
               </div>
-              <p className="text-sm text-white/50 max-w-md leading-relaxed">
-                Premium artisan bakery in Kuchaman City, Rajasthan. Every product is handcrafted
-                with the finest ingredients — 100% vegetarian and eggless, made with love.
+              <p className="text-white/70 text-sm leading-[1.7] font-semibold max-w-md">
+                Premium artisan bakery in Kuchaman City. Fresh eggless cakes, pastries, brownies, cookies, and custom celebration cakes.
               </p>
             </div>
             <div>
-              <h5 className="font-serif font-semibold text-white mb-4 text-sm">Quick Links</h5>
-              <ul className="space-y-2.5 text-sm">
-                <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-                <li><Link href="/offers" className="hover:text-primary transition-colors">Offers</Link></li>
-                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</Link></li>
-              </ul>
+              <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em] mb-4">Quick links</h3>
+              <div className="space-y-2.5 text-sm">
+                <Link href="/about" className="block hover:text-white transition-colors font-semibold">About Us</Link>
+                <Link href={`/store/${store.slug}/custom-cakes`} className="block hover:text-white transition-colors font-semibold">Custom Cakes</Link>
+                <Link href="/offers" className="block hover:text-white transition-colors font-semibold">Offers</Link>
+                <Link href="/contact" className="block hover:text-white transition-colors font-semibold">Contact</Link>
+              </div>
             </div>
             <div>
-              <h5 className="font-serif font-semibold text-white mb-4 text-sm">Contact</h5>
-              <ul className="space-y-2.5 text-sm">
-                <li className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-                  {store.address}, {store.city}
-                </li>
-                <li>
-                  <a href={`tel:${store.phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
-                    <Phone className="w-4 h-4 text-primary flex-shrink-0" /> +91 {store.phone}
-                  </a>
-                </li>
-              </ul>
+              <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em] mb-4">Order today</h3>
+              <p className="text-white/70 text-sm leading-[1.7] font-semibold">
+                Same-day delivery before 8 PM.<br />
+                Call: +91 {store.phone}<br />
+                {store.city}, {store.state}
+              </p>
             </div>
           </div>
-          <div className="border-t border-white/10 mt-8 pt-6 text-center text-xs text-white/30">
+          <div className="border-t border-white/10 mt-10 pt-6 text-center text-xs text-white/30">
             © {new Date().getFullYear()} Bliss Bakery. All Rights Reserved.
           </div>
         </div>

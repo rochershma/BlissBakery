@@ -72,18 +72,18 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
 
   return (
     <section className="py-6 md:py-10">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-5">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-5">
+        <div className="flex items-end justify-between gap-6 mb-6">
           <div>
-            <p className="text-primary text-xs tracking-[0.2em] uppercase mb-0.5">For Every Celebration</p>
-            <h3 className="text-xl md:text-2xl font-bold text-foreground font-serif">Shop by Occasion</h3>
+            <p className="section-kicker">For Every Celebration</p>
+            <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion.</h2>
           </div>
           {/* Arrow controls — desktop */}
           <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default"
+              className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-sm"
               aria-label="Scroll left"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -91,7 +91,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
             <button
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default"
+              className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-sm"
               aria-label="Scroll right"
             >
               <ChevronRight className="w-4 h-4" />
@@ -102,27 +102,25 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
         <div className="relative overflow-hidden">
           <div
             ref={scrollRef}
-            className="flex gap-3 md:gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 scroll-smooth"
-            style={{ WebkitOverflowScrolling: "touch" }}
+            className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 scroll-smooth"
+            style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory" }}
           >
             {occasions.map((occ) => (
               <Link
                 key={occ.slug}
                 href={`/cakes/${occ.slug}`}
-                className="flex-shrink-0 w-[140px] md:w-[180px] occasion-card"
+                className="occasion-card-premium flex-shrink-0 block"
               >
-                <div className="relative h-[180px] md:h-[220px] rounded-2xl overflow-hidden mb-2">
-                  <Image
-                    src={occ.image}
-                    alt={occ.name}
-                    fill
-                    className="object-cover transition-transform duration-500"
-                    sizes="180px"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5">
-                    <h4 className="font-serif font-bold text-sm text-white leading-tight">{occ.name}</h4>
-                  </div>
+                <Image
+                  src={occ.image}
+                  alt={occ.name}
+                  fill
+                  className="object-cover"
+                  sizes="210px"
+                />
+                <div className="absolute left-3 right-3 bottom-3 z-[1]">
+                  <h4 className="font-serif font-bold text-lg text-white leading-[1] tracking-[-0.04em]">{occ.name}</h4>
+                  <p className="mt-1 text-white/[0.78] text-[11px] font-bold">Explore collection</p>
                 </div>
               </Link>
             ))}
