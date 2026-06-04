@@ -161,34 +161,48 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {/* Weight / Size Variants */}
       {product.variants.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <p className="text-sm font-semibold text-foreground">Select Size</p>
-            {product.servingInfo && <p className="text-[11px] text-muted-foreground">{product.servingInfo}</p>}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {product.variants.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedVariant(v)}
-                className={`relative p-3 rounded-xl text-left transition-all ${
-                  selectedVariant?.id === v.id
-                    ? "bg-white border-2 border-primary shadow-sm"
-                    : "bg-white border border-border hover:border-primary/50"
-                }`}
-              >
-                <span className="text-xs font-bold text-foreground block">{v.name}</span>
-                {v.serves && <span className="text-[11px] text-muted-foreground block mt-0.5">Serves {v.serves}</span>}
-                <span className={`text-sm font-bold block mt-1.5 ${selectedVariant?.id === v.id ? "text-primary" : "text-foreground"}`}>
-                  {formatPrice(v.price)}
-                </span>
-                {selectedVariant?.id === v.id && (
-                  <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-primary flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
+          <p className="text-xs font-semibold text-foreground mb-2">Select Size</p>
+          {(() => {
+            const mainVariants = product.variants.filter((_, i) => i < 6);
+            const overflowVariants = product.variants.filter((_, i) => i >= 6);
+            return (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {mainVariants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                        selectedVariant?.id === v.id
+                          ? "bg-primary text-white border-primary shadow-sm"
+                          : "bg-white text-foreground border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {v.name}
+                    </button>
+                  ))}
+                </div>
+                {overflowVariants.length > 0 && (
+                  <select
+                    value={selectedVariant && overflowVariants.some(v => v.id === selectedVariant.id) ? selectedVariant.id : ""}
+                    onChange={(e) => {
+                      const v = overflowVariants.find(v => v.id === e.target.value);
+                      if (v) setSelectedVariant(v);
+                    }}
+                    className="mt-2 w-full px-3 py-2.5 rounded-xl border border-border bg-white text-xs font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                  >
+                    <option value="">More sizes...</option>
+                    {overflowVariants.map((v) => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </select>
                 )}
-              </button>
-            ))}
-          </div>
+                {selectedVariant?.serves && (
+                  <p className="text-[11px] text-muted-foreground mt-2">🍽️ Serves {selectedVariant.serves}</p>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -284,14 +298,6 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           <ShoppingCart className="w-4 h-4" /> Add to Cart · {formatPrice(totalPrice)}
         </button>
       </div>
-
-      {/* Cart summary */}
-      {hydrated && itemCount > 0 && !added && (
-        <Link href="/cart" className="flex items-center justify-between bg-muted rounded-lg px-3 py-2 text-sm hover:bg-primary/5 transition-colors">
-          <span className="text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"} in cart</span>
-          <span className="font-semibold text-primary">{formatPrice(cartSubtotal)} →</span>
-        </Link>
-      )}
 
       {/* Add-ons Upsell Modal (Bakingo-style) */}
       {showUpsell && (
