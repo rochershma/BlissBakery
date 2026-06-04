@@ -60,7 +60,7 @@ export default function RootLayout({
       lang="en"
       className={`${playfair.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <AuthProvider>
           <ToastProvider>
             <ConfirmProvider>

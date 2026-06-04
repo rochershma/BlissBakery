@@ -153,6 +153,11 @@ h2 { font-weight: 600; }
 h3 { font-weight: 600; }
 h4 { font-weight: 500; }
 
+/* Ensure all interactive elements use sans font */
+button, a, label, span, p, li, td, th, select, input, textarea {
+  font-family: inherit;
+}
+
 /* Premium label style */
 .label-premium {
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
