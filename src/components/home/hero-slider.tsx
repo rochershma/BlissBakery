@@ -26,7 +26,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   const hasAnyText = banners.some(b => b.title || b.subtitle || b.ctaText);
 
   return (
-    <section className="pt-6 md:pt-8 pb-0">
+    <section className="pt-6 md:pt-8 pb-6 md:pb-8">
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
         <Swiper
           modules={[Autoplay, EffectFade, Pagination]}

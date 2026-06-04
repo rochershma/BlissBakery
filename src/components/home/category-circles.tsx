@@ -54,7 +54,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
   }, [checkScroll]);
 
   return (
-    <section className="mt-8 md:mt-10">
+    <section className="mt-4 md:mt-6 mb-6 md:mb-8">
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
         <div className="flex items-end justify-between gap-6 mb-5">
           <div>
