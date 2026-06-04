@@ -26,8 +26,8 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   const hasAnyText = banners.some(b => b.title || b.subtitle || b.ctaText);
 
   return (
-    <section className="px-4 md:px-5 pt-6 md:pt-8 pb-0">
-      <div className="max-w-[1200px] mx-auto">
+    <section className="pt-6 md:pt-8 pb-0">
+      <div className="max-w-[1200px] mx-auto px-4 md:px-5">
         <Swiper
           modules={[Autoplay, EffectFade, Pagination]}
           effect="fade"
@@ -41,7 +41,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
             return (
               <SwiperSlide key={banner.id}>
-                <div className="hero-premium relative min-h-[380px] md:min-h-[420px]">
+                <div className="hero-premium relative min-h-[420px] md:min-h-[480px]">
                   {/* Full-bleed background image */}
                   <div className="absolute inset-0 overflow-hidden rounded-[28px]">
                     <Image
@@ -57,7 +57,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
                   {/* Content overlay — only if banner has text from admin */}
                   {hasText && (
-                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] min-h-[380px] md:min-h-[420px] flex flex-col justify-end md:justify-center p-5 md:p-[42px]">
+                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] min-h-[420px] md:min-h-[480px] flex flex-col justify-end md:justify-center p-5 md:p-[42px]">
                       {/* Title */}
                       {banner.title && (
                         <h1 className="reveal reveal-delay-1 text-[28px] md:text-[clamp(36px,3.5vw,48px)] font-serif font-bold text-white leading-[0.96] tracking-[-0.055em] max-w-[460px]"

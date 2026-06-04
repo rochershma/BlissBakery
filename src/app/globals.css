@@ -531,7 +531,7 @@ input[type="radio"] {
 /* Premium hero */
 .hero-premium {
   position: relative;
-  min-height: 400px;
+  min-height: 480px;
   overflow: hidden;
   border-radius: 28px;
   background: var(--chocolate);

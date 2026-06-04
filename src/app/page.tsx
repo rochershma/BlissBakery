@@ -106,9 +106,6 @@ export default async function HomePage() {
               <p className="section-kicker">Our Signatures</p>
               <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers made to impress.</h2>
             </div>
-            <p className="hidden md:block text-muted-foreground text-base leading-[1.62] max-w-[410px]">
-              Premium eggless favorites with clear pricing, same-day delivery badges, and one-tap ordering.
-            </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
             {bestsellers.map((product) => {
@@ -253,9 +250,9 @@ export default async function HomePage() {
       </section>
 
       {/* Store Info */}
-      <section className="border-y border-border py-6 mt-16 md:mt-20">
+      <section className="py-6 mt-16 md:mt-20">
         <div className="max-w-[1200px] mx-auto px-4 md:px-5">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground border border-border rounded-2xl py-5 px-4 bg-white/60">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
               <span>{store.city}, {store.state}</span>

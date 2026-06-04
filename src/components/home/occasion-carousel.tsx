@@ -71,7 +71,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
   }, [scroll, checkScroll]);
 
   return (
-    <section className="py-6 md:py-10">
+    <section className="mt-10 md:mt-14">
       <div className="max-w-[1200px] mx-auto px-4 md:px-5">
         <div className="flex items-end justify-between gap-6 mb-6">
           <div>
