@@ -16,8 +16,8 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   const banner = banners[0];
 
   return (
-    <div className="rounded-[28px] md:rounded-[42px] overflow-hidden shadow-lg">
-      <Link href={banner.linkUrl || "/store/kuchaman-city/menu"} className="block relative" style={{ paddingBottom: "45%" }}>
+    <Link href={banner.linkUrl || "/store/kuchaman-city/menu"} className="block rounded-[28px] md:rounded-[42px] overflow-hidden shadow-lg">
+      <div className="relative w-full" style={{ paddingBottom: "45%" }}>
         <Image
           src={banner.mediaUrl}
           alt={banner.title || "Bliss Bakery"}
@@ -43,7 +43,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
             </div>
           </>
         )}
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 }
