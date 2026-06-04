@@ -47,7 +47,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
 
   return (
     <section className="mt-10 md:mt-14">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-5">
+      <div className="max-w-[1300px] mx-auto px-4 md:px-5">
         <div className="flex items-end justify-between gap-6 mb-6">
           <div>
             <p className="section-kicker">For Every Celebration</p>
