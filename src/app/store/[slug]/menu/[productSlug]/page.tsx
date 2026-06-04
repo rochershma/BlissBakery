@@ -38,7 +38,7 @@ export default async function ProductDetailPage({ params }: Props) {
       <SiteHeader />
 
       {/* Breadcrumb */}
-      <nav className="max-w-6xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1 no-scrollbar overflow-x-auto">
+      <nav className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-2 text-xs text-muted-foreground flex items-center gap-1 no-scrollbar overflow-x-auto">
         <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0"><Home className="w-3 h-3" /> Home</Link>
         <ChevronRight className="w-3 h-3 flex-shrink-0" />
         {primaryOccasion ? (
@@ -56,7 +56,7 @@ export default async function ProductDetailPage({ params }: Props) {
         <span className="text-foreground font-medium truncate">{product.name}</span>
       </nav>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 pb-32">
+      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 pb-32">
         <div className="md:flex md:gap-10 md:py-4">
           {/* Left: Image Gallery — 50% desktop, sticky */}
           <div className="md:w-1/2 mb-5 md:mb-0 md:sticky md:top-4 md:self-start">
@@ -143,20 +143,24 @@ export default async function ProductDetailPage({ params }: Props) {
 
         {/* Related Products — proper grid */}
         {relatedProducts.length > 0 && (
-          <div className="mt-8 border-t border-border pt-6">
-            <h3 className="text-lg font-bold text-foreground font-serif mb-4">You May Also Like</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="mt-10 pt-6">
+            <p className="section-kicker">You May Also Like</p>
+            <h3 className="text-[clamp(20px,3vw,28px)] font-bold text-foreground font-serif mb-5">More from {product.category.name}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
               {relatedProducts.map((rp) => {
                 const rpImgs = parseJsonSafe<string[]>(rp.images, []);
-                const rpImg = rpImgs[0] || "/images/hero/AMMO6974.jpg";
+                const hasDiscount = rp.mrpPrice && rp.mrpPrice > rp.basePrice;
+                const discountPct = hasDiscount ? Math.round(((rp.mrpPrice! - rp.basePrice) / rp.mrpPrice!) * 100) : 0;
                 return (
-                  <Link key={rp.id} href={`/store/${storeSlug}/menu/${rp.slug}`} className="product-card bg-white rounded-xl border border-border overflow-hidden">
-                    <div className="relative aspect-square overflow-hidden">
-                      <Image src={rpImg} alt={rp.name} fill className="object-cover product-img-zoom" sizes="(max-width:640px) 50vw, 25vw" />
+                  <Link key={rp.id} href={`/store/${storeSlug}/menu/${rp.slug}`} prefetch={false} className="product-card-premium group">
+                    <div className="product-img-container relative">
+                      <Image src={rpImgs[0] || "/images/hero/AMMO6974.jpg"} alt={rp.name} fill className="object-cover" sizes="(max-width:640px) 50vw, 25vw" />
+                      {rp.isBestseller && <span className="badge-premium">Bestseller</span>}
+                      {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
                     </div>
-                    <div className="p-2.5">
-                      <h4 className="font-serif font-semibold text-xs text-foreground line-clamp-2 leading-tight">{rp.name}</h4>
-                      <p className="font-bold text-sm text-primary mt-1">{formatPrice(rp.basePrice)}</p>
+                    <div className="p-2.5 md:p-3.5">
+                      <h4 className="font-serif font-bold text-sm leading-[1.15] line-clamp-1 group-hover:text-primary transition-colors">{rp.name}</h4>
+                      <span className="text-base font-black text-primary-hover mt-1.5 block">{formatPrice(rp.basePrice)}</span>
                     </div>
                   </Link>
                 );

@@ -184,14 +184,20 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
             )}
           </div>
 
-          {/* Zoomed panel — appears to the right on desktop hover */}
+          {/* Zoomed panel — appears to the right on desktop hover, clipped to viewport */}
           {isHovering && !isMobile && (
             <div
-              className="absolute left-[calc(100%+12px)] top-0 w-[400px] h-[400px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl z-[100]"
-              style={{ pointerEvents: "none" }}
+              className="fixed z-[100] w-[380px] h-[380px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl pointer-events-none"
+              style={{
+                top: imgContainerRef.current ? imgContainerRef.current.getBoundingClientRect().top : 0,
+                left: imgContainerRef.current ? Math.min(
+                  imgContainerRef.current.getBoundingClientRect().right + 12,
+                  window.innerWidth - 392
+                ) : 0,
+              }}
             >
               <div
-                className="w-full h-full relative"
+                className="w-full h-full"
                 style={{
                   backgroundImage: `url(${activeImg})`,
                   backgroundSize: "250%",

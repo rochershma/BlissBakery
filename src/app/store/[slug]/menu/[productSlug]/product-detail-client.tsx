@@ -39,54 +39,26 @@ interface Props {
   storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
 }
 
-function FlavourDropdown({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
+function FlavourPills({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
   return (
-    <div ref={ref} className="relative">
-      <p className="text-xs font-semibold text-foreground mb-1.5">Flavour</p>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 bg-white text-sm font-medium transition-colors ${
-          open ? "border-primary ring-2 ring-primary/15" : "border-border hover:border-primary/40"
-        }`}
-      >
-        <span className={selected ? "text-foreground truncate" : "text-muted-foreground"}>
-          {selected || "Select"}
-        </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 flex-shrink-0 ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white border border-border rounded-xl shadow-lg overflow-hidden" style={{ animation: 'fadeIn 0.1s ease-out' }}>
-          <div className="max-h-48 overflow-y-auto py-1">
-            {flavours.map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => { onSelect(f); setOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                  selected === f
-                    ? "bg-primary/10 text-primary font-semibold"
-                    : "text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {f}
-                {selected === f && <Check className="w-4 h-4 text-primary" />}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+    <div>
+      <p className="text-xs font-semibold text-foreground mb-2">Flavour</p>
+      <div className="flex flex-wrap gap-2">
+        {flavours.map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => onSelect(f)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all border ${
+              selected === f
+                ? "bg-primary text-white border-primary shadow-sm"
+                : "bg-white text-foreground border-border hover:border-primary/40"
+            }`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -253,13 +225,13 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Flavour & Occasion — compact row */}
+      {/* Flavour & Occasion */}
       {isCake && (
       <>
-      <div className="grid grid-cols-2 gap-3">
-        {/* Flavour */}
+      <div className="space-y-4">
+        {/* Flavour — pill selector */}
         {product.flavours && product.flavours.length > 0 && (
-          <FlavourDropdown
+          <FlavourPills
             flavours={product.flavours}
             selected={selectedFlavour}
             onSelect={setSelectedFlavour}
