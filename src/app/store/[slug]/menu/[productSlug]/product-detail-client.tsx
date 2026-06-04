@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare, ChevronDown } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
 
@@ -39,49 +39,39 @@ interface Props {
   storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
 }
 
-function FlavourPills({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
+function FlavourSelect({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-foreground mb-2">Flavour</p>
-      <div className="flex flex-wrap gap-2">
-        {flavours.map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => onSelect(f)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all border ${
-              selected === f
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-white text-foreground border-border hover:border-primary/40"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      <label className="text-xs font-semibold text-foreground block mb-1.5">Flavour</label>
+      <div className="relative">
+        <select
+          value={selected}
+          onChange={(e) => onSelect(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
+        >
+          {flavours.map((f) => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
       </div>
     </div>
   );
 }
 
-function OccasionPills({ occasions, selected, onSelect }: { occasions: { key: string; label: string }[]; selected: string; onSelect: (k: string) => void }) {
+function OccasionSelect({ occasions, selected, onSelect }: { occasions: { key: string; label: string }[]; selected: string; onSelect: (k: string) => void }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-foreground mb-2">Occasion</p>
-      <div className="flex flex-wrap gap-2">
-        {occasions.map((o) => (
-          <button
-            key={o.key}
-            type="button"
-            onClick={() => onSelect(o.key)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all border ${
-              selected === o.key
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-white text-foreground border-border hover:border-primary/40"
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
+      <label className="text-xs font-semibold text-foreground block mb-1.5">Occasion</label>
+      <div className="relative">
+        <select
+          value={selected}
+          onChange={(e) => onSelect(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
+        >
+          {occasions.map((o) => (
+            <option key={o.key} value={o.key}>{o.label}</option>
+          ))}
+        </select>
       </div>
     </div>
   );
@@ -171,44 +161,51 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {/* Weight / Size Variants */}
       {product.variants.length > 0 && (
         <div>
-          <p className="text-sm font-semibold text-foreground mb-2.5">Select Size</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-sm font-semibold text-foreground">Select Size</p>
+            {product.servingInfo && <p className="text-[11px] text-muted-foreground">{product.servingInfo}</p>}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {product.variants.map((v) => (
               <button
                 key={v.id}
                 onClick={() => setSelectedVariant(v)}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
+                className={`relative p-3 rounded-xl text-left transition-all ${
                   selectedVariant?.id === v.id
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-white text-foreground border-border hover:border-primary/50"
+                    ? "bg-white border-2 border-primary shadow-sm"
+                    : "bg-white border border-border hover:border-primary/50"
                 }`}
               >
-                {v.name}
+                <span className="text-xs font-bold text-foreground block">{v.name}</span>
+                {v.serves && <span className="text-[11px] text-muted-foreground block mt-0.5">Serves {v.serves}</span>}
+                <span className={`text-sm font-bold block mt-1.5 ${selectedVariant?.id === v.id ? "text-primary" : "text-foreground"}`}>
+                  {formatPrice(v.price)}
+                </span>
+                {selectedVariant?.id === v.id && (
+                  <div className="absolute top-2 right-2 w-3 h-3 rounded-full bg-primary flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
+                )}
               </button>
             ))}
           </div>
-          {(selectedVariant?.serves || product.servingInfo) && (
-            <p className="text-xs text-muted-foreground mt-2">
-              🍽️ {selectedVariant?.serves || product.servingInfo}
-            </p>
-          )}
         </div>
       )}
 
       {/* Flavour & Occasion */}
       {isCake && (
       <>
-      <div className="space-y-4">
-        {/* Flavour — pill selector */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Flavour */}
         {product.flavours && product.flavours.length > 0 && (
-          <FlavourPills
+          <FlavourSelect
             flavours={product.flavours}
             selected={selectedFlavour}
             onSelect={setSelectedFlavour}
           />
         )}
         {/* Occasion */}
-        <OccasionPills
+        <OccasionSelect
           occasions={OCCASIONS}
           selected={occasion}
           onSelect={setOccasion}
