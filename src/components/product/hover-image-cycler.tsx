@@ -21,8 +21,8 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  // Desktop: hold (mousedown) to cycle, not hover
-  const handleMouseDown = useCallback(() => {
+  // Desktop: hover to cycle
+  const handleMouseEnter = useCallback(() => {
     if (images.length <= 1) return;
     setActiveIdx(1);
     if (images.length <= 2) return;
@@ -32,11 +32,6 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
       setActiveIdx(idx);
     }, 1200);
   }, [images.length]);
-
-  const handleMouseUp = useCallback(() => {
-    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
-    setActiveIdx(0);
-  }, []);
 
   const handleMouseLeave = useCallback(() => {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
@@ -90,8 +85,7 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
   return (
     <div
       className="w-full h-full relative"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
