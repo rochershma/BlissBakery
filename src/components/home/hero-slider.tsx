@@ -18,7 +18,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   return (
     <div className="relative rounded-[28px] md:rounded-[42px] overflow-hidden shadow-lg">
       <Link href={banner.linkUrl || "/store/kuchaman-city/menu"} className="block">
-        <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
+        <div className="relative w-full" style={{ aspectRatio: "16/7" }}>
           <Image
             src={banner.mediaUrl}
             alt={banner.title || "Bliss Bakery"}
