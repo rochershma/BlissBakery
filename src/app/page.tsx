@@ -61,13 +61,13 @@ export default async function HomePage() {
       <SiteHeader />
 
       {/* ═══ HERO ═══ */}
-      <section className="max-w-7xl mx-auto px-4 pt-5 md:pt-7">
-        <div className="rounded-[28px] md:rounded-[42px] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 pt-5 md:pt-7">
+        <div className="rounded-[28px] md:rounded-[42px] overflow-hidden shadow-lg">
           <HeroSlider banners={store.banners.map(b => ({
             id: b.id, title: b.title, mediaUrl: b.mediaUrl, linkUrl: b.linkUrl,
           }))} />
         </div>
-      </section>
+      </div>
 
       {/* ═══ CATEGORIES — image cards, horizontal scroll ═══ */}
       <section className="pt-5 pb-2 md:pt-7 md:pb-3">
