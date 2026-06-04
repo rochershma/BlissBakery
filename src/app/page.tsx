@@ -104,7 +104,7 @@ export default async function HomePage() {
           <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
             <div>
               <p className="section-kicker">Our Signatures</p>
-              <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers made to impress</h2>
+              <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers</h2>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
