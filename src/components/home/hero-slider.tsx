@@ -38,14 +38,15 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   );
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
       <Swiper
         modules={[Autoplay, EffectFade, Pagination]}
         effect="fade"
         autoplay={{ delay: 2200, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={banners.length > 1}
-        className="hero-swiper"
+        className="hero-swiper absolute inset-0"
+        style={{ position: "absolute", inset: 0 }}
       >
         {banners.map((banner, i) => {
           const isDesigned = banner.mediaUrl.includes("bakingo-") || banner.mediaUrl.includes("cloudinary") || banner.hasEmbeddedText;
@@ -53,23 +54,19 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
           return (
             <SwiperSlide key={banner.id}>
               {isDesigned ? (
-                /* Designed banner — show image as-is, no overlay */
-                <Link href={banner.linkUrl || "/"} className="block">
-                  <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
-                    <Image
-                      src={banner.mediaUrl}
-                      alt={banner.title || "Bliss Bakery"}
-                      fill
-                      className="object-cover object-center"
-                      priority={i === 0}
-                      sizes="100vw"
-                      quality={90}
-                    />
-                  </div>
+                <Link href={banner.linkUrl || "/"} className="block relative w-full h-full">
+                  <Image
+                    src={banner.mediaUrl}
+                    alt={banner.title || "Bliss Bakery"}
+                    fill
+                    className="object-cover object-center"
+                    priority={i === 0}
+                    sizes="100vw"
+                    quality={90}
+                  />
                 </Link>
               ) : (
-                /* Legacy banner — text overlay style */
-                <div className="relative aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
+                <div className="relative w-full h-full">
                   <Image
                     src={banner.mediaUrl}
                     alt={banner.title || "Bliss Bakery"}
