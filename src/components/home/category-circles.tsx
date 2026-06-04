@@ -26,9 +26,13 @@ const fallbackImages: Record<string, string> = {
 
 export function CategoryCircles({ categories, storeSlug }: { categories: Category[]; storeSlug: string }) {
   return (
-    <section className="mt-5 md:mt-7">
+    <section className="mt-8 md:mt-10">
       <div className="max-w-[1200px] mx-auto px-4 md:px-5">
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" style={{ scrollSnapType: "x mandatory" }}>
+        <div className="mb-5">
+          <p className="section-kicker">Explore Our Menu</p>
+          <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Browse by category.</h2>
+        </div>
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
           {categories.map((cat) => {
             const img = cat.image || cat.productImage || fallbackImages[cat.slug] || "/images/categories/cakes.jpg";
             return (
@@ -36,7 +40,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
                 key={cat.id}
                 href={`/store/${storeSlug}/menu?category=${cat.slug}`}
                 prefetch={false}
-                className="cat-card-premium flex-shrink-0 block"
+                className="cat-card-premium block"
               >
                 <div className="w-full h-full overflow-hidden rounded-[16px]">
                   <Image

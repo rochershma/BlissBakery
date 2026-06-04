@@ -681,8 +681,8 @@ input[type="radio"] {
 /* Premium category cards */
 .cat-card-premium {
   position: relative;
-  flex: 0 0 150px;
-  height: 158px;
+  width: 100%;
+  aspect-ratio: 1;
   overflow: hidden;
   border-radius: 16px;
   background: var(--chocolate);
@@ -714,8 +714,7 @@ input[type="radio"] {
 
 @media (max-width: 768px) {
   .cat-card-premium {
-    flex: 0 0 128px;
-    height: 136px;
+    border-radius: 12px;
   }
 }
 
