@@ -83,13 +83,13 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
       <div className="flex gap-3">
         {/* Vertical thumbnails — desktop only */}
         {!isMobile && images.length > 1 && (
-          <div className="hidden md:flex flex-col gap-2 w-16 flex-shrink-0">
+          <div className="hidden md:flex flex-col gap-2 w-20 flex-shrink-0">
             {images.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveIdx(idx)}
                 onMouseEnter={() => setActiveIdx(idx)}
-                className={`relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
                   idx === activeIdx
                     ? "border-primary ring-1 ring-primary/30"
                     : "border-transparent opacity-60 hover:opacity-100"
@@ -187,7 +187,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
           {/* Zoomed panel — appears to the right on desktop hover, clipped to viewport */}
           {isHovering && !isMobile && (
             <div
-              className="fixed z-[100] w-[380px] h-[380px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl pointer-events-none"
+              className="fixed z-[200] w-[380px] h-[380px] bg-white border border-border rounded-xl overflow-hidden shadow-2xl pointer-events-none"
               style={{
                 top: imgContainerRef.current ? imgContainerRef.current.getBoundingClientRect().top : 0,
                 left: imgContainerRef.current ? Math.min(

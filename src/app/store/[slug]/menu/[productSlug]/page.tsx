@@ -20,8 +20,23 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const productImgs = parseJsonSafe<string[]>(product.images, []);
   const heroImg = productImgs[0] || "/images/hero/AMMO6974.jpg";
+  const productOccasions = parseJsonSafe<string[]>(product.occasions, []);
+  const productThemes = parseJsonSafe<string[]>((product as any).themes, []);
+  const primaryOccasion = productOccasions[0] || null;
+
+  // Related: same category, or same occasion/theme
   const relatedProducts = await db.product.findMany({
-    where: { categoryId: product.categoryId, id: { not: product.id }, isAvailable: true }, take: 8,
+    where: {
+      id: { not: product.id },
+      isAvailable: true,
+      OR: [
+        { categoryId: product.categoryId },
+        ...(primaryOccasion ? [{ occasions: { contains: primaryOccasion } }] : []),
+        ...(productThemes[0] ? [{ themes: { contains: productThemes[0] } }] : []),
+      ],
+    },
+    orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
+    take: 8,
   });
 
   const store = await db.store.findFirst();
@@ -29,9 +44,6 @@ export default async function ProductDetailPage({ params }: Props) {
     where: { storeId: store.id, isActive: true },
     orderBy: { sortOrder: "asc" },
   }) : [];
-
-  const productOccasions = parseJsonSafe<string[]>(product.occasions, []);
-  const primaryOccasion = productOccasions[0] || null;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
