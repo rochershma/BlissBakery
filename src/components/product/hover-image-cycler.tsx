@@ -104,7 +104,7 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
           src={img}
           alt={idx === 0 ? alt : `${alt} view ${idx + 1}`}
           fill
-          quality={idx === 0 ? 80 : 60}
+          quality={90}
           className={`object-cover transition-opacity duration-300 ${idx === activeIdx ? "opacity-100" : "opacity-0"}`}
           sizes={sizes}
           loading={idx === 0 ? undefined : "lazy"}

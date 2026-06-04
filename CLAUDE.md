@@ -2,6 +2,16 @@
 
 # Bliss Bakery — Strict Development Guidelines
 
+
+
+mandatory guidelines 
+
+dont break existing things while making changes.
+we want no regressions
+your job is to validate everything after all changes.
+verify using webpage access.
+use 9602831559, 999999 otp for login if reuqired.
+
 ## MANDATORY: PRE-CHANGE RULES
 1. **Read before edit** — Read the FULL file before modifying it. Understand every function.
 2. **Check schema first** — Before touching any API or DB query, verify fields in `prisma/schema.prisma`

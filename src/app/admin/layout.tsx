@@ -3,9 +3,6 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart } from "lucide-react";
-
-// Admin pages must always be dynamic (DB queries + auth)
-export const dynamic = "force-dynamic";
 import Image from "next/image";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
