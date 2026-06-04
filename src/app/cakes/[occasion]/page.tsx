@@ -105,51 +105,49 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <SiteHeader />
-        <section className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 py-10 md:py-14 border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <p className="text-primary text-xs tracking-[0.25em] uppercase mb-2 font-medium">Bliss Bakery</p>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground font-serif mb-3">{rt.title}</h1>
-            <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">{rt.subtitle}</p>
-            <p className="text-xs text-muted-foreground mt-3">{products.length} cakes available</p>
-          </div>
-        </section>
-        <nav className="max-w-7xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1">
+        <nav className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-2.5 text-xs text-muted-foreground flex items-center gap-1">
           <Link href="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3 h-3" /> Home</Link>
           <ChevronRight className="w-3 h-3" />
           <span className="text-foreground font-medium">{rt.title}</span>
         </nav>
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 pb-24">
+        <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 pt-2 pb-4">
+          <h1 className="text-[clamp(20px,3vw,30px)] font-serif font-bold text-foreground tracking-[-0.03em]">{rt.title}</h1>
+          <p className="text-xs text-muted-foreground mt-1">{products.length} products · 100% Eggless</p>
+        </div>
+        <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 pb-24">
           {products.length === 0 ? (
             <div className="text-center py-16">
               <h2 className="text-lg font-bold text-foreground font-serif mb-2">No cakes found</h2>
               <p className="text-sm text-muted-foreground">Check back soon!</p>
             </div>
           ) : (
-            <>
-              <p className="text-sm text-muted-foreground mb-4">{products.length} cakes found</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 stagger-children">
-                {products.map((product) => {
-                  const imgs = parseJsonSafe<string[]>(product.images, []);
-                  const img = imgs[0] || "/images/hero/AMMO6974.jpg";
-                  return (
-                    <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`}
-                      className="product-card group bg-white rounded-xl overflow-hidden border border-border">
-                      <div className="aspect-square relative overflow-hidden bg-muted">
-                        <Image src={img} alt={product.name} fill className="object-cover product-img-zoom" sizes="(max-width: 640px) 50vw, 25vw" />
-                        {product.isBestseller && (
-                          <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full">Bestseller</span>
-                        )}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
+              {products.map((product) => {
+                const imgs = parseJsonSafe<string[]>(product.images, []);
+                const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
+                const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+                return (
+                  <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false}
+                    className="product-card-premium group">
+                    <div className="product-img-container relative">
+                      <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
+                        {product.isBestseller && <span className="badge-premium">Bestseller</span>}
+                      </HoverImageCycler>
+                      {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
+                    </div>
+                    <div className="p-2.5 md:p-3.5">
+                      <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
+                      <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                        <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
                       </div>
-                      <div className="p-3">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{product.category.name}</p>
-                        <h4 className="font-serif font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 mt-0.5 leading-snug">{product.name}</h4>
-                        <span className="font-bold text-foreground mt-2 block">{formatPrice(product.basePrice)}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </>
+                      {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           )}
         </main>
       </div>
@@ -193,120 +191,83 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Hero Banner — clean gradient, no image needed */}
-      <section className="bg-gradient-to-br from-primary/15 via-background to-secondary/10 py-10 md:py-14 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-primary text-xs tracking-[0.25em] uppercase mb-2 font-medium">Bliss Bakery</p>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground font-serif mb-3">{config.title}</h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto">{config.subtitle}</p>
-          <p className="text-xs text-muted-foreground mt-3">{products.length} cakes available · 100% Vegetarian & Eggless</p>
-        </div>
-      </section>
-
       {/* Breadcrumb */}
-      <nav className="max-w-7xl mx-auto w-full px-4 py-2 text-xs text-muted-foreground flex items-center gap-1">
+      <nav className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-2.5 text-xs text-muted-foreground flex items-center gap-1">
         <Link href="/" className="hover:text-primary flex items-center gap-1"><Home className="w-3 h-3" /> Home</Link>
         <ChevronRight className="w-3 h-3" />
         <span className="text-foreground font-medium">{config.title}</span>
       </nav>
 
-      {/* Relation Filters — image circles */}
-      {config.relations.length > 0 && (
-        <div className="max-w-7xl mx-auto w-full px-4 py-4">
-          <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">Who is it for?</h2>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
-            <Link
-              href={`/cakes/${occasion}`}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
-            >
-              <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all ${
-                !forWhom ? "border-primary shadow-md" : "border-border group-hover:border-primary/50"
-              } relative`}>
-                <Image src={config.heroImage} alt="All" fill className="object-cover" sizes="64px" />
+      {/* Sub-tag circles — "All" + relations */}
+      <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-3">
+        <div className="flex gap-5 md:gap-6 overflow-x-auto no-scrollbar pb-1">
+          <Link href={`/cakes/${occasion}`} prefetch={false}
+            className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
+            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 transition-all relative ${!forWhom ? "border-primary shadow-md ring-2 ring-primary/20" : "border-border group-hover:border-primary/40"}`}>
+              <Image src={config.heroImage} alt="All" fill className="object-cover" sizes="80px" />
+            </div>
+            <span className={`text-[10px] md:text-[11px] font-semibold ${!forWhom ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>All</span>
+          </Link>
+          {config.relations.map((r) => (
+            <Link key={r.key} href={`/cakes/${occasion}?for=${r.key}`} prefetch={false}
+              className="flex flex-col items-center gap-1.5 flex-shrink-0 group">
+              <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 transition-all relative ${forWhom === r.key ? "border-primary shadow-md ring-2 ring-primary/20" : "border-border group-hover:border-primary/40"}`}>
+                <Image src={r.image} alt={r.label} fill className="object-cover" sizes="80px" />
               </div>
-              <span className={`text-[10px] font-medium ${!forWhom ? "text-primary" : "text-muted-foreground"}`}>All</span>
+              <span className={`text-[10px] md:text-[11px] font-semibold text-center leading-tight ${forWhom === r.key ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`}>{r.label}</span>
             </Link>
-            {config.relations.map((r) => (
-              <Link
-                key={r.key}
-                href={`/cakes/${occasion}?for=${r.key}`}
-                className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
-              >
-                <div className={`w-16 h-16 rounded-full overflow-hidden border-2 transition-all ${
-                  forWhom === r.key ? "border-primary shadow-md" : "border-border group-hover:border-primary/50"
-                } relative`}>
-                  <Image src={r.image} alt={r.label} fill className="object-cover" sizes="64px" />
-                </div>
-                <span className={`text-[10px] font-medium ${forWhom === r.key ? "text-primary" : "text-muted-foreground"}`}>{r.label}</span>
-              </Link>
-            ))}
-          </div>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Product Grid */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 pb-24">
+      {/* Title + count */}
+      <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 pt-2 pb-4">
+        <h1 className="text-[clamp(20px,3vw,30px)] font-serif font-bold text-foreground tracking-[-0.03em]">{config.title}</h1>
+        <p className="text-xs text-muted-foreground mt-1">{products.length} products · 100% Eggless</p>
+      </div>
+
+      {/* Product Grid — same style as homepage bestsellers */}
+      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 pb-24">
         {products.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden relative">
-              <Image src={config.heroImage} alt={config.title} fill className="object-cover" sizes="80px" />
-            </div>
             <h2 className="text-lg font-bold text-foreground font-serif mb-2">No cakes found</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              {forWhom ? "Try removing the filter to see more options" : "Check back soon for new additions!"}
+              {forWhom ? "Try removing the filter to see more options" : "Check back soon!"}
             </p>
             <Link href={`/cakes/${occasion}`} className="text-primary text-sm font-medium hover:underline">View All {config.title} →</Link>
           </div>
         ) : (
-          <>
-            <p className="text-sm text-muted-foreground mb-4">{products.length} cakes found</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 stagger-children">
-              {products.map((product) => {
-                const imgs = parseJsonSafe<string[]>(product.images, []);
-                const img = imgs[0] || "/images/hero/AMMO6974.jpg";
-                return (
-                  <Link
-                    key={product.id}
-                    href={`/store/${store.slug}/menu/${product.slug}`}
-                    className="product-card group bg-white rounded-2xl overflow-hidden border border-border transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  >
-                    <div className="aspect-square relative overflow-hidden bg-muted">
-                      <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
-                        {product.isBestseller && (
-                          <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full z-10">Bestseller</span>
-                        )}
-                        {product.isNew && (
-                          <span className="absolute top-2 left-2 bg-accent text-accent-foreground text-[9px] font-semibold px-2 py-0.5 rounded-full z-10">New</span>
-                        )}
-                        {(product as any).mrpPrice && (product as any).mrpPrice > product.basePrice && (
-                          <span className="absolute top-2 right-2 bg-green-500 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full z-10">
-                            {Math.round(((product as any).mrpPrice - product.basePrice) / (product as any).mrpPrice * 100)}% OFF
-                          </span>
-                        )}
-                      </HoverImageCycler>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
+            {products.map((product) => {
+              const imgs = parseJsonSafe<string[]>(product.images, []);
+              const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
+              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+              return (
+                <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false}
+                  className="product-card-premium group">
+                  <div className="product-img-container relative">
+                    <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
+                      {product.isBestseller && <span className="badge-premium">Bestseller</span>}
+                      {product.isNew && !product.isBestseller && <span className="badge-premium">New</span>}
+                    </HoverImageCycler>
+                    {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
+                  </div>
+                  <div className="p-2.5 md:p-3.5">
+                    <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
+                    <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                      <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
                     </div>
-                    <div className="p-3">
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{product.category.name}</p>
-                      <h4 className="font-serif font-semibold text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 mt-0.5 leading-snug">
-                        {product.name}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="font-bold text-foreground">{formatPrice(product.basePrice)}</span>
-                        {(product as any).mrpPrice && (product as any).mrpPrice > product.basePrice && (
-                          <span className="text-xs text-muted-foreground line-through">{formatPrice((product as any).mrpPrice)}</span>
-                        )}
-                      </div>
-                      {(product as any).servingInfo && (
-                        <p className="text-[10px] text-muted-foreground mt-1">🍽️ {(product as any).servingInfo}</p>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </>
+                    {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         )}
       </main>
     </div>
+  );
   );
 }
