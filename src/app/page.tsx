@@ -100,7 +100,7 @@ export default async function HomePage() {
 
       {/* Bestsellers — Premium product cards */}
       {bestsellers.length > 0 && (
-        <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full">
+        <section className="max-w-[1400px] mx-auto px-4 md:px-5 w-full">
           <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
             <div>
               <p className="section-kicker">Our Signatures</p>
@@ -161,7 +161,7 @@ export default async function HomePage() {
       )}
 
       {/* Custom Cakes CTA — Premium two-column dark section */}
-      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+      <section className="max-w-[1400px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
         <div className="custom-cta-premium">
           <div className="p-8 md:p-[54px] flex flex-col justify-center">
             <p className="text-[var(--gold)] text-xs font-black tracking-[0.15em] uppercase mb-2">Made Just For You</p>
@@ -198,7 +198,7 @@ export default async function HomePage() {
       </section>
 
       {/* Our Promise — Premium numbered cards */}
-      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full">
+      <section className="max-w-[1400px] mx-auto px-4 md:px-5 w-full">
         <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
           <div>
             <p className="section-kicker">Why Choose Bliss</p>
@@ -230,7 +230,7 @@ export default async function HomePage() {
       </section>
 
       {/* Reviews — Premium trust block */}
-      <section className="max-w-[1200px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+      <section className="max-w-[1400px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
         <div className="reviews-premium">
           <p className="section-kicker">Customer Proof</p>
           <h2 className="text-[clamp(28px,3.5vw,44px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Loved for fresh taste and clean designs.</h2>
@@ -252,7 +252,7 @@ export default async function HomePage() {
 
       {/* Store Info */}
       <section className="py-6 mt-16 md:mt-20">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-5">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-5">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground border border-border rounded-2xl py-5 px-4 bg-white/60">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary" />
@@ -277,7 +277,7 @@ export default async function HomePage() {
 
       {/* Footer — Premium dark */}
       <footer className="bg-chocolate text-white/70 mt-0">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-5 py-12 md:py-[52px]">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-5 py-12 md:py-[52px]">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_0.65fr_0.65fr] gap-9">
             <div>
               <div className="flex items-center gap-3 mb-4">

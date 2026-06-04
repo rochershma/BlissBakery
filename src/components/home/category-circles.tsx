@@ -55,7 +55,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
 
   return (
     <section className="mt-8 md:mt-10">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-5">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-5">
         <div className="flex items-end justify-between gap-6 mb-5">
           <div>
             <p className="section-kicker">Explore Our Menu</p>
