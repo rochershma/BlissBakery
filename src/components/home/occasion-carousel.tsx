@@ -37,35 +37,10 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
     const el = scrollRef.current;
     if (!el) return;
 
-    const startAutoSlide = () => {
-      intervalRef.current = setInterval(() => {
-        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 10) {
-          el.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          scroll("right");
-        }
-      }, 1800);
-    };
-
-    startAutoSlide();
-
-    const pause = () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-    const resume = () => { pause(); startAutoSlide(); };
-
-    el.addEventListener("mouseenter", pause);
-    el.addEventListener("mouseleave", resume);
-    el.addEventListener("touchstart", pause, { passive: true });
-    el.addEventListener("touchend", resume);
     el.addEventListener("scroll", checkScroll, { passive: true });
-
     checkScroll();
 
     return () => {
-      pause();
-      el.removeEventListener("mouseenter", pause);
-      el.removeEventListener("mouseleave", resume);
-      el.removeEventListener("touchstart", pause);
-      el.removeEventListener("touchend", resume);
       el.removeEventListener("scroll", checkScroll);
     };
   }, [scroll, checkScroll]);
