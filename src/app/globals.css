@@ -486,13 +486,6 @@ input[type="radio"] {
   width: 24px;
   border-radius: 4px;
 }
-.hero-swiper .swiper-slide {
-  opacity: 0 !important;
-  transition: opacity 1s ease;
-}
-.hero-swiper .swiper-slide-active {
-  opacity: 1 !important;
-}
 
 /* Mobile bottom nav safe area */
 .safe-area-bottom {
