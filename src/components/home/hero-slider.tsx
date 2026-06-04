@@ -41,9 +41,9 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
             return (
               <SwiperSlide key={banner.id}>
-                <div className="hero-premium relative min-h-[420px] md:min-h-[480px]">
+                <div className="hero-premium relative">
                   {/* Full-bleed background image */}
-                  <div className="absolute inset-0 overflow-hidden rounded-[28px]">
+                  <div className="absolute inset-0 overflow-hidden rounded-[22px] md:rounded-[22px]">
                     <Image
                       src={banner.mediaUrl}
                       alt={banner.title || "Bliss Bakery"}
@@ -57,7 +57,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
                   {/* Content overlay — only if banner has text from admin */}
                   {hasText && (
-                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] min-h-[420px] md:min-h-[480px] flex flex-col justify-end md:justify-center p-5 md:p-[42px]">
+                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] h-full flex flex-col justify-end md:justify-center p-4 md:p-[42px]">
                       {/* Title */}
                       {banner.title && (
                         <h1 className="reveal reveal-delay-1 text-[28px] md:text-[clamp(36px,3.5vw,48px)] font-serif font-bold text-white leading-[0.96] tracking-[-0.055em] max-w-[460px]"

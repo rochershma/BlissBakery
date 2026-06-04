@@ -531,11 +531,19 @@ input[type="radio"] {
 /* Premium hero */
 .hero-premium {
   position: relative;
-  min-height: 480px;
+  min-height: 0;
   overflow: hidden;
-  border-radius: 28px;
+  border-radius: 22px;
   background: var(--chocolate);
   box-shadow: var(--shadow-premium);
+  aspect-ratio: 16 / 7;
+}
+
+@media (max-width: 768px) {
+  .hero-premium {
+    aspect-ratio: 4 / 3;
+    border-radius: 18px;
+  }
 }
 
 .hero-premium::after {
@@ -651,14 +659,14 @@ input[type="radio"] {
 
 .product-card-premium .product-img-container {
   position: relative;
-  height: 238px;
+  height: 180px;
   overflow: hidden;
   background: var(--surface-blush);
 }
 
 @media (max-width: 768px) {
   .product-card-premium .product-img-container {
-    height: 170px;
+    height: 140px;
   }
 }
 
@@ -714,8 +722,8 @@ input[type="radio"] {
 /* Premium occasion cards */
 .occasion-card-premium {
   position: relative;
-  flex: 0 0 210px;
-  height: 250px;
+  flex: 0 0 200px;
+  height: 240px;
   overflow: hidden;
   border-radius: 18px;
   box-shadow: var(--shadow-soft);

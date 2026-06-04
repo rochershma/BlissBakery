@@ -104,7 +104,7 @@ export default async function HomePage() {
           <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
             <div>
               <p className="section-kicker">Our Signatures</p>
-              <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers made to impress.</h2>
+              <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers made to impress.</h2>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
@@ -129,15 +129,15 @@ export default async function HomePage() {
                       <span className="badge-discount">{discountPct}% OFF</span>
                     )}
                   </div>
-                  <div className="p-4 md:p-[18px]">
-                    <div className="flex justify-between gap-3 text-muted-foreground text-xs font-bold uppercase tracking-[0.08em]">
+                  <div className="p-3 md:p-[18px]">
+                    <div className="flex justify-between gap-3 text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-[0.08em]">
                       <span>{product.category.name}</span>
                     </div>
-                    <h3 className="font-serif font-bold text-[19px] md:text-[22px] leading-[1.08] tracking-[-0.045em] mt-2.5 line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-serif font-bold text-base md:text-lg leading-[1.1] tracking-[-0.03em] mt-1.5 line-clamp-2 group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>
-                    <div className="flex items-center justify-between gap-3 mt-4">
-                      <span className="text-[22px] font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                    <div className="flex items-center justify-between gap-3 mt-3">
+                      <span className="text-lg md:text-xl font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
                       <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && (
@@ -201,7 +201,7 @@ export default async function HomePage() {
         <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
           <div>
             <p className="section-kicker">Why Choose Bliss</p>
-            <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable.</h2>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable.</h2>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-[18px]">

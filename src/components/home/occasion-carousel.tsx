@@ -76,7 +76,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
         <div className="flex items-end justify-between gap-6 mb-6">
           <div>
             <p className="section-kicker">For Every Celebration</p>
-            <h2 className="text-[clamp(32px,4.8vw,56px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion.</h2>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion.</h2>
           </div>
           {/* Arrow controls — desktop */}
           <div className="hidden md:flex items-center gap-2">
@@ -99,10 +99,10 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
           </div>
         </div>
 
-        <div className="relative overflow-hidden">
+        <div className="relative">
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto no-scrollbar -mx-4 px-4 scroll-smooth"
+            className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1"
             style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x mandatory" }}
           >
             {occasions.map((occ) => (
