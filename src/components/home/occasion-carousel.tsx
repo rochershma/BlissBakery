@@ -11,7 +11,13 @@ interface OccasionItem {
   image: string;
 }
 
-export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
+interface CarouselProps {
+  occasions: OccasionItem[];
+  sectionKicker?: string;
+  sectionTitle?: string;
+}
+
+export function OccasionCarousel({ occasions, sectionKicker = "For Every Celebration", sectionTitle = "Shop by occasion" }: CarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -50,8 +56,8 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
         <div className="flex items-end justify-between gap-6 mb-6">
           <div>
-            <p className="section-kicker">For Every Celebration</p>
-            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Shop by occasion</h2>
+            <p className="section-kicker">{sectionKicker}</p>
+            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">{sectionTitle}</h2>
           </div>
           {/* Arrow controls — desktop */}
           <div className="hidden md:flex items-center gap-2">
@@ -83,7 +89,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
             {occasions.map((occ) => (
               <Link
                 key={occ.slug}
-                href={`/cakes/${occ.slug}`}
+                href={occ.slug.includes("/") ? `/${occ.slug}` : `/cakes/${occ.slug}`}
                 prefetch={false}
                 className="occasion-card-premium flex-shrink-0 block"
               >

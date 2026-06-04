@@ -52,6 +52,12 @@ export default async function HomePage() {
     orderBy: { sortOrder: "asc" },
   });
 
+  // Fetch themes from DB
+  const dbThemes = await db.theme.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+
   const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(store.operatingHours, {});
   const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
   const todayHours = hours[today];
@@ -91,12 +97,24 @@ export default async function HomePage() {
         storeSlug={store.slug}
       />
 
-      {/* Shop by Occasion — auto-sliding carousel */}
+      {/* Shop by Occasion */}
       <OccasionCarousel occasions={(dbOccasions.length > 0 ? dbOccasions : occasions).map(o => ({
         name: o.name,
         slug: o.slug,
         image: o.image || "/images/categories/cakes.jpg",
       }))} />
+
+      {/* Shop by Theme — Handcrafted Collections */}
+      {dbThemes.length > 0 && (
+        <OccasionCarousel occasions={dbThemes.map(t => ({
+          name: t.name,
+          slug: `themes/${t.slug}`,
+          image: t.image || "/images/categories/cakes.jpg",
+        }))}
+        sectionKicker="Handcrafted Cake Collections"
+        sectionTitle="Shop by Theme"
+        />
+      )}
 
       {/* Bestsellers — Premium product cards */}
       {bestsellers.length > 0 && (

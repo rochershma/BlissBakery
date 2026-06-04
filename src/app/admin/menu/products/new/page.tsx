@@ -11,6 +11,7 @@ import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 export default async function NewProductPage() {
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+  const themes = await db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const recipientGroups = occasions.map((occasion) => {
     const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
@@ -44,6 +45,7 @@ export default async function NewProductPage() {
     const images = formData.get("images") as string;
     const occasionsJson = formData.get("occasions") as string;
     const forWhomJson = formData.get("forWhom") as string;
+    const themesJson = formData.get("themes") as string;
     const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
     const variants: { name: string; price: number; serves?: string }[] = (() => {
@@ -69,6 +71,7 @@ export default async function NewProductPage() {
         images: images || null,
         occasions: occasionsJson || null,
         forWhom: forWhomJson || null,
+        themes: themesJson || null,
         flavours: flavoursJson || null,
       },
     });
@@ -117,8 +120,10 @@ export default async function NewProductPage() {
           defaultImages={[]}
           defaultOccasions={[]}
           defaultForWhom={[]}
+          defaultThemes={[]}
           occasions={occasions.map(o => ({ slug: o.slug, name: o.name, image: o.image }))}
           recipientGroups={recipientGroups}
+          themes={themes.map(t => ({ slug: t.slug, name: t.name }))}
         />
 
         {/* Size / Weight Variants */}

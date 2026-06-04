@@ -21,12 +21,19 @@ interface RecipientGroup {
   recipients: RecipientTag[];
 }
 
+interface ThemeTag {
+  slug: string;
+  name: string;
+}
+
 interface Props {
   defaultImages: string[];
   defaultOccasions: string[];
   defaultForWhom: string[];
+  defaultThemes?: string[];
   occasions: OccasionTag[];
   recipientGroups: RecipientGroup[];
+  themes?: ThemeTag[];
 }
 
 /**
@@ -65,11 +72,14 @@ export function ProductFormFields({
   defaultImages,
   defaultOccasions,
   defaultForWhom,
+  defaultThemes = [],
   occasions,
   recipientGroups,
+  themes = [],
 }: Props) {
   const [images, setImages] = useState<string[]>(defaultImages);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>(defaultOccasions);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(defaultThemes);
   const [modalOccasion, setModalOccasion] = useState<string | null>(null);
 
   const groupsByOccasion = useMemo(
@@ -234,6 +244,45 @@ export function ProductFormFields({
         <input type="hidden" name="occasions" value={JSON.stringify(selectedOccasions)} />
         <input type="hidden" name="forWhom" value={JSON.stringify(forWhomFlat)} />
       </div>
+
+      {/* Theme Tags */}
+      {themes.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Tag className="w-4 h-4 text-primary" />
+            <h3 className="font-semibold text-sm text-foreground">Cake Themes</h3>
+            {selectedThemes.length > 0 && (
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                {selectedThemes.length} selected
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {themes.map((theme) => {
+              const active = selectedThemes.includes(theme.slug);
+              return (
+                <button
+                  key={theme.slug}
+                  type="button"
+                  onClick={() => active
+                    ? setSelectedThemes(prev => prev.filter(s => s !== theme.slug))
+                    : setSelectedThemes(prev => [...prev, theme.slug])
+                  }
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-white text-foreground border-border hover:border-primary/40"
+                  }`}
+                >
+                  {active && <Check className="w-3 h-3 inline mr-1" />}
+                  {theme.name}
+                </button>
+              );
+            })}
+          </div>
+          <input type="hidden" name="themes" value={JSON.stringify(selectedThemes)} />
+        </div>
+      )}
 
       {/* Recipient Selection Modal */}
       {modalOccasion && modalData && (

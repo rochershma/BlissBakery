@@ -40,6 +40,7 @@ model Store {
   banners     Banner[]
   storeAddOns StoreAddOn[]
   occasions   Occasion[]
+  themes      Theme[]
 }
 
 model Banner {
@@ -91,6 +92,7 @@ model Product {
   isAvailable  Boolean  @default(true)
   ingredients  String?  @db.Text
   occasions    String?  @db.Text
+  themes       String?  @db.Text
   forWhom      String?  @db.Text
   flavours     String?  @db.Text
   servingInfo  String?
@@ -337,4 +339,19 @@ model Recipient {
   occasion   Occasion @relation(fields: [occasionId], references: [id], onDelete: Cascade)
 
   @@index([occasionId])
+}
+
+model Theme {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  subtitle  String?
+  image     String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
 }
