@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Image from "next/image";
-import { Plus, Save, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Save, Trash2, Eye, EyeOff, Pencil } from "lucide-react";
 import { ImageField } from "@/components/admin/image-field";
 import { getSession } from "@/lib/auth";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
@@ -14,7 +14,12 @@ async function requireAdmin() {
   if (!user || (user.role !== "ADMIN" && user.role !== "STAFF")) throw new Error("Forbidden");
 }
 
-export default async function AdminThemesPage() {
+interface Props {
+  searchParams: Promise<{ edit?: string }>;
+}
+
+export default async function AdminThemesPage({ searchParams }: Props) {
+  const { edit: editId } = await searchParams;
   const store = await db.store.findFirst();
   if (!store) return <p>No store found.</p>;
 
@@ -22,6 +27,8 @@ export default async function AdminThemesPage() {
     where: { storeId: store.id },
     orderBy: { sortOrder: "asc" },
   });
+
+  const editingTheme = editId ? themes.find(t => t.id === editId) : null;
 
   async function createTheme(formData: FormData) {
     "use server";
@@ -36,6 +43,23 @@ export default async function AdminThemesPage() {
     const maxOrder = await db.theme.aggregate({ where: { storeId: store.id }, _max: { sortOrder: true } });
     await db.theme.create({
       data: { name, slug, subtitle: subtitle || null, image: image || null, sortOrder: (maxOrder._max.sortOrder || 0) + 1, storeId: store.id },
+    });
+    revalidatePath("/admin/themes");
+    redirect("/admin/themes");
+  }
+
+  async function updateTheme(formData: FormData) {
+    "use server";
+    await requireAdmin();
+    const id = formData.get("id") as string;
+    const name = formData.get("name") as string;
+    const subtitle = formData.get("subtitle") as string;
+    const image = formData.get("image") as string;
+    if (!name.trim()) return;
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    await db.theme.update({
+      where: { id },
+      data: { name, slug, subtitle: subtitle || null, image: image || null },
     });
     revalidatePath("/admin/themes");
     redirect("/admin/themes");
@@ -87,6 +111,9 @@ export default async function AdminThemesPage() {
                   <p className="text-[10px] text-muted-foreground mt-1">/{theme.slug}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <a href={`/admin/themes?edit=${theme.id}`} className="p-2 rounded-lg text-primary hover:bg-primary/5 transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </a>
                   <form action={toggleTheme}>
                     <input type="hidden" name="id" value={theme.id} />
                     <input type="hidden" name="isActive" value={String(theme.isActive)} />
@@ -106,6 +133,32 @@ export default async function AdminThemesPage() {
         </div>
       )}
 
+      {/* Edit Theme Form */}
+      {editingTheme && (
+        <form action={updateTheme} className="bg-white rounded-2xl border-2 border-primary/30 p-5 space-y-4 mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-foreground flex items-center gap-2 font-serif"><Pencil className="w-4 h-4 text-primary" /> Edit Theme: {editingTheme.name}</h2>
+            <a href="/admin/themes" className="text-xs text-muted-foreground hover:text-foreground">Cancel</a>
+          </div>
+          <input type="hidden" name="id" value={editingTheme.id} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Name *</label>
+              <input name="name" required defaultValue={editingTheme.name} className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Subtitle</label>
+              <input name="subtitle" defaultValue={editingTheme.subtitle || ""} className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
+          </div>
+          <ImageField name="image" defaultValue={editingTheme.image || ""} label="Theme Image" folder="themes" />
+          <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
+            <Save className="w-4 h-4" /> Save Changes
+          </button>
+        </form>
+      )}
+
+      {/* Add New Theme */}
       <form action={createTheme} className="bg-white rounded-2xl border border-primary/20 p-5 space-y-4">
         <h2 className="font-semibold text-foreground flex items-center gap-2 font-serif"><Plus className="w-4 h-4 text-primary" /> Add New Theme</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
