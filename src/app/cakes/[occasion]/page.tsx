@@ -269,5 +269,4 @@ export default async function OccasionPage({ params, searchParams }: Props) {
       </main>
     </div>
   );
-  );
 }
