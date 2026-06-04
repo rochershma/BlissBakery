@@ -13,27 +13,34 @@ interface Props {
 export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw, 25vw", children }: Props) {
   const [activeIdx, setActiveIdx] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const delayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const swiping = useRef(false);
 
   useEffect(() => {
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (delayRef.current) clearTimeout(delayRef.current);
+    };
   }, []);
 
-  // Desktop: hover to cycle
+  // Desktop: hover + pause (600ms dwell) then start cycling
   const handleMouseEnter = useCallback(() => {
     if (images.length <= 1) return;
-    setActiveIdx(1);
-    if (images.length <= 2) return;
-    let idx = 1;
-    intervalRef.current = setInterval(() => {
-      idx = (idx + 1) % images.length;
-      setActiveIdx(idx);
-    }, 1200);
+    delayRef.current = setTimeout(() => {
+      setActiveIdx(1);
+      if (images.length <= 2) return;
+      let idx = 1;
+      intervalRef.current = setInterval(() => {
+        idx = (idx + 1) % images.length;
+        setActiveIdx(idx);
+      }, 1200);
+    }, 600);
   }, [images.length]);
 
   const handleMouseLeave = useCallback(() => {
+    if (delayRef.current) { clearTimeout(delayRef.current); delayRef.current = null; }
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
     setActiveIdx(0);
   }, []);
