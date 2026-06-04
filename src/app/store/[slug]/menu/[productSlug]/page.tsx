@@ -6,6 +6,7 @@ import { Home, ChevronRight, Leaf, Star, Clock, Truck, ShieldCheck } from "lucid
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { ProductDetailClient } from "./product-detail-client";
 import { SiteHeader } from "@/components/shared/site-header";
+import { SiteFooter } from "@/components/shared/site-footer";
 import { ProductImageGallery } from "@/components/product/image-gallery";
 
 interface Props { params: Promise<{ slug: string; productSlug: string }>; }
@@ -40,10 +41,11 @@ export default async function ProductDetailPage({ params }: Props) {
   });
 
   const store = await db.store.findFirst();
-  const storeAddOns = store ? await db.storeAddOn.findMany({
-    where: { storeId: store.id, isActive: true },
-    orderBy: { sortOrder: "asc" },
-  }) : [];
+  const [storeAddOns, dbOccasions, dbThemes] = await Promise.all([
+    store ? db.storeAddOn.findMany({ where: { storeId: store.id, isActive: true }, orderBy: { sortOrder: "asc" } }) : Promise.resolve([]),
+    db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 6 }),
+    db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 6 }),
+  ]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -181,6 +183,47 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
         )}
       </main>
+
+      {/* Explore Sections */}
+      {(dbOccasions.length > 0 || dbThemes.length > 0) && (
+        <section className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-10">
+          {dbOccasions.length > 0 && (
+            <div className="mb-8">
+              <p className="section-kicker">Shop by Occasion</p>
+              <div className="flex gap-4 overflow-x-auto no-scrollbar py-1 mt-3">
+                {dbOccasions.map((occ) => (
+                  <Link key={occ.id} href={`/cakes/${occ.slug}`} prefetch={false}
+                    className="occasion-card-premium flex-shrink-0 block">
+                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover" sizes="200px" />}
+                    <div className="absolute left-3 right-3 bottom-3 z-[1]">
+                      <h4 className="font-serif font-bold text-base text-white leading-[1]">{occ.name}</h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+          {dbThemes.length > 0 && (
+            <div>
+              <p className="section-kicker">Shop by Theme</p>
+              <div className="flex gap-4 overflow-x-auto no-scrollbar py-1 mt-3">
+                {dbThemes.map((theme) => (
+                  <Link key={theme.id} href={`/themes/${theme.slug}`} prefetch={false}
+                    className="occasion-card-premium flex-shrink-0 block">
+                    {theme.image && <Image src={theme.image} alt={theme.name} fill className="object-cover" sizes="200px" />}
+                    <div className="absolute left-3 right-3 bottom-3 z-[1]">
+                      <h4 className="font-serif font-bold text-base text-white leading-[1]">{theme.name}</h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Footer */}
+      <SiteFooter storeSlug={storeSlug} phone={store?.phone || undefined} city={store?.city || undefined} state={store?.state || undefined} />
     </div>
   );
 }
