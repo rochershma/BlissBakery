@@ -536,7 +536,7 @@ input[type="radio"] {
   border-radius: 22px;
   background: var(--chocolate);
   box-shadow: var(--shadow-premium);
-  aspect-ratio: 16 / 8;
+  aspect-ratio: 17 / 8;
 }
 
 @media (max-width: 768px) {
@@ -681,17 +681,18 @@ input[type="radio"] {
 /* Premium category cards */
 .cat-card-premium {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1;
+  flex: 0 0 200px;
+  height: 240px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 18px;
   background: var(--chocolate);
   box-shadow: var(--shadow-soft);
+  scroll-snap-align: start;
   transition: transform 220ms var(--ease-premium), box-shadow 220ms var(--ease-premium);
 }
 
 .cat-card-premium:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
   box-shadow: var(--shadow-premium);
 }
 
@@ -714,7 +715,8 @@ input[type="radio"] {
 
 @media (max-width: 768px) {
   .cat-card-premium {
-    border-radius: 12px;
+    flex: 0 0 160px;
+    height: 200px;
   }
 }
 
