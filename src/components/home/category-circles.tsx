@@ -35,6 +35,7 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
               <Link
                 key={cat.id}
                 href={`/store/${storeSlug}/menu?category=${cat.slug}`}
+                prefetch={false}
                 className="cat-card-premium flex-shrink-0 block"
               >
                 <div className="w-full h-full overflow-hidden rounded-[16px]">

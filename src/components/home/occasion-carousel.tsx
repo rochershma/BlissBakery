@@ -109,6 +109,7 @@ export function OccasionCarousel({ occasions }: { occasions: OccasionItem[] }) {
               <Link
                 key={occ.slug}
                 href={`/cakes/${occ.slug}`}
+                prefetch={false}
                 className="occasion-card-premium flex-shrink-0 block"
               >
                 <Image

@@ -117,6 +117,7 @@ export default async function HomePage() {
                 <Link
                   key={product.id}
                   href={`/store/${store.slug}/menu/${product.slug}`}
+                  prefetch={false}
                   className="product-card-premium group"
                 >
                   <div className="product-img-container relative">
