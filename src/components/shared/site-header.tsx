@@ -85,7 +85,7 @@ export function SiteHeader() {
     <>
     <header className="sticky top-0 z-50 glass-header border-b border-border/60">
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
-        <div className="flex items-center justify-between h-[56px] md:h-[64px]">
+        <div className="flex items-center h-[56px] md:h-[64px]">
 
           {/* Left: Logo + Store */}
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
@@ -114,20 +114,19 @@ export function SiteHeader() {
             </button>
           </div>
 
-          {/* Right: Search + Cart + Account */}
-          <div className="flex items-center gap-1.5 md:gap-3">
-            {/* Search — Desktop inline */}
-            <div ref={searchRef} className="relative max-w-[320px] w-[320px] hidden md:block">
-            <div className={`flex items-center border rounded-lg transition-all h-9 ${searchOpen ? "border-primary ring-1 ring-primary/15 bg-white" : "border-border/50 bg-white/50 hover:bg-white"}`}>
-              <Search className="w-3.5 h-3.5 text-muted-foreground ml-2.5 flex-shrink-0" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search cakes, pastries..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onFocus={() => setSearchOpen(true)}
-                className="flex-1 bg-transparent px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
+          {/* Center: Search — Desktop inline */}
+          <div ref={searchRef} className="flex-1 flex justify-center mx-3 hidden md:flex">
+            <div className="relative w-full max-w-[380px]">
+              <div className={`flex items-center border rounded-lg transition-all h-9 ${searchOpen ? "border-primary ring-1 ring-primary/15 bg-white" : "border-border/50 bg-white/50 hover:bg-white"}`}>
+                <Search className="w-3.5 h-3.5 text-muted-foreground ml-2.5 flex-shrink-0" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search cakes, pastries..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onFocus={() => setSearchOpen(true)}
+                  className="flex-1 bg-transparent px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
               />
               {searchQuery && (
                 <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="p-1 mr-1 rounded hover:bg-muted">
@@ -172,15 +171,16 @@ export function SiteHeader() {
                 )}
               </div>
             )}
+            </div>
           </div>
 
-            {/* Mobile search */}
+          {/* Right: Mobile search + Cart + Account */}
+          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
             <button onClick={openSearch} className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Search">
               <Search className="w-5 h-5 text-foreground" />
             </button>
 
-          {/* Cart */}
-          <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors flex-shrink-0">
+            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
             <ShoppingBag className="w-5 h-5 text-foreground" />
             {hydrated && itemCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
