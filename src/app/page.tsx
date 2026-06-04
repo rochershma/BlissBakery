@@ -21,7 +21,7 @@ const occasions = [
 ];
 
 export default async function HomePage() {
-  noStore(); // Make this page dynamic so banner/product changes show immediately
+  noStore();
   const store = await db.store.findFirst({
     include: {
       categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },
@@ -33,30 +33,35 @@ export default async function HomePage() {
     return <div className="flex items-center justify-center min-h-screen"><p>Store not found.</p></div>;
   }
 
-  const bestsellers = await db.product.findMany({
-    where: { isBestseller: true, isAvailable: true },
-    include: { category: true },
-    take: 8,
+  // Run all independent queries in parallel
+  const [bestsellers, activePromos, dbOccasions, dbThemes] = await Promise.all([
+    db.product.findMany({
+      where: { isBestseller: true, isAvailable: true },
+      include: { category: true },
+      take: 8,
+    }),
+    db.promoCode.findMany({
+      where: { isActive: true, validTo: { gt: new Date() }, validFrom: { lte: new Date() } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+    db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+  ]);
+
+  // Batch category product data — single query instead of N+1
+  const categoryProducts = await db.product.findMany({
+    where: { isAvailable: true, categoryId: { in: store.categories.map(c => c.id) } },
+    select: { categoryId: true, images: true, isBestseller: true },
+    orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
   });
 
-  // Fetch active promos for offers banner
-  const activePromos = await db.promoCode.findMany({
-    where: { isActive: true, validTo: { gt: new Date() }, validFrom: { lte: new Date() } },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
-
-  // Fetch occasions from DB
-  const dbOccasions = await db.occasion.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-  });
-
-  // Fetch themes from DB
-  const dbThemes = await db.theme.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: "asc" },
-  });
+  const categoryData = store.categories.map(c => {
+    const products = categoryProducts.filter(p => p.categoryId === c.id);
+    if (products.length === 0) return null;
+    const firstImg = parseJsonSafe<string[]>(products[0]?.images, [])[0] || null;
+    return { id: c.id, name: c.name, slug: c.slug, image: c.image, productImage: firstImg };
+  }).filter(Boolean) as { id: string; name: string; slug: string; image: string | null; productImage: string | null }[];
 
   const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(store.operatingHours, {});
   const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
@@ -81,19 +86,9 @@ export default async function HomePage() {
         linkUrl: b.linkUrl,
       }))} />
 
-      {/* Category Circles — with real product images */}
+      {/* Category Circles — batched data */}
       <CategoryCircles
-        categories={(await Promise.all(store.categories.map(async (c) => {
-          const count = await db.product.count({ where: { categoryId: c.id, isAvailable: true } });
-          if (count === 0) return null;
-          const firstProduct = await db.product.findFirst({
-            where: { categoryId: c.id, isAvailable: true },
-            orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
-            select: { images: true },
-          });
-          const imgs = parseJsonSafe<string[]>(firstProduct?.images, []);
-          return { id: c.id, name: c.name, slug: c.slug, image: c.image, productImage: imgs[0] || null };
-        }))).filter(Boolean) as { id: string; name: string; slug: string; image: string | null; productImage: string | null }[]}
+        categories={categoryData}
         storeSlug={store.slug}
       />
 
