@@ -1,12 +1,8 @@
 "use client";
 
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import "swiper/css";
-import "swiper/css/effect-fade";
-import "swiper/css/pagination";
 
 interface Banner {
   id: string;
