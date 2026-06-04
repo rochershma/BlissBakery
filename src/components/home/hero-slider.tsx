@@ -1,11 +1,10 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import Image from "next/image";
 import Link from "next/link";
 import "swiper/css";
-import "swiper/css/effect-fade";
 import "swiper/css/pagination";
 
 interface Banner {
@@ -38,15 +37,13 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   );
 
   return (
-    <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
+    <div className="relative">
       <Swiper
-        modules={[Autoplay, EffectFade, Pagination]}
-        effect="fade"
-        autoplay={{ delay: 2200, disableOnInteraction: false }}
+        modules={[Autoplay, Pagination]}
+        autoplay={{ delay: 3500, disableOnInteraction: false }}
         pagination={{ clickable: true }}
         loop={banners.length > 1}
-        className="hero-swiper absolute inset-0"
-        style={{ position: "absolute", inset: 0 }}
+        className="hero-swiper"
       >
         {banners.map((banner, i) => {
           const isDesigned = banner.mediaUrl.includes("bakingo-") || banner.mediaUrl.includes("cloudinary") || banner.hasEmbeddedText;
@@ -54,19 +51,21 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
           return (
             <SwiperSlide key={banner.id}>
               {isDesigned ? (
-                <Link href={banner.linkUrl || "/"} className="block relative w-full h-full">
-                  <Image
-                    src={banner.mediaUrl}
-                    alt={banner.title || "Bliss Bakery"}
-                    fill
-                    className="object-cover object-center"
-                    priority={i === 0}
-                    sizes="100vw"
-                    quality={90}
-                  />
+                <Link href={banner.linkUrl || "/"} className="block">
+                  <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
+                    <Image
+                      src={banner.mediaUrl}
+                      alt={banner.title || "Bliss Bakery"}
+                      fill
+                      className="object-cover object-center"
+                      priority={i === 0}
+                      sizes="100vw"
+                      quality={90}
+                    />
+                  </div>
                 </Link>
               ) : (
-                <div className="relative w-full h-full">
+                <div className="relative w-full aspect-[16/9] sm:aspect-[16/7] md:aspect-[21/8]">
                   <Image
                     src={banner.mediaUrl}
                     alt={banner.title || "Bliss Bakery"}
