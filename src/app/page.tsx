@@ -130,19 +130,19 @@ export default async function HomePage() {
                       <span className="badge-discount">{discountPct}% OFF</span>
                     )}
                   </div>
-                  <div className="p-3 md:p-[18px]">
-                    <div className="flex justify-between gap-3 text-muted-foreground text-[10px] md:text-xs font-bold uppercase tracking-[0.08em]">
-                      <span>{product.category.name}</span>
-                    </div>
-                    <h3 className="font-serif font-bold text-base md:text-lg leading-[1.1] tracking-[-0.03em] mt-1.5 line-clamp-2 group-hover:text-primary transition-colors">
+                  <div className="p-2.5 md:p-3.5">
+                    <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">
+                      {product.category.name}
+                    </p>
+                    <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">
                       {product.name}
                     </h3>
-                    <div className="flex items-center justify-between gap-3 mt-3">
-                      <span className="text-lg md:text-xl font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
                       <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && (
-                      <span className="text-xs text-muted-foreground line-through mt-1 block">{formatPrice(product.mrpPrice!)}</span>
+                      <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>
                     )}
                   </div>
                 </Link>

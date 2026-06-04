@@ -659,14 +659,14 @@ input[type="radio"] {
 
 .product-card-premium .product-img-container {
   position: relative;
-  height: 180px;
+  height: 200px;
   overflow: hidden;
   background: var(--surface-blush);
 }
 
 @media (max-width: 768px) {
   .product-card-premium .product-img-container {
-    height: 140px;
+    height: 160px;
   }
 }
 
