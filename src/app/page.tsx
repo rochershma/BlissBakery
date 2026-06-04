@@ -61,9 +61,13 @@ export default async function HomePage() {
       <SiteHeader />
 
       {/* ═══ HERO ═══ */}
-      <HeroSlider banners={store.banners.map(b => ({
-        id: b.id, title: b.title, mediaUrl: b.mediaUrl, linkUrl: b.linkUrl,
-      }))} />
+      <section className="max-w-7xl mx-auto px-4 pt-5 md:pt-7">
+        <div className="rounded-[28px] md:rounded-[42px] overflow-hidden">
+          <HeroSlider banners={store.banners.map(b => ({
+            id: b.id, title: b.title, mediaUrl: b.mediaUrl, linkUrl: b.linkUrl,
+          }))} />
+        </div>
+      </section>
 
       {/* ═══ CATEGORIES — image cards, horizontal scroll ═══ */}
       <section className="pt-5 pb-2 md:pt-7 md:pb-3">
@@ -74,7 +78,7 @@ export default async function HomePage() {
                 key={cat.id}
                 href={`/store/${store.slug}/menu?category=${cat.slug}`}
                 prefetch={false}
-                className="category-card flex-shrink-0 w-[120px] md:w-[150px] block relative rounded-2xl overflow-hidden"
+                className="category-card flex-shrink-0 w-[120px] md:w-[150px] block relative rounded-[18px] overflow-hidden"
               >
                 <div className="relative h-[132px] md:h-[158px] bg-foreground/10">
                   {cat.image ? (
@@ -113,16 +117,13 @@ export default async function HomePage() {
                   key={occ.slug}
                   href={`/cakes/${occ.slug}`}
                   prefetch={false}
-                  className="occasion-card flex-shrink-0 w-[155px] md:w-[200px] block relative rounded-2xl overflow-hidden"
+                  className="occasion-card flex-shrink-0 w-[155px] md:w-[200px] block relative rounded-[18px] overflow-hidden"
                 >
                   <div className="relative h-[185px] md:h-[240px]">
                     <Image src={occ.image} alt={occ.name} fill className="object-cover" sizes="200px" quality={70} />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                     <div className="absolute bottom-3 left-3 right-3 z-[1]">
                       <h3 className="font-serif font-bold text-[15px] md:text-[17px] text-white leading-tight">{occ.name}</h3>
-                      {occ.subtitle && (
-                        <p className="text-white/70 text-[10px] md:text-[11px] font-medium mt-0.5">{occ.subtitle}</p>
-                      )}
                     </div>
                   </div>
                 </Link>
@@ -149,7 +150,7 @@ export default async function HomePage() {
               {bestsellers.map((product) => {
                 const imgs = parseJsonSafe<string[]>(product.images, []);
                 return (
-                  <div key={product.id} className="product-card bg-white rounded-xl overflow-hidden border border-border">
+                  <div key={product.id} className="product-card bg-white rounded-[22px] overflow-hidden border border-border">
                     <Link href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false} className="block">
                       <div className="aspect-[4/3] md:aspect-square relative overflow-hidden bg-muted">
                         <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name} sizes="(max-width:640px) 50vw, 220px">
@@ -210,7 +211,7 @@ export default async function HomePage() {
         <Link
           href={`/store/${store.slug}/custom-cakes`}
           prefetch={false}
-          className="block relative rounded-[28px] overflow-hidden group"
+          className="block relative rounded-[28px] md:rounded-[42px] overflow-hidden group"
         >
           <div className="relative h-48 md:h-64">
             <Image
@@ -248,8 +249,8 @@ export default async function HomePage() {
               { icon: Sparkles, title: "Baked Fresh Daily", desc: "Finest ingredients", color: "text-primary" },
               { icon: Heart, title: "Crafted with Love", desc: "Handmade in Kuchaman City", color: "text-primary" },
             ].map((item) => (
-              <div key={item.title} className="bg-white rounded-2xl border border-border p-5 md:p-6">
-                <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center mb-3">
+              <div key={item.title} className="bg-white rounded-[22px] border border-border p-5 md:p-6">
+                <div className="w-10 h-10 rounded-[14px] bg-primary/8 flex items-center justify-center mb-3">
                   <item.icon className={`w-5 h-5 ${item.color}`} />
                 </div>
                 <h4 className="font-serif font-bold text-sm text-foreground leading-tight">{item.title}</h4>
