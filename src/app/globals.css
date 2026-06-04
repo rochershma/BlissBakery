@@ -662,15 +662,19 @@ input[type="radio"] {
   height: 200px;
   overflow: hidden;
   background: var(--surface-blush);
+  padding: 8px;
 }
 
 @media (max-width: 768px) {
   .product-card-premium .product-img-container {
     height: 160px;
+    padding: 6px;
   }
 }
 
 .product-card-premium .product-img-container img {
+  border-radius: 14px;
+  object-fit: cover;
   transition: transform 560ms var(--ease-premium);
 }
 
