@@ -255,3 +255,4 @@ curl.exe -s -H "Cookie: bb-session=$ck" "http://20.221.129.132/api/admin/addons"
 | Customers | `/admin/customers` | Customer list |
 | Assets | `/admin/assets` | Media library with upload and delete |
 | Settings | `/admin/settings` | Store config, hours, delivery, GST, lat/lng |
+| Themes | `/admin/themes` | Theme collections CRUD (Bento, Photo, Kids, etc.) |
