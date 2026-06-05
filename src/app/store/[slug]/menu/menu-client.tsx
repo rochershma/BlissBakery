@@ -93,9 +93,9 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
   return (
     <div className="flex-1 flex flex-col">
       {/* Sticky toolbar */}
-      <div className="sticky top-[57px] z-40 bg-white/95 backdrop-blur-sm border-b border-border/50">
-        {/* Search */}
-        <div className="max-w-[1300px] mx-auto px-4 md:px-5 pt-3 pb-2">
+      <div className="sticky top-[100px] md:top-[57px] z-40 bg-white/95 backdrop-blur-sm border-b border-border/50">
+        {/* Search — hidden on mobile (header has search) */}
+        <div className="hidden md:block max-w-[1300px] mx-auto px-4 md:px-5 pt-3 pb-2">
           <div className="relative max-w-[400px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input

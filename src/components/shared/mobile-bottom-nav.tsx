@@ -22,8 +22,11 @@ export function MobileBottomNav() {
   const cartItems = useCartStore((s) => s.items);
   const cartCount = hydrated ? cartItems.reduce((s, i) => s + i.quantity, 0) : 0;
 
-  // Don't show on admin, cart, or checkout pages
+  // Don't show on admin, cart, checkout, or product detail pages
   if (pathname.startsWith("/admin") || pathname === "/cart" || pathname === "/checkout") return null;
+  // Hide on product detail pages (they have sticky CTA)
+  const isProductPage = /^\/store\/[^/]+\/menu\/[^/]+$/.test(pathname);
+  if (isProductPage) return null;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-white/95 backdrop-blur-md border-t border-border" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
