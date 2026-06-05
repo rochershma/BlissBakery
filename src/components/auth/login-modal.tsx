@@ -211,7 +211,7 @@ export function LoginModal() {
       />
 
       {/* Modal */}
-      <div className="relative bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[85dvh] overflow-y-auto" style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {/* Close button */}
         <button
           onClick={() => { setShowLoginModal(false); resetForm(); }}

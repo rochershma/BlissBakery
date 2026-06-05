@@ -25,6 +25,22 @@ export default async function SearchPage({ searchParams }: Props) {
   let totalCount = 0;
 
   if (query.length >= 2) {
+    // Detect price intent (e.g. "under 500", "below 700", "under ₹500")
+    const priceMatch = query.match(/(?:under|below|upto|up to|less than|within)\s*₹?\s*(\d+)/i);
+    const maxPrice = priceMatch ? parseInt(priceMatch[1], 10) : null;
+
+    if (maxPrice) {
+      // Price-based filter
+      const where = { isAvailable: true, basePrice: { lte: maxPrice } };
+      [products, totalCount] = await Promise.all([
+        db.product.findMany({
+          where, include: { category: true },
+          orderBy: [{ basePrice: "asc" }, { isBestseller: "desc" }],
+          skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
+        }),
+        db.product.count({ where }),
+      ]);
+    } else {
     // Split into words for broad matching ("kids cake" matches "kids" OR "cake")
     const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
     const orConditions: any[] = [];
@@ -64,6 +80,7 @@ export default async function SearchPage({ searchParams }: Props) {
       });
       products = [...products, ...extra];
     }
+    } // close non-price else
   } else {
     // No query — show all products
     [products, totalCount] = await Promise.all([

@@ -132,7 +132,7 @@ export default async function HomePage() {
       {/* Bestsellers — Premium product cards */}
       {bestsellers.length > 0 && (
         <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full">
-          <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
+          <div className="flex items-end justify-between gap-6 mt-10 md:mt-20 mb-4 md:mb-6">
             <div>
               <p className="section-kicker">Our Signatures</p>
               <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers</h2>
@@ -192,7 +192,7 @@ export default async function HomePage() {
       )}
 
       {/* Custom Cakes CTA — Premium two-column dark section */}
-      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+      <section className="max-w-[1300px] mx-auto px-3 md:px-5 w-full mt-10 md:mt-20">
         <div className="custom-cta-premium">
           <div className="p-8 md:p-[54px] flex flex-col justify-center">
             <p className="text-[var(--gold)] text-xs font-black tracking-[0.15em] uppercase mb-2">Made Just For You</p>
@@ -230,43 +230,43 @@ export default async function HomePage() {
 
       {/* Our Promise — Premium numbered cards */}
       <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full">
-        <div className="flex items-end justify-between gap-6 mt-16 md:mt-20 mb-6">
+        <div className="flex items-end justify-between gap-6 mt-10 md:mt-20 mb-4 md:mb-6">
           <div>
             <p className="section-kicker">Why Choose Bliss</p>
-            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable</h2>
+            <h2 className="text-[clamp(20px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable</h2>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-[18px]">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-[18px]">
           <div className="promise-card">
-            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">01</div>
-            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Same-day delivery</h3>
-            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Order before 8 PM for fast delivery across Kuchaman City.</p>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">01</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Same-day delivery</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Order before 8 PM for fast delivery across Kuchaman City.</p>
           </div>
           <div className="promise-card">
-            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">02</div>
-            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">100% eggless</h3>
-            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Every cake, pastry, brownie, and cookie is vegetarian and eggless.</p>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">02</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">100% eggless</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Every cake, pastry, brownie, and cookie is vegetarian and eggless.</p>
           </div>
           <div className="promise-card">
-            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">03</div>
-            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Baked fresh daily</h3>
-            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Small-batch baking with soft sponge, rich cream, and premium ingredients.</p>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">03</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Baked fresh daily</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Small-batch baking with soft sponge, rich cream, and premium ingredients.</p>
           </div>
           <div className="promise-card">
-            <div className="w-12 h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-lg grid place-items-center">04</div>
-            <h3 className="font-serif font-bold text-2xl leading-[1.05] tracking-[-0.04em] mt-4">Custom designs</h3>
-            <p className="text-muted-foreground text-sm leading-[1.55] mt-2.5">Theme cakes for birthdays, weddings, anniversaries, kids, and festivals.</p>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">04</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Custom designs</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Theme cakes for birthdays, weddings, anniversaries, kids, and festivals.</p>
           </div>
         </div>
       </section>
 
       {/* Reviews — Premium trust block */}
-      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-16 md:mt-20">
+      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-10 md:mt-20">
         <div className="reviews-premium">
           <p className="section-kicker">Customer Proof</p>
-          <h2 className="text-[clamp(28px,3.5vw,44px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Loved for fresh taste and clean designs.</h2>
-          <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1fr_1fr] gap-4 md:gap-[18px] mt-6">
-            <div className="p-7 rounded-[22px] bg-chocolate text-white">
+          <h2 className="text-[clamp(22px,3.5vw,44px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Loved for fresh taste and clean designs.</h2>
+          <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1fr_1fr] gap-3 md:gap-[18px] mt-4 md:mt-6">
+            <div className="p-5 md:p-7 rounded-[18px] md:rounded-[22px] bg-chocolate text-white">
               <span className="text-[var(--gold)] font-black tracking-[0.1em] text-sm">★★★★★ RATING</span>
               <strong className="block text-[58px] font-serif leading-[1] mt-2">4.9</strong>
               <p className="text-white/60 text-sm mt-3 leading-[1.6]">Premium trust block for reviews, orders, and repeat customers.</p>

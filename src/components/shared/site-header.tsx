@@ -189,7 +189,7 @@ export function SiteHeader() {
               {showProfile && user && (
                 <>
                   <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setShowProfile(false)} />
-                  <div className="fixed inset-x-0 bottom-0 max-h-[80dvh] bg-white shadow-2xl z-[70] rounded-t-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:max-h-none overflow-y-auto">
+                  <div className="fixed inset-x-0 bottom-0 max-h-[80dvh] bg-white shadow-2xl z-[70] rounded-t-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:max-h-none overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
                     <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted z-10" aria-label="Close menu"><X className="w-4 h-4" /></button>
                     <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3">

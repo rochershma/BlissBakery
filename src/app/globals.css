@@ -940,6 +940,14 @@ input[type="radio"] {
   transition: transform 240ms var(--ease-premium), box-shadow 240ms var(--ease-premium);
 }
 
+@media (max-width: 768px) {
+  .promise-card {
+    min-height: auto;
+    padding: 16px;
+    border-radius: 16px;
+  }
+}
+
 .promise-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-premium);
@@ -1040,6 +1048,24 @@ input[type="radio"] {
   z-index: 2;
 }
 
+/* Mobile badges — smaller to prevent overlap */
+@media (max-width: 768px) {
+  .badge-premium {
+    top: 8px;
+    left: 8px;
+    padding: 4px 7px;
+    border-radius: 10px;
+    font-size: 9px;
+  }
+  .badge-discount {
+    right: 8px;
+    top: 8px;
+    padding: 4px 7px;
+    border-radius: 10px;
+    font-size: 9px;
+  }
+}
+
 /* Reviews section */
 .reviews-premium {
   padding: 44px;
@@ -1051,6 +1077,7 @@ input[type="radio"] {
 
 @media (max-width: 768px) {
   .reviews-premium {
-    padding: 24px;
+    padding: 20px;
+    border-radius: 20px;
   }
 }

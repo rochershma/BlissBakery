@@ -1,11 +1,10 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+import { Autoplay, Pagination } from "swiper/modules";
 import Image from "next/image";
 import Link from "next/link";
 import "swiper/css";
-import "swiper/css/effect-fade";
 import "swiper/css/pagination";
 
 interface Banner {
@@ -26,15 +25,15 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
   const hasAnyText = banners.some(b => b.title || b.subtitle || b.ctaText);
 
   return (
-    <section className="pt-6 md:pt-8 pb-6 md:pb-8">
-      <div className="max-w-[1300px] mx-auto px-4 md:px-5">
+    <section className="pt-4 md:pt-8 pb-4 md:pb-8">
+      <div className="max-w-[1300px] mx-auto px-3 md:px-5">
         <Swiper
-          modules={[Autoplay, EffectFade, Pagination]}
-          effect="fade"
+          modules={[Autoplay, Pagination]}
           autoplay={{ delay: 4500, disableOnInteraction: false }}
           pagination={{ clickable: true }}
           loop={banners.length > 1}
           className="hero-swiper"
+          spaceBetween={0}
         >
           {banners.map((banner, i) => {
             const hasText = banner.title || banner.subtitle || banner.ctaText;
@@ -43,7 +42,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
               <SwiperSlide key={banner.id}>
                 <div className="hero-premium relative">
                   {/* Full-bleed background image */}
-                  <div className="absolute inset-0 overflow-hidden rounded-[22px] md:rounded-[22px]">
+                  <div className="absolute inset-0 overflow-hidden rounded-[16px] md:rounded-[22px]">
                     <Image
                       src={banner.mediaUrl}
                       alt={banner.title || "Bliss Bakery"}
