@@ -20,6 +20,20 @@ export function LoginModal() {
   const [devOtp, setDevOtp] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll, set inert on background, auto-focus phone input
+  useEffect(() => {
+    if (!showLoginModal) return;
+    document.body.style.overflow = "hidden";
+    // Focus phone input after mount
+    const timer = setTimeout(() => phoneInputRef.current?.focus(), 100);
+    return () => {
+      document.body.style.overflow = "";
+      clearTimeout(timer);
+    };
+  }, [showLoginModal, step]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -146,7 +160,7 @@ export function LoginModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" ref={modalRef}>
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -186,6 +200,7 @@ export function LoginModal() {
                     +91
                   </span>
                   <input
+                    ref={phoneInputRef}
                     type="tel"
                     maxLength={10}
                     placeholder="Enter 10-digit number"

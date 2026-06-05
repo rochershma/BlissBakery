@@ -341,7 +341,7 @@ export default function CartPage() {
 
               {/* Cancellation note */}
               <p className="text-[10px] text-muted-foreground text-center px-4">
-                By proceeding, you agree to our terms. Orders once placed cannot be cancelled.
+                By proceeding, you agree to our terms. Because each cake is freshly prepared, confirmed orders cannot be cancelled.
               </p>
             </div>
           </div>

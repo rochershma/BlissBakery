@@ -698,7 +698,7 @@ export default function CheckoutPage() {
         </label>
 
         <p className="text-xs text-muted-foreground text-center mb-4">
-          ⚠️ Orders once placed cannot be cancelled and are non-refundable
+          Because every cake is freshly prepared, confirmed orders cannot be cancelled after baking begins.
         </p>
         </div>{/* end md:flex-1 */}
 

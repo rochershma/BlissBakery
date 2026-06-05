@@ -50,8 +50,9 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
                       fill
                       className="object-cover object-center hero-premium-img"
                       priority={i === 0}
-                      sizes="100vw"
-                      quality={90}
+                      loading={i === 0 ? undefined : "lazy"}
+                      sizes="(max-width: 768px) 100vw, 1300px"
+                      quality={i === 0 ? 85 : 70}
                     />
                   </div>
 

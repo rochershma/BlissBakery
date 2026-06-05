@@ -157,15 +157,22 @@ export default function CustomCakesPage() {
       <main className="max-w-3xl mx-auto px-4 py-6 page-enter pb-32">
         {/* Inspiration Gallery Placeholder */}
         <div className="mb-8">
-          <h2 className="text-lg font-bold text-foreground mb-3">✨ Inspiration Gallery</h2>
+          <h2 className="text-lg font-bold text-foreground font-serif mb-3">Popular Custom Cake Styles</h2>
           <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-            {["🎂", "🧁", "🍰", "🎀", "🌸", "🦄"].map((emoji, i) => (
-              <div key={i} className="w-28 h-28 flex-shrink-0 rounded-2xl bg-primary-light flex items-center justify-center text-4xl product-card cursor-pointer">
-                {emoji}
+            {[
+              { label: "Kids Theme", bg: "from-pink-100 to-pink-50" },
+              { label: "Floral Wedding", bg: "from-rose-100 to-rose-50" },
+              { label: "Photo Cake", bg: "from-amber-100 to-amber-50" },
+              { label: "Bento Cake", bg: "from-orange-100 to-orange-50" },
+              { label: "Chocolate Drip", bg: "from-yellow-100 to-yellow-50" },
+              { label: "Minimal Cream", bg: "from-green-100 to-green-50" },
+            ].map((style, i) => (
+              <div key={i} className={`w-28 h-28 flex-shrink-0 rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center text-center p-3 border border-border/30 hover:shadow-sm transition-shadow cursor-pointer`}>
+                <span className="text-xs font-semibold text-foreground leading-tight">{style.label}</span>
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Real samples coming soon — swipe for ideas!</p>
+          <p className="text-xs text-muted-foreground mt-2">Share your reference image and we&apos;ll create it for you</p>
         </div>
 
         {/* Form */}
