@@ -67,15 +67,14 @@ export default async function MenuPage({ params, searchParams }: Props) {
     <div className="flex flex-col min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Slim store info bar */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-border px-4 py-1.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-[11px] text-muted-foreground">
+      {/* Store info */}
+      <div className="border-b border-border/50 px-4 py-1.5">
+        <div className="max-w-[1300px] mx-auto flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-primary" />{store.city}</span>
             {todayHours && <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-primary" />{todayHours.open} – {todayHours.close}</span>}
-            <span className={`font-medium ${store.isOpen ? "text-success" : "text-destructive"}`}>{store.isOpen ? "● Open" : "● Closed"}</span>
+            <span className={`font-medium ${store.isOpen ? "text-success" : "text-destructive"}`}>{store.isOpen ? "Open" : "Closed"}</span>
           </div>
-          <span className="label-premium text-primary">Pick Up</span>
         </div>
       </div>
 

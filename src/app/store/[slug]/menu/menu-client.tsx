@@ -41,10 +41,7 @@ interface Props {
   searchQuery: string;
 }
 
-const categoryEmojis: Record<string, string> = {
-  cakes: "🎂", pastries: "🧁", brownies: "🍫", "cookies-biscuits": "🍪", breads: "🍞", combos: "🎁", beverages: "☕",
-  "cheese-cakes": "🧀", "cup-cakes": "🧁",
-};
+const categoryEmojis: Record<string, string> = {};
 
 export function MenuClient({ storeSlug, categories, products, storeAddOns, activeCategory, searchQuery }: Props) {
   const router = useRouter();
@@ -96,31 +93,31 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
   return (
     <div className="flex-1 flex flex-col">
       {/* Sticky toolbar */}
-      <div className="sticky top-[57px] z-40 bg-white/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-[57px] z-40 bg-white/95 backdrop-blur-sm border-b border-border/50">
         {/* Search */}
-        <div className="max-w-7xl mx-auto px-4 pt-2 pb-1.5">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <div className="max-w-[1300px] mx-auto px-4 md:px-5 pt-3 pb-2">
+          <div className="relative max-w-[400px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search cakes, pastries..."
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 rounded-lg bg-muted/60 border-0 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30"
+              className="w-full pl-10 pr-8 py-2.5 rounded-xl bg-muted/40 border border-border/50 text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/30 focus:bg-white transition-colors"
             />
             {search && (
               <button onClick={() => handleSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-border">
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
         </div>
-        {/* Category chips */}
-        <div className="max-w-7xl mx-auto px-4 pb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
+        {/* Category tabs */}
+        <div className="max-w-[1300px] mx-auto px-4 md:px-5 pb-2.5 flex gap-2 overflow-x-auto no-scrollbar">
           <Link
             href={`/store/${storeSlug}/menu`}
-            className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-              !activeCategory ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+            className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+              !activeCategory ? "bg-primary text-white border-primary shadow-sm" : "bg-white text-foreground border-border hover:border-primary/40"
             }`}
           >
             All
@@ -129,11 +126,10 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
             <Link
               key={cat.id}
               href={`/store/${storeSlug}/menu?category=${cat.slug}`}
-              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors flex items-center gap-1 ${
-                activeCategory === cat.slug ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-primary/10"
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                activeCategory === cat.slug ? "bg-primary text-white border-primary shadow-sm" : "bg-white text-foreground border-border hover:border-primary/40"
               }`}
             >
-              <span className="text-sm">{categoryEmojis[cat.slug] || "🍰"}</span>
               {cat.name}
             </Link>
           ))}
@@ -141,20 +137,20 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
       </div>
 
       {/* Products */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-4 w-full">
+      <main className="flex-1 max-w-[1300px] mx-auto px-4 md:px-5 py-6 w-full">
         {products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-3xl mb-2">🔍</p>
+          <div className="text-center py-16">
             <p className="text-sm text-muted-foreground">No products found.</p>
           </div>
         ) : (
           grouped.map((group) => (
-            <div key={group.id} className="mb-6">
-              <h2 className="text-base font-bold text-foreground mb-2 flex items-center gap-2 font-serif">
-                <span>{categoryEmojis[group.slug] || "🍰"}</span>
-                {group.name}
-                <span className="text-xs font-normal text-muted-foreground font-sans">({group.products.length})</span>
-              </h2>
+            <div key={group.id} className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-foreground font-serif">
+                  {group.name}
+                  <span className="text-xs font-normal text-muted-foreground font-sans ml-2">({group.products.length})</span>
+                </h2>
+              </div>
               {(() => {
                 const INITIAL_SHOW = 8;
                 const isExpanded = expandedCats.has(group.slug) || !!activeCategory || !!search;
@@ -162,71 +158,35 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
                 const hasMore = group.products.length > INITIAL_SHOW && !isExpanded;
                 return (
                   <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 stagger-children">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
                 {visibleProducts.map((product) => {
-                  const qty = getItemQty(product.id);
+                  const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
+                  const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
                   return (
-                    <div key={product.id} className="product-card bg-white rounded-xl border border-border overflow-hidden">
-                      <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="block">
-                        <div className="aspect-square bg-muted relative overflow-hidden rounded-t-xl">
-                          {product.images[0] ? (
-                            <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw" />
-                          ) : (
-                            <div className="w-full h-full bg-primary-light flex items-center justify-center text-2xl">
-                              <span className="product-img-zoom">{categoryEmojis[product.categorySlug] || "🍰"}</span>
-                            </div>
-                          )}
-                          <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5 z-10">
-                            {product.isBestseller && (
-                              <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">★ BEST</span>
-                            )}
-                            {product.isNew && (
-                              <span className="bg-accent text-accent-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full">NEW</span>
-                            )}
+                    <Link key={product.id} href={`/store/${storeSlug}/menu/${product.slug}`} prefetch={false}
+                      className="product-card-premium group">
+                      <div className="product-img-container relative">
+                        {product.images[0] ? (
+                          <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw" />
+                        ) : (
+                          <div className="w-full h-full bg-surface-blush flex items-center justify-center">
+                            <span className="text-muted-foreground text-xs">No Image</span>
                           </div>
-                          {product.mrpPrice && product.mrpPrice > product.basePrice && (
-                            <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-10">
-                              {Math.round(((product.mrpPrice - product.basePrice) / product.mrpPrice) * 100)}% OFF
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                      <div className="p-2">
-                        <div className="flex items-center gap-1 mb-1">
-                          <span className="inline-flex items-center gap-0.5 bg-green-50 text-green-700 text-[8px] font-semibold px-1.5 py-0.5 rounded-full border border-green-200">
-                            <svg className="w-2 h-2" viewBox="0 0 24 24" fill="currentColor"><path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,8 17,8 17,8Z"/></svg>
-                            Eggless
-                          </span>
-                        </div>
-                        <Link href={`/store/${storeSlug}/menu/${product.slug}`} className="font-semibold text-[11px] text-foreground hover:text-primary transition-colors line-clamp-2 leading-tight">
-                          {product.name}
-                        </Link>
-                        <p className="text-[9px] text-muted-foreground mt-0.5 mb-1">🚚 Earliest: <span className="font-medium text-foreground">Today</span></p>
-                        <div className="flex items-center justify-between mt-1">
-                          <div className="flex items-baseline gap-1">
-                            <span className="font-bold text-foreground text-sm">
-                              {product.variants.length > 0 ? (
-                                <><span className="text-[10px] font-normal text-muted-foreground">from </span>{formatPrice(product.variants[0].price)}</>
-                              ) : formatPrice(product.basePrice)}
-                            </span>
-                            {product.mrpPrice && product.mrpPrice > product.basePrice && (
-                              <span className="text-[10px] text-muted-foreground line-through">{formatPrice(product.mrpPrice)}</span>
-                            )}
-                          </div>
-                          {qty > 0 ? (
-                            <div className="flex items-center gap-1.5 bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
-                              <button onClick={() => { const item = items.find((i) => i.productId === product.id); if (item) useCartStore.getState().updateQuantity(product.id, item.quantity - 1, item.variantName); }} className="text-[10px] font-bold w-4 h-4 flex items-center justify-center">−</button>
-                              <span className="text-[10px] font-bold min-w-[12px] text-center">{qty}</span>
-                              <button onClick={() => handleAddToCart(product)} className="text-[10px] font-bold w-4 h-4 flex items-center justify-center">+</button>
-                            </div>
-                          ) : (
-                            <button onClick={() => handleAddToCart(product)} className="add-btn text-[10px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold hover:bg-primary hover:text-primary-foreground transition-all">
-                              ADD +
-                            </button>
-                          )}
-                        </div>
+                        )}
+                        {product.isBestseller && <span className="badge-premium">Bestseller</span>}
+                        {product.isNew && !product.isBestseller && <span className="badge-premium">New</span>}
+                        {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
                       </div>
-                    </div>
+                      <div className="p-2.5 md:p-3.5">
+                        <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.categoryName}</p>
+                        <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
+                        <div className="flex items-center justify-between gap-2 mt-2">
+                          <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                          <span className="mini-add-btn hidden md:inline-flex items-center text-xs">Add</span>
+                        </div>
+                        {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
+                      </div>
+                    </Link>
                   );
                 })}
               </div>
