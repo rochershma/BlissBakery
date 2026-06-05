@@ -284,10 +284,14 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
 
       {/* Add to Cart */}
       <div>
-        <button onClick={handleAddToCart} className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl text-sm font-semibold hover:bg-primary-hover transition-colors btn-press shadow-sm">
-          <ShoppingCart className="w-4 h-4" /> Add to Cart · {formatPrice(totalPrice)}
+        <button
+          onClick={handleAddToCart}
+          className="w-full max-w-[320px] flex items-center justify-center gap-2.5 bg-primary text-primary-foreground py-3 px-6 rounded-2xl text-sm font-bold hover:bg-primary-hover active:scale-[0.97] transition-all shadow-md shadow-primary/20"
+        >
+          <ShoppingCart className="w-4 h-4" />
+          Add to Cart · {formatPrice(totalPrice)}
         </button>
-        <p className="text-[10px] text-muted-foreground mt-2 text-center leading-relaxed">
+        <p className="text-[10px] text-muted-foreground mt-2.5 leading-relaxed max-w-[320px]">
           Note: Design and icing may vary slightly from the image, as each cake is handcrafted.
         </p>
       </div>
