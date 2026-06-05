@@ -4,18 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, UtensilsCrossed, Search, ShoppingBag, User } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { useSearch } from "@/components/shared/search-context";
 import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/store/kuchaman-city/menu", label: "Menu", icon: UtensilsCrossed },
-  { href: "/search", label: "Search", icon: Search },
+  { href: "#search", label: "Search", icon: Search, isSearch: true },
   { href: "/cart", label: "Cart", icon: ShoppingBag },
   { href: "/profile", label: "Account", icon: User },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const { openSearch } = useSearch();
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
@@ -32,8 +34,24 @@ export function MobileBottomNav() {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[80] bg-white/95 backdrop-blur-md border-t border-border" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
       <div className="grid grid-cols-5 items-center h-[60px]">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const isActive = !('isSearch' in item) && (pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href)));
           const isCart = item.label === "Cart";
+          const isSearchItem = 'isSearch' in item && item.isSearch;
+
+          if (isSearchItem) {
+            return (
+              <button
+                key="search"
+                onClick={openSearch}
+                className="flex flex-col items-center justify-center gap-0.5 py-1 transition-colors relative min-h-[44px] text-muted-foreground"
+                aria-label="Search"
+              >
+                <Search className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-none">Search</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={item.href}

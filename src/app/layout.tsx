@@ -9,6 +9,8 @@ import { InstallAppPrompt } from "@/components/shared/install-prompt";
 import { ToastProvider } from "@/components/shared/toast";
 import { ConfirmProvider } from "@/components/shared/confirm-dialog";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
+import { SearchProvider } from "@/components/shared/search-context";
+import { MobileSearchOverlayWrapper } from "@/components/shared/mobile-search-wrapper";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -70,16 +72,19 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <AuthProvider>
+          <SearchProvider>
           <ToastProvider>
             <ConfirmProvider>
               {children}
               <LoginModal />
               <WhatsAppButton />
               <MobileBottomNav />
+              <MobileSearchOverlayWrapper />
               <InstallAppPrompt />
               <ServiceWorkerRegistration />
             </ConfirmProvider>
           </ToastProvider>
+          </SearchProvider>
         </AuthProvider>
       </body>
     </html>

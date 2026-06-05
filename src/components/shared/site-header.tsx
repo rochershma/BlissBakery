@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useCartStore } from "@/store/cart";
+import { useSearch } from "@/components/shared/search-context";
 import { formatPrice } from "@/lib/utils";
 import {
   ShoppingBag, Search, User, LogOut, Package, MapPin, Heart,
@@ -27,6 +28,7 @@ interface SearchResult {
 export function SiteHeader() {
   const router = useRouter();
   const { user, loading, setShowLoginModal, logout } = useAuth();
+  const { openSearch: openMobileSearch } = useSearch();
   const [hydrated, setHydrated] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showStoreModal, setShowStoreModal] = useState(false);
@@ -231,15 +233,15 @@ export function SiteHeader() {
           </div>
         </div>
 
-        {/* Row 2: Mobile search bar */}
+        {/* Row 2: Mobile search bar — opens search overlay */}
         <div className="md:hidden pb-2.5">
-          <Link
-            href="/search"
-            className="flex items-center gap-2 w-full h-[44px] px-3.5 bg-white/80 border border-border/50 rounded-xl text-[13px] text-muted-foreground/60 hover:border-primary/30 transition-colors"
+          <button
+            onClick={openMobileSearch}
+            className="flex items-center gap-2 w-full h-[44px] px-3.5 bg-white/80 border border-border/50 rounded-xl text-[13px] text-muted-foreground/60 hover:border-primary/30 transition-colors text-left"
           >
             <Search className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
             Search cakes, pastries...
-          </Link>
+          </button>
         </div>
       </div>
     </header>
