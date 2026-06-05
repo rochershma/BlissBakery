@@ -72,8 +72,8 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
     <div className="fixed inset-0 z-[200] bg-black/40" onClick={onClose}>
       {/* Full-screen on mobile, centered modal on desktop */}
       <div
-        className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white md:w-full md:max-w-xl md:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 flex flex-col"
-        style={{ maxHeight: "calc(100vh - 40px)", height: storeAddOns.length > 0 ? "auto" : "auto" }}
+        className="absolute inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white md:w-full md:max-w-2xl md:max-h-[85vh] md:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up md:animate-fade-in flex flex-col"
+        style={{ maxHeight: "calc(100vh - 20px)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle — mobile */}
@@ -119,13 +119,13 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
               <p className="text-[11px] text-muted-foreground">Add gifts & accessories to your order</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
               {groups.map((group) => (
                 <div key={group.key}>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                    {group.emoji} {group.label}
+                  <p className="text-xs font-bold text-foreground mb-3 flex items-center gap-1.5">
+                    <span>{group.emoji}</span> {group.label}
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {group.items.map((addon) => {
                       const isSelected = selectedAddOns.has(addon.id);
                       return (
@@ -138,7 +138,7 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
                               : "border-border hover:border-primary/30 bg-white"
                           }`}
                         >
-                          <div className="aspect-square relative bg-muted">
+                          <div className="aspect-[4/3] relative bg-muted rounded-t-lg overflow-hidden">
                             {addon.image ? (
                               <Image src={addon.image} alt={addon.name} fill className="object-cover" sizes="150px" />
                             ) : (
@@ -157,9 +157,14 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
                               )}
                             </div>
                           </div>
-                          <div className="px-1.5 py-1.5">
-                            <p className="text-[10px] font-medium text-foreground line-clamp-1 leading-tight">{addon.name}</p>
-                            <p className="text-[10px] font-bold text-primary">+{formatPrice(addon.price)}</p>
+                          <div className="px-2 py-2">
+                            <p className="text-[11px] font-medium text-foreground line-clamp-1 leading-tight">{addon.name}</p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-[11px] font-bold text-primary">+{formatPrice(addon.price)}</p>
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isSelected ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+                                {isSelected ? "Added" : "Add"}
+                              </span>
+                            </div>
                           </div>
                         </button>
                       );
