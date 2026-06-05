@@ -83,8 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data.success;
   };
 
-  const logout = () => {
-    document.cookie = "bb-session=; path=/; max-age=0";
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch { /* ignore */ }
     setUser(null);
   };
 
