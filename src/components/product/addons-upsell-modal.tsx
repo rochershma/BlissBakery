@@ -189,9 +189,9 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
             <Link
               href="/cart"
               onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border-2 border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
             >
-              <ShoppingCart className="w-4 h-4" /> View Cart
+              Skip
             </Link>
 
             {selectedAddOns.size > 0 ? (
@@ -203,16 +203,16 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
                 {addingToCart ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <>Add {formatPrice(addOnTotal)} <ArrowRight className="w-4 h-4" /></>
+                  <>Continue · +{formatPrice(addOnTotal)} <ArrowRight className="w-4 h-4" /></>
                 )}
               </button>
             ) : (
               <Link
-                href="/checkout"
+                href="/cart"
                 onClick={onClose}
                 className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary-hover transition-colors"
               >
-                Checkout <ArrowRight className="w-4 h-4" />
+                Continue <ArrowRight className="w-4 h-4" />
               </Link>
             )}
           </div>
