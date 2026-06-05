@@ -184,41 +184,46 @@ export default async function ProductDetailPage({ params }: Props) {
         )}
       </main>
 
-      {/* Explore Sections */}
+      {/* Explore Our Cake Ranges — single slider combining occasions + themes */}
       {(dbOccasions.length > 0 || dbThemes.length > 0) && (
-        <section className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-10">
-          {dbOccasions.length > 0 && (
-            <div className="mb-8">
-              <p className="section-kicker">Shop by Occasion</p>
-              <div className="flex gap-4 overflow-x-auto no-scrollbar py-1 mt-3">
-                {dbOccasions.map((occ) => (
-                  <Link key={occ.id} href={`/cakes/${occ.slug}`} prefetch={false}
-                    className="occasion-card-premium flex-shrink-0 block">
-                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover" sizes="200px" />}
-                    <div className="absolute left-3 right-3 bottom-3 z-[1]">
-                      <h4 className="font-serif font-bold text-base text-white leading-[1]">{occ.name}</h4>
-                    </div>
-                  </Link>
-                ))}
-              </div>
+        <section className="border-t border-border/50 mt-4">
+          <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-10">
+            <p className="section-kicker">Explore More</p>
+            <h3 className="text-[clamp(20px,3vw,28px)] font-bold text-foreground font-serif mb-5">Our Cake Ranges</h3>
+            <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
+              {/* Categories link */}
+              <Link href={`/store/${storeSlug}/menu`} prefetch={false}
+                className="flex-shrink-0 w-[140px] md:w-[160px] group">
+                <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                  <Image src="/images/categories/cakes.jpg" alt="All Cakes" fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">View All Menu</span>
+                </div>
+              </Link>
+              {/* Occasions */}
+              {dbOccasions.map((occ) => (
+                <Link key={occ.id} href={`/cakes/${occ.slug}`} prefetch={false}
+                  className="flex-shrink-0 w-[140px] md:w-[160px] group">
+                  <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">{occ.name}</span>
+                  </div>
+                </Link>
+              ))}
+              {/* Themes */}
+              {dbThemes.map((theme) => (
+                <Link key={theme.id} href={`/themes/${theme.slug}`} prefetch={false}
+                  className="flex-shrink-0 w-[140px] md:w-[160px] group">
+                  <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                    {theme.image && <Image src={theme.image} alt={theme.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">{theme.name}</span>
+                  </div>
+                </Link>
+              ))}
             </div>
-          )}
-          {dbThemes.length > 0 && (
-            <div>
-              <p className="section-kicker">Shop by Theme</p>
-              <div className="flex gap-4 overflow-x-auto no-scrollbar py-1 mt-3">
-                {dbThemes.map((theme) => (
-                  <Link key={theme.id} href={`/themes/${theme.slug}`} prefetch={false}
-                    className="occasion-card-premium flex-shrink-0 block">
-                    {theme.image && <Image src={theme.image} alt={theme.name} fill className="object-cover" sizes="200px" />}
-                    <div className="absolute left-3 right-3 bottom-3 z-[1]">
-                      <h4 className="font-serif font-bold text-base text-white leading-[1]">{theme.name}</h4>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
         </section>
       )}
 
