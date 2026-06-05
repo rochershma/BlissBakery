@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+*.png
+!public/**/*.png
+prisma/dev.db
+prisma/data-export.json
+prisma/schema.prisma.sqlite.bak
+.env
+.env.local
+docker-compose.yml
+Dockerfile
+AUDIT-REPORT.md
+README.md
