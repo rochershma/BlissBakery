@@ -158,7 +158,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
                       <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                       <div className="flex items-center justify-between gap-2 mt-2">
                         <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
-                        <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
+                        <span className="mini-add-btn inline-flex items-center">Add</span>
                       </div>
                       {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
                     </div>
@@ -289,7 +289,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
                     <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-between gap-2 mt-2">
                       <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
-                      <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
+                      <span className="mini-add-btn inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
                   </div>
@@ -316,3 +316,4 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     </div>
   );
 }
+
