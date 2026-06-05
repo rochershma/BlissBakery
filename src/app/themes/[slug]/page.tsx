@@ -68,6 +68,7 @@ export default async function ThemePage({ params, searchParams }: Props) {
             <Link href="/" className="text-primary text-sm font-medium hover:underline">Back to Home →</Link>
           </div>
         ) : (
+          <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
             {products.map((product) => {
               const imgs = parseJsonSafe<string[]>(product.images, []);
@@ -98,6 +99,7 @@ export default async function ThemePage({ params, searchParams }: Props) {
           </div>
 
           <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/themes/${slug}`} />
+          </>
         )}
       </main>
 
