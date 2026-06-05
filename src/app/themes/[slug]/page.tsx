@@ -3,16 +3,24 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
+import { SiteFooter } from "@/components/shared/site-footer";
+import { ExploreRanges } from "@/components/shared/explore-ranges";
+import { Pagination } from "@/components/shared/pagination";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
+const ITEMS_PER_PAGE = 20;
+
 interface Props {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }
 
-export default async function ThemePage({ params }: Props) {
+export default async function ThemePage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { page: pageStr } = await searchParams;
+  const currentPage = Math.max(1, parseInt(pageStr || "1", 10));
 
   const theme = await db.theme.findUnique({ where: { slug } });
   if (!theme || !theme.isActive) return notFound();
@@ -20,12 +28,18 @@ export default async function ThemePage({ params }: Props) {
   const store = await db.store.findFirst();
   if (!store) return notFound();
 
-  // Find products tagged with this theme
-  const products = await db.product.findMany({
-    where: { isAvailable: true, themes: { contains: slug } },
-    include: { category: true },
-    orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-  });
+  const where = { isAvailable: true, themes: { contains: slug } };
+  const [products, totalCount, dbOccasions, dbThemes] = await Promise.all([
+    db.product.findMany({
+      where, include: { category: true },
+      orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
+      skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
+    }),
+    db.product.count({ where }),
+    db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
+    db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
+  ]);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -42,7 +56,7 @@ export default async function ThemePage({ params }: Props) {
       <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 pt-2 pb-4">
         <h1 className="text-[clamp(20px,3vw,30px)] font-serif font-bold text-foreground tracking-[-0.03em]">{theme.name}</h1>
         {theme.subtitle && <p className="text-sm text-muted-foreground mt-1">{theme.subtitle}</p>}
-        <p className="text-xs text-muted-foreground mt-1">{products.length} products · 100% Eggless</p>
+        <p className="text-xs text-muted-foreground mt-1">{totalCount} products · 100% Eggless</p>
       </div>
 
       {/* Product Grid */}
@@ -82,8 +96,13 @@ export default async function ThemePage({ params }: Props) {
               );
             })}
           </div>
+
+          <Pagination currentPage={currentPage} totalPages={totalPages} baseUrl={`/themes/${slug}`} />
         )}
       </main>
+
+      <ExploreRanges storeSlug={store.slug} occasions={dbOccasions} themes={dbThemes} />
+      <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
     </div>
   );
 }

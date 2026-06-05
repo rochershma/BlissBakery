@@ -3,9 +3,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
+import { SiteFooter } from "@/components/shared/site-footer";
+import { ExploreRanges } from "@/components/shared/explore-ranges";
+import { Pagination } from "@/components/shared/pagination";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
+
+const ITEMS_PER_PAGE = 20;
 
 const OCCASION_CONFIG: Record<string, {
   title: string;
@@ -68,12 +73,13 @@ const OCCASION_CONFIG: Record<string, {
 
 interface Props {
   params: Promise<{ occasion: string }>;
-  searchParams: Promise<{ for?: string }>;
+  searchParams: Promise<{ for?: string; page?: string }>;
 }
 
 export default async function OccasionPage({ params, searchParams }: Props) {
   const { occasion } = await params;
-  const { for: forWhom } = await searchParams;
+  const { for: forWhom, page: pageStr } = await searchParams;
+  const currentPage = Math.max(1, parseInt(pageStr || "1", 10));
 
   // Handle "for-*" slugs as recipient pages (e.g., /cakes/for-wife)
   if (occasion.startsWith("for-")) {
@@ -177,15 +183,28 @@ export default async function OccasionPage({ params, searchParams }: Props) {
   const validForWhom = forWhom && config.relations.some(r => r.key === forWhom) ? forWhom : undefined;
 
   // Build where clause for filtering
-  const products = await db.product.findMany({
-    where: {
-      isAvailable: true,
-      occasions: { contains: occasion },
-      ...(validForWhom ? { forWhom: { contains: validForWhom } } : {}),
-    },
-    include: { category: true, variants: { orderBy: { sortOrder: "asc" }, take: 1 } },
-    orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-  });
+  const where = {
+    isAvailable: true,
+    occasions: { contains: occasion },
+    ...(validForWhom ? { forWhom: { contains: validForWhom } } : {}),
+  };
+  const [products, totalCount] = await Promise.all([
+    db.product.findMany({
+      where,
+      include: { category: true },
+      orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
+      skip: (currentPage - 1) * ITEMS_PER_PAGE,
+      take: ITEMS_PER_PAGE,
+    }),
+    db.product.count({ where }),
+  ]);
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+  // Explore ranges data
+  const [dbOccasions, dbThemes] = await Promise.all([
+    db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
+    db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
+  ]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -223,7 +242,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
       {/* Title + count */}
       <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 pt-2 pb-4">
         <h1 className="text-[clamp(20px,3vw,30px)] font-serif font-bold text-foreground tracking-[-0.03em]">{config.title}</h1>
-        <p className="text-xs text-muted-foreground mt-1">{products.length} products · 100% Eggless</p>
+        <p className="text-xs text-muted-foreground mt-1">{totalCount} products · 100% Eggless</p>
       </div>
 
       {/* Product Grid — same style as homepage bestsellers */}
@@ -265,8 +284,21 @@ export default async function OccasionPage({ params, searchParams }: Props) {
               );
             })}
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl={validForWhom ? `/cakes/${occasion}?for=${validForWhom}` : `/cakes/${occasion}`}
+          />
         )}
       </main>
+
+      {/* Explore Ranges */}
+      <ExploreRanges storeSlug={store.slug} occasions={dbOccasions} themes={dbThemes} />
+
+      {/* Footer */}
+      <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
     </div>
   );
 }
