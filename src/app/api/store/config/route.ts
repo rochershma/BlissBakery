@@ -11,6 +11,7 @@ export async function GET() {
       minDeliveryOrder: true,
       deliveryRadius: true,
       gstRate: true,
+      logo: true,
     },
   });
 
@@ -30,6 +31,7 @@ export async function GET() {
     minDeliveryOrder: store.minDeliveryOrder ?? 200,
     deliveryRadius: store.deliveryRadius ?? 10,
     gstRate: store.gstRate ?? 5,
+    logo: store.logo || "/uploads/branding/logo.png",
     addOnImages: Object.fromEntries(addOns.filter(a => a.image).map(a => [a.name, a.image])),
     addOns,
   });

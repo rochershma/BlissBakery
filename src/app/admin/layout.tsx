@@ -38,8 +38,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="hidden md:flex w-64 flex-col bg-white border-r border-border">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 relative">
-              <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="44px" />
+            <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 relative bg-white p-1">
+              <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-contain" sizes="44px" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-foreground font-serif">Bliss Bakery</h1>
@@ -81,8 +81,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <header className="md:hidden sticky top-0 z-50 bg-white border-b border-border px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative">
-                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="32px" />
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative bg-white p-0.5">
+                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-contain" sizes="32px" />
               </div>
               <span className="text-sm font-bold">Admin</span>
             </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Save, Clock, MapPin, Phone, Store } from "lucide-react";
 import { parseJsonSafe } from "@/lib/utils";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
+import { ImageField } from "@/components/admin/image-field";
 
 export default async function AdminSettingsPage() {
   const store = await db.store.findFirst();
@@ -32,6 +33,7 @@ export default async function AdminSettingsPage() {
     const latitude = parseFloat(formData.get("latitude") as string) || null;
     const longitude = parseFloat(formData.get("longitude") as string) || null;
     const isOpen = formData.get("isOpen") === "on";
+    const logo = (formData.get("logo") as string) || null;
 
     // Parse operating hours
     const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -50,6 +52,7 @@ export default async function AdminSettingsPage() {
         deliveryRadius, minDeliveryOrder, staffWhatsApp: staffWhatsApp || null,
         latitude, longitude,
         operatingHours: JSON.stringify(hours), isOpen,
+        logo,
       },
     });
     revalidatePath("/admin/settings");
@@ -60,6 +63,24 @@ export default async function AdminSettingsPage() {
     <div>
       <h1 className="text-2xl font-bold text-foreground font-serif mb-6">Store Settings</h1>
       <form action={updateSettings} className="max-w-2xl space-y-5">
+        {/* Logo Upload */}
+        <div className="bg-white rounded-xl border border-border p-5 space-y-4">
+          <h2 className="label-premium text-foreground">Store Logo</h2>
+          <div className="flex items-start gap-5">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 relative bg-muted border border-border p-2">
+              {store.logo ? (
+                <img src={store.logo} alt="Current Logo" className="w-full h-full object-contain" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No logo</div>
+              )}
+            </div>
+            <div className="flex-1">
+              <ImageField name="logo" defaultValue={store.logo || ""} label="Upload Logo" folder="branding" aspectRatio="square" />
+              <p className="text-[10px] text-muted-foreground mt-1">Square image recommended (PNG with transparent background works best)</p>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-xl border border-border p-5 space-y-4">
           <h2 className="label-premium text-foreground">Store Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
