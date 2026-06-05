@@ -56,10 +56,9 @@ export default async function AdminThemesPage({ searchParams }: Props) {
     const subtitle = formData.get("subtitle") as string;
     const image = formData.get("image") as string;
     if (!name.trim()) return;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     await db.theme.update({
       where: { id },
-      data: { name, slug, subtitle: subtitle || null, image: image || null },
+      data: { name, subtitle: subtitle || null, image: image || null },
     });
     revalidatePath("/admin/themes");
     redirect("/admin/themes");

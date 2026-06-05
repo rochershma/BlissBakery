@@ -63,8 +63,7 @@ export default async function EditOccasionPage({ params }: Props) {
     const recipientId = formData.get("recipientId") as string;
     const name = (formData.get("name") as string).trim();
     if (!name) return;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^for-/, "");
-    await db.recipient.update({ where: { id: recipientId }, data: { name, slug } });
+    await db.recipient.update({ where: { id: recipientId }, data: { name } });
     revalidatePath(`/admin/occasions/${id}`);
     redirect(`/admin/occasions/${id}`);
   }
