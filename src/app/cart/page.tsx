@@ -478,19 +478,17 @@ export default function CartPage() {
       </main>
 
       {/* Sticky Checkout Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
-        <div className="max-w-[1300px] mx-auto px-4 md:px-5 py-3 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
-            <p className="text-lg font-bold text-foreground">{formatPrice(grandTotal)}</p>
-          </div>
-          <Link
-            href="/checkout"
-            className="flex items-center gap-2 bg-primary text-primary-foreground rounded-xl px-8 py-3.5 hover:bg-primary-hover transition-colors font-semibold btn-press shadow-lg shadow-primary/20"
-          >
-            Proceed to Checkout <ChevronRight className="w-4 h-4" />
-          </Link>
+      <div className="sticky-checkout-bar">
+        <div>
+          <p className="text-[11px] text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
+          <p className="text-lg font-bold text-foreground">{formatPrice(grandTotal)}</p>
         </div>
+        <Link
+          href="/checkout"
+          className="sticky-cta-btn"
+        >
+          Checkout <ChevronRight className="w-4 h-4" />
+        </Link>
       </div>
     </div>
   );

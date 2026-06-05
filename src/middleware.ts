@@ -51,9 +51,27 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Redirect old occasion slug patterns (e.g. /cakes/birthday-cakes → /cakes/birthday)
+  if (pathname.startsWith("/cakes/")) {
+    const OCCASION_REDIRECTS: Record<string, string> = {
+      "/cakes/birthday-cakes": "/cakes/birthday",
+      "/cakes/anniversary-cakes": "/cakes/anniversary",
+      "/cakes/wedding-cakes": "/cakes/wedding",
+      "/cakes/designer-cakes": "/cakes/designer",
+      "/cakes/festival-cakes": "/cakes/festival",
+      "/cakes/kids-cakes": "/cakes/kids",
+      "/cakes/retirement-cakes": "/cakes/retirement",
+      "/cakes/special-milestones-cakes": "/cakes/special-milestones",
+    };
+    const target = OCCASION_REDIRECTS[pathname];
+    if (target) {
+      return NextResponse.redirect(new URL(target, req.url), 301);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/cakes/:path*"],
 };

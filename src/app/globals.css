@@ -512,9 +512,146 @@ input[type="radio"] {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Ensure pages have bottom padding for mobile nav */
+/* Bottom nav body padding — mobile only */
 @media (max-width: 768px) {
-  body { padding-bottom: 60px; }
+  body {
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Remove bottom padding on cart/checkout pages (no bottom nav shown there) */
+  body.no-bottom-nav {
+    padding-bottom: 0;
+  }
+}
+
+/* ====== STICKY CTA BARS ====== */
+
+/* Product page sticky Add to Cart */
+.sticky-cta-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 769px) {
+  .sticky-cta-bar { display: none; }
+}
+
+.sticky-cta-price {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sticky-cta-btn {
+  flex: 1;
+  max-width: 220px;
+  min-height: 48px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 200ms ease;
+  box-shadow: 0 10px 24px rgba(196, 117, 144, 0.25);
+}
+
+.sticky-cta-btn:active {
+  transform: scale(0.97);
+  background: var(--primary-hover);
+}
+
+/* Cart/checkout sticky bar */
+.sticky-checkout-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ====== BOTTOM SHEET ====== */
+.bottom-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 91;
+  max-height: 90dvh;
+  overflow-y: auto;
+  border-radius: 20px 20px 0 0;
+  background: #fff;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.12);
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  margin: 8px auto 0;
+}
+
+/* ====== MOBILE PRODUCT GRID ENHANCEMENTS ====== */
+@media (max-width: 768px) {
+  .product-card-premium .product-img-container {
+    height: 150px;
+    padding: 5px;
+  }
+  .product-card-premium {
+    border-radius: 16px;
+  }
+  .product-card-premium .product-img-container img {
+    border-radius: 12px;
+  }
+  /* Show Add button on mobile too */
+  .mini-add-btn {
+    display: inline-flex !important;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 12px;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 340px) {
+  /* Single column for very narrow phones */
+  .product-grid-mobile-1col {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ====== PREMIUM HOMEPAGE REDESIGN ====== */

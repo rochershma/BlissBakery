@@ -23,15 +23,58 @@ export function LoginModal() {
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll, set inert on background, auto-focus phone input
+  // Lock body scroll, set inert on background, trap focus, auto-focus phone input
   useEffect(() => {
     if (!showLoginModal) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
+
+    // Set background inert so search/other inputs can't receive focus
+    const appElements = document.querySelectorAll("body > *:not([role='dialog']):not(script):not(style)");
+    appElements.forEach((el) => {
+      if (!modalRef.current?.contains(el) && el !== modalRef.current?.parentElement) {
+        el.setAttribute("inert", "");
+      }
+    });
+
     // Focus phone input after mount
-    const timer = setTimeout(() => phoneInputRef.current?.focus(), 100);
+    const timer = setTimeout(() => {
+      if (step === "phone") phoneInputRef.current?.focus();
+      else if (step === "otp") otpRefs.current[0]?.focus();
+    }, 100);
+
+    // Focus trap: cycle focus within modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowLoginModal(false);
+        resetForm();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const modal = modalRef.current;
+      if (!modal) return;
+      const focusable = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeyDown);
       clearTimeout(timer);
+      // Remove inert from all elements
+      appElements.forEach((el) => el.removeAttribute("inert"));
+      previousFocus?.focus();
     };
   }, [showLoginModal, step]);
 

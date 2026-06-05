@@ -91,7 +91,8 @@ export function SiteHeader() {
   return (
     <>
     <header className="sticky top-0 z-50 glass-header border-b border-border/60">
-      <div className="max-w-[1300px] mx-auto px-4 md:px-5">
+      <div className="max-w-[1300px] mx-auto px-3 md:px-5">
+        {/* Row 1: Logo + Location + Cart + Profile */}
         <div className="flex items-center h-[56px] md:h-[64px]">
 
           {/* Left: Logo + Store */}
@@ -107,21 +108,21 @@ export function SiteHeader() {
               </div>
             </Link>
 
-            {/* Store Selector */}
+            {/* Store Selector — shows location chip on mobile */}
             <button
               onClick={() => setShowStoreModal(true)}
               className="flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/80 transition-colors"
             >
               <MapPin className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-              <div className="text-left hidden md:block">
-                <span className="block text-[10px] text-muted-foreground leading-none">Delivering to</span>
-                <span className="block text-xs font-semibold text-foreground leading-tight">{currentStore.name}</span>
+              <div className="text-left">
+                <span className="block text-[10px] text-muted-foreground leading-none md:block hidden">Delivering to</span>
+                <span className="block text-[11px] md:text-xs font-semibold text-foreground leading-tight">{currentStore.name}</span>
               </div>
               <ChevronDown className="w-3 h-3 text-muted-foreground" />
             </button>
           </div>
 
-          {/* Center: Search with suggestions */}
+          {/* Center: Search — desktop only */}
           <div ref={searchRef} className="flex-1 flex justify-center mx-3 hidden md:flex">
             <div className="relative w-full max-w-[380px]">
               <form action="/search" method="GET" className={`flex items-center border rounded-lg h-9 transition-all ${searchOpen ? "border-primary ring-1 ring-primary/15 bg-white" : "border-border/50 bg-white/50 hover:bg-white hover:border-border"}`}>
@@ -150,86 +151,95 @@ export function SiteHeader() {
             </div>
           </div>
 
-          {/* Right: Mobile search + Cart + Account */}
-          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
-            <Link href="/search" className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Search">
-              <Search className="w-5 h-5 text-foreground" />
+          {/* Right: Cart + Account */}
+          <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 ml-auto">
+            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Open cart">
+              <ShoppingBag className="w-5 h-5 text-foreground" />
+              {hydrated && itemCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
             </Link>
 
-            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-            <ShoppingBag className="w-5 h-5 text-foreground" />
-            {hydrated && itemCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
-                {itemCount > 9 ? "9+" : itemCount}
-              </span>
-            )}
-          </Link>
+            {/* Account */}
+            <div className="relative flex-shrink-0" ref={profileRef}>
+              {loading ? (
+                <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
+              ) : user ? (
+                <button onClick={() => setShowProfile(!showProfile)}
+                  className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="Account menu">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px]">
+                    {(user.name || user.phone)[0].toUpperCase()}
+                  </div>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground hidden md:block" />
+                </button>
+              ) : (
+                <button onClick={() => setShowLoginModal(true)}
+                  className="flex items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors"
+                  aria-label="Sign in">
+                  <User className="w-5 h-5 text-foreground" />
+                  <span className="hidden md:inline text-xs font-semibold">Sign In</span>
+                </button>
+              )}
 
-          {/* Account */}
-          <div className="relative flex-shrink-0" ref={profileRef}>
-            {loading ? (
-              <div className="w-8 h-8 rounded-lg bg-muted animate-pulse" />
-            ) : user ? (
-              <button onClick={() => setShowProfile(!showProfile)}
-                className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-muted transition-colors">
-                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-[11px]">
-                  {(user.name || user.phone)[0].toUpperCase()}
-                </div>
-                <ChevronDown className="w-3 h-3 text-muted-foreground hidden md:block" />
-              </button>
-            ) : (
-              <button onClick={() => setShowLoginModal(true)}
-                className="flex items-center gap-1 p-2 rounded-lg hover:bg-muted transition-colors">
-                <User className="w-5 h-5 text-foreground" />
-                <span className="hidden md:inline text-xs font-semibold">Sign In</span>
-              </button>
-            )}
-
-            {showProfile && user && (
-              <>
-                <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setShowProfile(false)} />
-                <div className="fixed inset-x-0 bottom-0 max-h-[80vh] bg-white shadow-2xl z-[70] rounded-t-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:max-h-none overflow-y-auto">
-                  <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted z-10"><X className="w-4 h-4" /></button>
-                  <div className="p-4 border-b border-border">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">{(user.name || user.phone)[0].toUpperCase()}</div>
-                      <div>
-                        <p className="font-semibold text-foreground text-sm">{user.name || "User"}</p>
-                        <p className="text-[11px] text-muted-foreground">+91 {user.phone}</p>
+              {showProfile && user && (
+                <>
+                  <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setShowProfile(false)} />
+                  <div className="fixed inset-x-0 bottom-0 max-h-[80dvh] bg-white shadow-2xl z-[70] rounded-t-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:max-h-none overflow-y-auto">
+                    <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted z-10" aria-label="Close menu"><X className="w-4 h-4" /></button>
+                    <div className="p-4 border-b border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">{(user.name || user.phone)[0].toUpperCase()}</div>
+                        <div>
+                          <p className="font-semibold text-foreground text-sm">{user.name || "User"}</p>
+                          <p className="text-[11px] text-muted-foreground">+91 {user.phone}</p>
+                        </div>
                       </div>
                     </div>
+                    <nav className="p-1">
+                      {[
+                        { href: "/profile", icon: User, label: "Profile" },
+                        { href: "/orders", icon: Package, label: "My Orders" },
+                        { href: "/addresses", icon: MapPin, label: "Addresses" },
+                        { href: "/offers", icon: Heart, label: "Offers" },
+                      ].map(({ href, icon: Icon, label }) => (
+                        <Link key={href} href={href} onClick={() => setShowProfile(false)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors min-h-[44px]">
+                          <Icon className="w-4 h-4 text-muted-foreground" />{label}
+                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />
+                        </Link>
+                      ))}
+                      {(user.role === "ADMIN" || user.role === "STAFF") && (
+                        <Link href="/admin" onClick={() => setShowProfile(false)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary font-medium hover:bg-primary/5 transition-colors min-h-[44px]">
+                          <Shield className="w-4 h-4" />Admin Panel<ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                        </Link>
+                      )}
+                    </nav>
+                    <div className="p-1 border-t border-border">
+                      <button onClick={() => { logout(); setShowProfile(false); }}
+                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-red-50 transition-colors w-full min-h-[44px]">
+                        <LogOut className="w-4 h-4" />Logout
+                      </button>
+                    </div>
                   </div>
-                  <nav className="p-1">
-                    {[
-                      { href: "/profile", icon: User, label: "Profile" },
-                      { href: "/orders", icon: Package, label: "My Orders" },
-                      { href: "/addresses", icon: MapPin, label: "Addresses" },
-                      { href: "/offers", icon: Heart, label: "Offers" },
-                    ].map(({ href, icon: Icon, label }) => (
-                      <Link key={href} href={href} onClick={() => setShowProfile(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors">
-                        <Icon className="w-4 h-4 text-muted-foreground" />{label}
-                        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />
-                      </Link>
-                    ))}
-                    {(user.role === "ADMIN" || user.role === "STAFF") && (
-                      <Link href="/admin" onClick={() => setShowProfile(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-primary font-medium hover:bg-primary/5 transition-colors">
-                        <Shield className="w-4 h-4" />Admin Panel<ChevronRight className="w-3.5 h-3.5 ml-auto" />
-                      </Link>
-                    )}
-                  </nav>
-                  <div className="p-1 border-t border-border">
-                    <button onClick={() => { logout(); setShowProfile(false); }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-destructive hover:bg-red-50 transition-colors w-full">
-                      <LogOut className="w-4 h-4" />Logout
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-          </div>
+        </div>
+
+        {/* Row 2: Mobile search bar */}
+        <div className="md:hidden pb-2.5">
+          <Link
+            href="/search"
+            className="flex items-center gap-2 w-full h-[44px] px-3.5 bg-white/80 border border-border/50 rounded-xl text-[13px] text-muted-foreground/60 hover:border-primary/30 transition-colors"
+          >
+            <Search className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+            Search cakes, pastries...
+          </Link>
         </div>
       </div>
     </header>

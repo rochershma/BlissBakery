@@ -308,6 +308,17 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           onClose={() => { setShowUpsell(false); setAdded(false); }}
         />
       )}
+
+      {/* Mobile Sticky Add to Cart Bar */}
+      {!showUpsell && (
+        <div className="sticky-cta-bar">
+          <span className="sticky-cta-price">{formatPrice(totalPrice)}</span>
+          <button onClick={handleAddToCart} className="sticky-cta-btn">
+            <ShoppingCart className="w-4 h-4" />
+            Add to Cart
+          </button>
+        </div>
+      )}
     </div>
   );
 }

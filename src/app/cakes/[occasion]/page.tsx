@@ -69,6 +69,18 @@ const OCCASION_CONFIG: Record<string, {
       { key: "husband", label: "For Him", image: "/images/categories/for-husband.jpg" },
     ],
   },
+  kids: {
+    title: "Kids Cakes",
+    subtitle: "Fun, colourful cakes that make little eyes sparkle",
+    heroImage: "/images/categories/for-kids.jpg",
+    relations: [],
+  },
+  "special-milestones": {
+    title: "Special Milestone Cakes",
+    subtitle: "Mark life's big moments with a cake they'll remember",
+    heroImage: "/images/categories/cakes.jpg",
+    relations: [],
+  },
 };
 
 interface Props {

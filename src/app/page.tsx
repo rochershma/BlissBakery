@@ -105,17 +105,29 @@ export default async function HomePage() {
         image: o.image || "/images/categories/cakes.jpg",
       }))} />
 
-      {/* Shop by Theme — Handcrafted Collections */}
-      {dbThemes.length > 0 && (
-        <OccasionCarousel occasions={dbThemes.map(t => ({
-          name: t.name,
-          slug: `themes/${t.slug}`,
-          image: t.image || "/images/categories/cakes.jpg",
-        }))}
-        sectionKicker="Handcrafted Cake Collections"
-        sectionTitle="Shop by Theme"
-        />
-      )}
+      {/* Shop by Theme — only show themes with products */}
+      {await (async () => {
+        if (dbThemes.length === 0) return null;
+        // Filter to only themes that have at least 1 product
+        const themesWithProducts = (await Promise.all(
+          dbThemes.map(async (t) => {
+            const count = await db.product.count({ where: { isAvailable: true, themes: { contains: `"${t.slug}"` } } });
+            return count > 0 ? t : null;
+          })
+        )).filter(Boolean) as typeof dbThemes;
+        if (themesWithProducts.length === 0) return null;
+        return (
+          <OccasionCarousel
+            occasions={themesWithProducts.map(t => ({
+              name: t.name,
+              slug: `themes/${t.slug}`,
+              image: t.image || "/images/categories/cakes.jpg",
+            }))}
+            sectionKicker="Handcrafted Cake Collections"
+            sectionTitle="Shop by Theme"
+          />
+        );
+      })()}
 
       {/* Bestsellers — Premium product cards */}
       {bestsellers.length > 0 && (
@@ -158,7 +170,7 @@ export default async function HomePage() {
                     </h3>
                     <div className="flex items-center justify-between gap-2 mt-2">
                       <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
-                      <span className="mini-add-btn hidden md:inline-flex items-center">Add</span>
+                      <span className="mini-add-btn inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && (
                       <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>

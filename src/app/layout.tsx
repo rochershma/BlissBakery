@@ -5,8 +5,10 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { LoginModal } from "@/components/auth/login-modal";
 import { WhatsAppButton } from "@/components/shared/whatsapp-button";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
+import { InstallAppPrompt } from "@/components/shared/install-prompt";
 import { ToastProvider } from "@/components/shared/toast";
 import { ConfirmProvider } from "@/components/shared/confirm-dialog";
+import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -35,11 +37,17 @@ export const metadata: Metadata = {
     "online order",
     "Bliss Bakery",
   ],
-  manifest: "/manifest.json",
+  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Bliss Bakery",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
   },
 };
 
@@ -47,7 +55,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#D4A0A0",
+  themeColor: "#C47590",
 };
 
 export default function RootLayout({
@@ -68,6 +76,8 @@ export default function RootLayout({
               <LoginModal />
               <WhatsAppButton />
               <MobileBottomNav />
+              <InstallAppPrompt />
+              <ServiceWorkerRegistration />
             </ConfirmProvider>
           </ToastProvider>
         </AuthProvider>
