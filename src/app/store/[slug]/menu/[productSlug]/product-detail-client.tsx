@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Check, Gift, MessageSquare, Clock } from "lucide-react";
 import Link from "next/link";
 import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
 
@@ -281,6 +281,19 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
           </div>
         </div>
       )}
+
+      {/* Delivery Promise */}
+      <div className="flex flex-wrap gap-2 text-[11px]">
+        <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 font-medium border border-green-100">
+          <Clock className="w-3 h-3" /> Ready today
+        </span>
+        <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-surface-blush text-foreground font-medium border border-border/50">
+          <Gift className="w-3 h-3 text-primary" /> Pickup free
+        </span>
+        <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-surface-blush text-foreground font-medium border border-border/50">
+          <Check className="w-3 h-3 text-primary" /> 100% Eggless
+        </span>
+      </div>
 
       {/* Add to Cart */}
       <div>
