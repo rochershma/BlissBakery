@@ -39,7 +39,7 @@ export default async function NewProductPage() {
     const isBestseller = formData.get("isBestseller") === "on";
     const isNew = formData.get("isNew") === "on";
     const isFeatured = formData.get("isFeatured") === "on";
-    const isAvailable = formData.get("isAvailable") !== "off";
+    const isAvailable = formData.get("isAvailable") === "on";
     const ingredients = formData.get("ingredients") as string;
     const servingInfo = formData.get("servingInfo") as string;
     const images = formData.get("images") as string;

@@ -20,15 +20,6 @@ export function generateOrderNumber(prefix: string = "BB"): string {
   return `${prefix}-${timestamp}${random}`;
 }
 
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
 export function parseJsonSafe<T>(json: string | null | undefined, fallback: T): T {
   if (!json) return fallback;
   try {

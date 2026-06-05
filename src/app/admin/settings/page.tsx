@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Clock, MapPin, Phone, Mail, Store } from "lucide-react";
+import { ArrowLeft, Save, Clock, MapPin, Phone, Store } from "lucide-react";
 import { parseJsonSafe } from "@/lib/utils";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 

@@ -103,7 +103,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
     const heroImage = dbRecipient?.image || "/images/categories/cakes.jpg";
 
     const products = await db.product.findMany({
-      where: { isAvailable: true, forWhom: { contains: recipientSlug } },
+      where: { isAvailable: true, forWhom: { contains: `"${recipientSlug}"` } },
       include: { category: true },
       orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
     });
@@ -185,8 +185,8 @@ export default async function OccasionPage({ params, searchParams }: Props) {
   // Build where clause for filtering
   const where = {
     isAvailable: true,
-    occasions: { contains: occasion },
-    ...(validForWhom ? { forWhom: { contains: validForWhom } } : {}),
+    occasions: { contains: `"${occasion}"` },
+    ...(validForWhom ? { forWhom: { contains: `"${validForWhom}"` } } : {}),
   };
   const [products, totalCount] = await Promise.all([
     db.product.findMany({

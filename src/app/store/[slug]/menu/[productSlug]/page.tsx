@@ -32,8 +32,8 @@ export default async function ProductDetailPage({ params }: Props) {
       isAvailable: true,
       OR: [
         { categoryId: product.categoryId },
-        ...(primaryOccasion ? [{ occasions: { contains: primaryOccasion } }] : []),
-        ...(productThemes[0] ? [{ themes: { contains: productThemes[0] } }] : []),
+        ...(primaryOccasion ? [{ occasions: { contains: `"${primaryOccasion}"` } }] : []),
+        ...(productThemes[0] ? [{ themes: { contains: `"${productThemes[0]}"` } }] : []),
       ],
     },
     orderBy: [{ isBestseller: "desc" }, { name: "asc" }],

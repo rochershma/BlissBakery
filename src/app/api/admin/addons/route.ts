@@ -56,8 +56,12 @@ export async function PATCH(req: NextRequest) {
   if (updates.isActive !== undefined) data.isActive = Boolean(updates.isActive);
   if (updates.sortOrder !== undefined) data.sortOrder = parseInt(updates.sortOrder);
 
-  const addon = await db.storeAddOn.update({ where: { id }, data });
-  return NextResponse.json({ addon });
+  try {
+    const addon = await db.storeAddOn.update({ where: { id }, data });
+    return NextResponse.json({ addon });
+  } catch {
+    return NextResponse.json({ error: "Add-on not found" }, { status: 404 });
+  }
 }
 
 // DELETE
@@ -68,6 +72,10 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-  await db.storeAddOn.delete({ where: { id } });
-  return NextResponse.json({ success: true });
+  try {
+    await db.storeAddOn.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ error: "Add-on not found" }, { status: 404 });
+  }
 }

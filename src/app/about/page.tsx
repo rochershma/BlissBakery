@@ -1,5 +1,5 @@
 import { SiteHeader } from "@/components/shared/site-header";
-import { MapPin, Clock, Leaf, Heart, Award, Users } from "lucide-react";
+import { MapPin, Clock, Leaf, Heart, Award } from "lucide-react";
 import Link from "next/link";
 
 export default function AboutPage() {

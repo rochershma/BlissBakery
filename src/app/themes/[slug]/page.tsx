@@ -28,7 +28,7 @@ export default async function ThemePage({ params, searchParams }: Props) {
   const store = await db.store.findFirst();
   if (!store) return notFound();
 
-  const where = { isAvailable: true, themes: { contains: slug } };
+  const where = { isAvailable: true, themes: { contains: `"${slug}"` } };
   const [products, totalCount, dbOccasions, dbThemes] = await Promise.all([
     db.product.findMany({
       where, include: { category: true },
