@@ -10,6 +10,7 @@ import { HeroSlider } from "@/components/home/hero-slider";
 import { CategoryCircles } from "@/components/home/category-circles";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 import { OccasionCarousel } from "@/components/home/occasion-carousel";
+import { SiteFooter } from "@/components/shared/site-footer";
 
 const occasions = [
   { name: "Birthday Cakes", image: "/images/categories/birthday.jpg", slug: "birthday" },
@@ -293,46 +294,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer — Premium dark */}
-      <footer className="bg-chocolate text-white/70 mt-0">
-        <div className="max-w-[1300px] mx-auto px-4 md:px-5 py-12 md:py-[52px]">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_0.65fr_0.65fr] gap-9">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-2xl overflow-hidden flex-shrink-0 relative bg-white p-2">
-                  <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-125" sizes="48px" />
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em]">Bliss Bakery</h3>
-                </div>
-              </div>
-              <p className="text-white/70 text-sm leading-[1.7] font-semibold max-w-md">
-                Premium artisan bakery in Kuchaman City. Fresh eggless cakes, pastries, brownies, cookies, and custom celebration cakes.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em] mb-4">Quick links</h3>
-              <div className="space-y-2.5 text-sm">
-                <Link href="/about" className="block hover:text-white transition-colors font-semibold">About Us</Link>
-                <Link href={`/store/${store.slug}/custom-cakes`} className="block hover:text-white transition-colors font-semibold">Custom Cakes</Link>
-                <Link href="/offers" className="block hover:text-white transition-colors font-semibold">Offers</Link>
-                <Link href="/contact" className="block hover:text-white transition-colors font-semibold">Contact</Link>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em] mb-4">Order today</h3>
-              <p className="text-white/70 text-sm leading-[1.7] font-semibold">
-                Same-day delivery before 8 PM.<br />
-                Call: +91 {store.phone}<br />
-                {store.city}, {store.state}
-              </p>
-            </div>
-          </div>
-          <div className="border-t border-white/10 mt-10 pt-6 text-center text-xs text-white/30">
-            © {new Date().getFullYear()} Bliss Bakery. All Rights Reserved.
-          </div>
-        </div>
-      </footer>
+      {/* Footer */}
+      <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
     </div>
   );
 }
