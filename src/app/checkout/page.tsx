@@ -298,15 +298,15 @@ export default function CheckoutPage() {
               return (
               <div key={`${item.productId}-${idx}`} className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
+                  <Link href={item.productSlug ? `/store/${storeSlug}/menu/${item.productSlug}` : `/store/${storeSlug}/menu`} className="w-12 h-12 rounded-xl overflow-hidden bg-muted flex-shrink-0 relative">
                     {item.image ? (
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-sm bg-primary/5">🎂</div>
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground font-semibold truncate">{item.name}</p>
+                    <Link href={item.productSlug ? `/store/${storeSlug}/menu/${item.productSlug}` : `/store/${storeSlug}/menu`} className="text-sm text-foreground font-semibold truncate block hover:text-primary transition-colors">{item.name}</Link>
                     <p className="text-[10px] text-muted-foreground">
                       {item.variantName && `${item.variantName}`}
                       {item.flavour && ` · ${item.flavour}`}
@@ -317,13 +317,21 @@ export default function CheckoutPage() {
                     {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
-                {/* Add-ons — compact chips */}
+                {/* Add-ons with images */}
                 {item.addOns && item.addOns.length > 0 && (
-                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 flex flex-wrap gap-1">
+                  <div className="ml-[calc(3rem+0.75rem)] mt-2 space-y-1.5">
                     {item.addOns.map((a, ai) => (
-                      <span key={ai} className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-blush border border-border/40 rounded-md text-[10px] text-muted-foreground">
-                        {a.name} <span className="font-semibold">+{formatPrice(a.price)}</span>
-                      </span>
+                      <div key={ai} className="flex items-center gap-2 text-[11px]">
+                        <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0 relative bg-surface-blush">
+                          {addOnImages[a.name] ? (
+                            <img src={addOnImages[a.name]} alt={a.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[8px] text-primary">+</div>
+                          )}
+                        </div>
+                        <span className="text-muted-foreground">{a.name}</span>
+                        <span className="text-muted-foreground font-semibold ml-auto">+{formatPrice(a.price)}</span>
+                      </div>
                     ))}
                   </div>
                 )}
