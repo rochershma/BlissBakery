@@ -44,19 +44,20 @@ model Store {
 }
 
 model Banner {
-  id        String   @id @default(cuid())
-  title     String?
-  subtitle  String?  @db.Text
-  ctaText   String?
-  ctaLink   String?
-  mediaUrl  String
-  mediaType String   @default("image")
-  linkUrl   String?
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  title          String?
+  subtitle       String?  @db.Text
+  ctaText        String?
+  ctaLink        String?
+  mediaUrl       String
+  mobileMediaUrl String?
+  mediaType      String   @default("image")
+  linkUrl        String?
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
 
   @@index([storeId])
 }

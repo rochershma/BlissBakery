@@ -13,6 +13,7 @@ interface BannerItem {
   ctaText: string | null;
   ctaLink: string | null;
   mediaUrl: string;
+  mobileMediaUrl: string | null;
   linkUrl: string | null;
   sortOrder: number;
   isActive: boolean;
@@ -32,6 +33,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
   const [newCtaText, setNewCtaText] = useState("");
   const [newCtaLink, setNewCtaLink] = useState("");
   const [newImage, setNewImage] = useState("");
+  const [newMobileImage, setNewMobileImage] = useState("");
   const [newLink, setNewLink] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -42,6 +44,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
   const [editCtaLink, setEditCtaLink] = useState("");
   const [editLink, setEditLink] = useState("");
   const [editImage, setEditImage] = useState("");
+  const [editMobileImage, setEditMobileImage] = useState("");
 
   const handleAdd = async () => {
     if (!newImage) return;
@@ -56,6 +59,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
           ctaText: newCtaText || null,
           ctaLink: newCtaLink || null,
           mediaUrl: newImage,
+          mobileMediaUrl: newMobileImage || null,
           linkUrl: newLink || null,
           sortOrder: banners.length,
         }),
@@ -80,6 +84,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
     setEditCtaLink(banner.ctaLink || "");
     setEditLink(banner.linkUrl || "");
     setEditImage(banner.mediaUrl);
+    setEditMobileImage(banner.mobileMediaUrl || "");
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -95,6 +100,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
           ctaLink: editCtaLink || null,
           linkUrl: editLink || null,
           mediaUrl: editImage,
+          mobileMediaUrl: editMobileImage || null,
         }),
       });
       if (res.ok) {
@@ -102,6 +108,7 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
           ...b, title: editTitle || null, subtitle: editSubtitle || null,
           ctaText: editCtaText || null, ctaLink: editCtaLink || null,
           linkUrl: editLink || null, mediaUrl: editImage,
+          mobileMediaUrl: editMobileImage || null,
         } : b));
         setEditingId(null);
         router.refresh();

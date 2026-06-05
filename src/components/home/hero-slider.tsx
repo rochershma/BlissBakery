@@ -14,6 +14,7 @@ interface Banner {
   ctaText: string | null;
   ctaLink: string | null;
   mediaUrl: string;
+  mobileMediaUrl: string | null;
   linkUrl: string | null;
   hasEmbeddedText?: boolean;
 }
@@ -37,12 +38,13 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
         >
           {banners.map((banner, i) => {
             const hasText = banner.title || banner.subtitle || banner.ctaText;
+            const hasMobileBanner = !!banner.mobileMediaUrl;
 
             return (
               <SwiperSlide key={banner.id}>
-                <div className="hero-premium relative">
-                  {/* Full-bleed background image */}
-                  <div className="absolute inset-0 overflow-hidden rounded-[16px] md:rounded-[22px]">
+                <div className={`hero-premium relative ${hasMobileBanner ? 'hero-has-mobile' : ''}`}>
+                  {/* Desktop banner image */}
+                  <div className={`absolute inset-0 overflow-hidden rounded-[16px] md:rounded-[22px] ${hasMobileBanner ? 'hidden md:block' : ''}`}>
                     <Image
                       src={banner.mediaUrl}
                       alt={banner.title || "Bliss Bakery"}
@@ -54,6 +56,22 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
                       quality={i === 0 ? 85 : 70}
                     />
                   </div>
+
+                  {/* Mobile banner image (vertical/portrait) */}
+                  {hasMobileBanner && (
+                    <div className="absolute inset-0 overflow-hidden rounded-[16px] md:hidden">
+                      <Image
+                        src={banner.mobileMediaUrl!}
+                        alt={banner.title || "Bliss Bakery"}
+                        fill
+                        className="object-cover object-center hero-premium-img"
+                        priority={i === 0}
+                        loading={i === 0 ? undefined : "lazy"}
+                        sizes="100vw"
+                        quality={i === 0 ? 85 : 70}
+                      />
+                    </div>
+                  )}
 
                   {/* Content overlay — only if banner has text from admin */}
                   {hasText && (

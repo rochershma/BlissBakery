@@ -29,6 +29,7 @@ export default async function AdminBannersPage() {
         ctaText: b.ctaText,
         ctaLink: b.ctaLink,
         mediaUrl: b.mediaUrl,
+        mobileMediaUrl: b.mobileMediaUrl,
         linkUrl: b.linkUrl,
         sortOrder: b.sortOrder,
         isActive: b.isActive,

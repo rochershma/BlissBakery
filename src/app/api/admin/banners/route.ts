@@ -9,6 +9,7 @@ const bannerSchema = z.object({
   ctaText: z.string().max(100).nullable().optional(),
   ctaLink: z.string().max(500).nullable().optional(),
   mediaUrl: z.string().min(1).max(500),
+  mobileMediaUrl: z.string().max(500).nullable().optional(),
   linkUrl: z.string().max(500).nullable().optional(),
   sortOrder: z.number().int().min(0).max(100).optional(),
 });
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = bannerSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-  const { title, subtitle, ctaText, ctaLink, mediaUrl, linkUrl, sortOrder } = parsed.data;
+  const { title, subtitle, ctaText, ctaLink, mediaUrl, mobileMediaUrl, linkUrl, sortOrder } = parsed.data;
 
   const sanitize = (s: string | null | undefined) => s?.replace(/<[^>]*>/g, "").trim() || null;
 
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       ctaText: sanitize(ctaText),
       ctaLink: ctaLink || null,
       mediaUrl,
+      mobileMediaUrl: mobileMediaUrl || null,
       linkUrl: linkUrl || null,
       sortOrder: sortOrder ?? 0,
       isActive: true,

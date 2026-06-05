@@ -75,18 +75,18 @@ export function SiteHeader() {
     searchTimer.current = setTimeout(() => doSearch(val), 300);
   };
 
-  const openSearch = () => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); };
-  const closeSearch = () => { setSearchOpen(false); setSearchQuery(""); setSearchResults([]); };
+  const openDesktopSearch = () => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); };
+  const closeDesktopSearch = () => { setSearchOpen(false); setSearchQuery(""); setSearchResults([]); };
 
   const navigateToSearch = (q: string) => {
     if (q.trim().length > 0) {
-      closeSearch();
+      closeDesktopSearch();
       router.push(`/search?q=${encodeURIComponent(q.trim())}`);
     }
   };
 
   const navigateToProduct = (slug: string) => {
-    closeSearch();
+    closeDesktopSearch();
     router.push(`/store/kuchaman-city/menu/${slug}`);
   };
 

@@ -80,7 +80,7 @@ export default async function SearchPage({ searchParams }: Props) {
       });
       products = [...products, ...extra];
     }
-    } // close non-price else
+    } // close text-search else
   } else {
     // No query — show all products
     [products, totalCount] = await Promise.all([

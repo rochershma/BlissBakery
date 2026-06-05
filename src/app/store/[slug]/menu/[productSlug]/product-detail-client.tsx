@@ -295,8 +295,8 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </span>
       </div>
 
-      {/* Add to Cart */}
-      <div>
+      {/* Add to Cart — desktop only (mobile uses sticky bar) */}
+      <div className="hidden md:block">
         <button
           onClick={handleAddToCart}
           className="w-full max-w-[320px] flex items-center justify-center gap-2.5 bg-primary text-primary-foreground py-3 px-6 rounded-2xl text-sm font-bold hover:bg-primary-hover active:scale-[0.97] transition-all shadow-md shadow-primary/20"

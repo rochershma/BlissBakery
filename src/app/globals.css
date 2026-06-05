@@ -686,6 +686,10 @@ input[type="radio"] {
     aspect-ratio: 16 / 9;
     border-radius: 16px;
   }
+  /* When mobile banner is uploaded, use portrait ratio */
+  .hero-has-mobile {
+    aspect-ratio: 4 / 5;
+  }
 }
 
 .hero-premium::after {

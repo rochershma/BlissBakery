@@ -79,6 +79,7 @@ export default async function HomePage() {
         ctaText: b.ctaText,
         ctaLink: b.ctaLink,
         mediaUrl: b.mediaUrl,
+        mobileMediaUrl: (b as any).mobileMediaUrl || null,
         linkUrl: b.linkUrl,
       }))} />
 
