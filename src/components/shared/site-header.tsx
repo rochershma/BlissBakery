@@ -76,6 +76,13 @@ export function SiteHeader() {
   const openSearch = () => { setSearchOpen(true); setTimeout(() => searchInputRef.current?.focus(), 50); };
   const closeSearch = () => { setSearchOpen(false); setSearchQuery(""); setSearchResults([]); };
 
+  const navigateToSearch = (q: string) => {
+    if (q.trim().length > 0) {
+      closeSearch();
+      router.push(`/search?q=${encodeURIComponent(q.trim())}`);
+    }
+  };
+
   const navigateToProduct = (slug: string) => {
     closeSearch();
     router.push(`/store/kuchaman-city/menu/${slug}`);
@@ -125,8 +132,7 @@ export function SiteHeader() {
                   placeholder="Search cakes, pastries..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  onFocus={() => setSearchOpen(true)}
-                  className="flex-1 bg-transparent px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
+                  onFocus={() => setSearchOpen(true)}                onKeyDown={(e) => { if (e.key === "Enter") navigateToSearch(searchQuery); }}                  className="flex-1 bg-transparent px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
               />
               {searchQuery && (
                 <button onClick={() => { setSearchQuery(""); setSearchResults([]); }} className="p-1 mr-1 rounded hover:bg-muted">
@@ -142,7 +148,7 @@ export function SiteHeader() {
                     <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Popular</p>
                     <div className="flex flex-wrap gap-1.5">
                       {POPULAR_SEARCHES.map((t) => (
-                        <button key={t} onClick={() => { setSearchQuery(t); doSearch(t); }}
+                        <button key={t} onClick={() => { navigateToSearch(t); }}
                           className="px-2.5 py-1 rounded-full bg-surface-blush text-[11px] font-medium text-foreground hover:bg-primary/10 transition-colors border border-border/30">
                           {t}
                         </button>
@@ -325,7 +331,7 @@ export function SiteHeader() {
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2.5">Popular</p>
               <div className="flex flex-wrap gap-2">
                 {POPULAR_SEARCHES.map((t) => (
-                  <button key={t} onClick={() => { setSearchQuery(t); doSearch(t); }}
+                  <button key={t} onClick={() => { navigateToSearch(t); }}
                     className="px-3 py-1.5 rounded-full bg-surface-blush text-xs font-medium border border-border/30">{t}</button>
                 ))}
               </div>
@@ -354,3 +360,4 @@ export function SiteHeader() {
     </>
   );
 }
+
