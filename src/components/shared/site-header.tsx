@@ -12,7 +12,7 @@ import {
   Shield, ChevronRight, ChevronDown, X, Loader2, Store, Check,
 } from "lucide-react";
 
-const POPULAR_SEARCHES = ["Chocolate Truffle", "Birthday Cake", "Pastries", "Brownies", "KitKat Cake"];
+const POPULAR_SEARCHES = ["Chocolate", "Birthday Cake", "Anniversary", "Pastries", "Brownies", "KitKat", "Red Velvet", "Custom Cake"];
 
 const STORES = [
   { slug: "kuchaman-city", name: "Kuchaman City", address: "Main Market, Kuchaman City, Rajasthan", available: true },
@@ -121,18 +121,32 @@ export function SiteHeader() {
             </button>
           </div>
 
-          {/* Center: Search — navigates to /search on Enter */}
-          <div className="flex-1 flex justify-center mx-3 hidden md:flex">
+          {/* Center: Search with suggestions */}
+          <div ref={searchRef} className="flex-1 flex justify-center mx-3 hidden md:flex">
             <div className="relative w-full max-w-[380px]">
-              <form action="/search" method="GET" className="flex items-center border rounded-lg h-9 border-border/50 bg-white/50 hover:bg-white hover:border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/15 focus-within:bg-white transition-all">
+              <form action="/search" method="GET" className={`flex items-center border rounded-lg h-9 transition-all ${searchOpen ? "border-primary ring-1 ring-primary/15 bg-white" : "border-border/50 bg-white/50 hover:bg-white hover:border-border"}`}>
                 <Search className="w-3.5 h-3.5 text-muted-foreground ml-2.5 flex-shrink-0" />
                 <input
                   type="text"
                   name="q"
                   placeholder="Search cakes, pastries..."
+                  onFocus={() => setSearchOpen(true)}
                   className="flex-1 bg-transparent px-2 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none min-w-0"
                 />
               </form>
+              {searchOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-xl z-50 p-3">
+                  <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Popular searches</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {POPULAR_SEARCHES.map((t) => (
+                      <Link key={t} href={`/search?q=${encodeURIComponent(t)}`} onClick={() => setSearchOpen(false)}
+                        className="px-2.5 py-1 rounded-full bg-surface-blush text-[11px] font-medium text-foreground hover:bg-primary/10 hover:text-primary transition-colors border border-border/30">
+                        {t}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
