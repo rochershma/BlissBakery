@@ -47,7 +47,7 @@ function FlavourSelect({ flavours, selected, onSelect }: { flavours: string[]; s
         <select
           value={selected}
           onChange={(e) => onSelect(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
         >
           {flavours.map((f) => (
             <option key={f} value={f}>{f}</option>
@@ -66,7 +66,7 @@ function OccasionSelect({ occasions, selected, onSelect }: { occasions: { key: s
         <select
           value={selected}
           onChange={(e) => onSelect(e.target.value)}
-          className="w-full px-4 py-3 rounded-xl border-2 border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
+          className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
         >
           {occasions.map((o) => (
             <option key={o.key} value={o.key}>{o.label}</option>
@@ -189,7 +189,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
                       const v = overflowVariants.find(v => v.id === e.target.value);
                       if (v) setSelectedVariant(v);
                     }}
-                    className="mt-2 w-full px-3 py-2.5 rounded-xl border border-border bg-white text-xs font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    className="mt-2 max-w-[200px] px-3 py-2 rounded-xl border border-border bg-white text-xs font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
                   >
                     <option value="">More sizes...</option>
                     {overflowVariants.map((v) => (
@@ -282,21 +282,14 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         </div>
       )}
 
-      {/* Quantity + Add to Cart */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center border border-border rounded-full">
-          <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-9 h-9 flex items-center justify-center hover:bg-muted rounded-l-full transition-colors">
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-          <span className="text-sm font-bold min-w-[28px] text-center">{quantity}</span>
-          <button onClick={() => setQuantity(q => q + 1)} className="w-9 h-9 flex items-center justify-center hover:bg-muted rounded-r-full transition-colors">
-            <Plus className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <button onClick={handleAddToCart} className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl font-semibold hover:bg-primary-hover transition-colors btn-press">
+      {/* Add to Cart */}
+      <div>
+        <button onClick={handleAddToCart} className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground py-3 rounded-xl text-sm font-semibold hover:bg-primary-hover transition-colors btn-press shadow-sm">
           <ShoppingCart className="w-4 h-4" /> Add to Cart · {formatPrice(totalPrice)}
         </button>
+        <p className="text-[10px] text-muted-foreground mt-2 text-center leading-relaxed">
+          Note: Design and icing may vary slightly from the image, as each cake is handcrafted.
+        </p>
       </div>
 
       {/* Add-ons Upsell Modal (Bakingo-style) */}
