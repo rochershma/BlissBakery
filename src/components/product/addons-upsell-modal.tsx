@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,12 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const [addingToCart, setAddingToCart] = useState(false);
   const router = useRouter();
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
 
   const toggle = (id: string) => {
     setSelectedAddOns((prev) => {
@@ -138,7 +144,7 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
                               : "border-border hover:border-primary/30 bg-white"
                           }`}
                         >
-                          <div className="aspect-[4/3] relative bg-muted rounded-t-lg overflow-hidden">
+                          <div className="aspect-[4/3] relative bg-muted overflow-hidden m-1.5 rounded-xl">
                             {addon.image ? (
                               <Image src={addon.image} alt={addon.name} fill className="object-cover" sizes="150px" />
                             ) : (
