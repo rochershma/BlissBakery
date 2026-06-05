@@ -186,6 +186,11 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
                 <div className="relative w-32 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                   <Image src={banner.mediaUrl} alt={banner.title || "Banner"} fill className="object-cover" sizes="128px" />
                 </div>
+                {banner.mobileMediaUrl && (
+                  <div className="relative w-14 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0 border-2 border-primary/30" title="Mobile banner">
+                    <Image src={banner.mobileMediaUrl} alt="Mobile" fill className="object-cover" sizes="56px" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">{banner.title || "Untitled Banner"}</p>
                   {banner.subtitle && <p className="text-xs text-muted-foreground truncate">{banner.subtitle}</p>}
@@ -210,7 +215,9 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
               {/* Inline edit form */}
               {editingId === banner.id && (
                 <div className="bg-white rounded-xl border border-primary/20 p-4 mt-2 space-y-3">
-                  <ImagePicker value={editImage} onChange={setEditImage} folder="banners" label="Banner Image" aspectRatio="banner" />
+                  <ImagePicker value={editImage} onChange={setEditImage} folder="banners" label="Desktop Banner (wide, ~1300x650)" aspectRatio="banner" />
+                  <ImagePicker value={editMobileImage} onChange={setEditMobileImage} folder="banners" label="Mobile Banner (portrait, ~600x800) — optional" aspectRatio="banner" />
+                  {!editMobileImage && <p className="text-xs text-muted-foreground -mt-2">No mobile banner? Desktop image will be used with 16:9 crop on phones.</p>}
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1">Title (shown on banner)</label>
                     <input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="e.g., Fresh Eggless Cakes" className={inputCls} />
@@ -254,7 +261,9 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
             <h3 className="font-semibold text-foreground">Add New Banner</h3>
             <button onClick={() => setShowAdd(false)} className="p-1 rounded-full hover:bg-muted"><X className="w-4 h-4" /></button>
           </div>
-          <ImagePicker value={newImage} onChange={setNewImage} folder="banners" label="Banner Image" aspectRatio="banner" />
+          <ImagePicker value={newImage} onChange={setNewImage} folder="banners" label="Desktop Banner (wide, ~1300x650)" aspectRatio="banner" />
+          <ImagePicker value={newMobileImage} onChange={setNewMobileImage} folder="banners" label="Mobile Banner (portrait, ~600x800) — optional" aspectRatio="banner" />
+          {!newMobileImage && <p className="text-xs text-muted-foreground -mt-2">Upload a vertical image for phones. If empty, desktop banner is used.</p>}
           <div>
             <label className="text-sm font-medium text-foreground block mb-1">Title (shown on banner, optional)</label>
             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="e.g., Fresh Eggless Cakes" className={inputCls} />
