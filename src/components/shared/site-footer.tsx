@@ -16,7 +16,7 @@ export function SiteFooter({ storeSlug = "kuchaman-city", phone = "9602831559", 
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 relative">
-                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-[1.15]" sizes="48px" />
+                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-[1.42]" sizes="48px" />
               </div>
               <div>
                 <h3 className="font-serif font-bold text-white text-[28px] leading-[1] tracking-[-0.04em]">Bliss Bakery</h3>
