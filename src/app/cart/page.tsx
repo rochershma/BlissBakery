@@ -6,6 +6,7 @@ import { useCartStore, CartItem } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageSquare, Home, ChevronRight, X, Leaf, Clock, Gift, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
+import { SiteHeader } from "@/components/shared/site-header";
 
 function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: CartItem & { index: number }; storeSlug: string; addOnImages: Record<string, string>; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void }) {
   const { updateQuantity } = useCartStore();
@@ -19,11 +20,11 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: C
       {/* Main product row */}
       <div className="flex gap-3">
         {/* Product Image */}
-        <Link href={productUrl} className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden bg-muted flex-shrink-0 relative">
+        <Link href={productUrl} className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden bg-surface-blush flex-shrink-0 relative">
           {item.image ? (
             <Image src={item.image} alt={item.name} fill className="object-cover" sizes="96px" />
           ) : (
-            <div className="w-full h-full bg-primary/5 flex items-center justify-center text-3xl">🎂</div>
+            <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No image</div>
           )}
           <span className="absolute top-1 left-1 w-4 h-4 bg-white rounded-sm border border-green-600 flex items-center justify-center">
             <span className="w-1.5 h-1.5 bg-green-600 rounded-full" />
@@ -98,11 +99,11 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: C
             {item.addOns.map((addon, addonIdx) => (
               <div key={addonIdx} className="flex items-center justify-between px-3 py-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-muted">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 relative bg-surface-blush">
                     {addOnImages[addon.name] ? (
                       <Image src={addOnImages[addon.name]} alt={addon.name} fill className="object-cover" sizes="40px" />
                     ) : (
-                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-sm">🎁</div>
+                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold">+</div>
                     )}
                   </div>
                   <div className="min-w-0">
@@ -215,7 +216,7 @@ export default function CartPage() {
     <div className="flex flex-col min-h-screen bg-muted/30">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-[1300px] mx-auto px-4 md:px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href={`/store/${slug}/menu`} className="p-1.5 rounded-full hover:bg-muted transition-colors">
               <ArrowLeft className="w-5 h-5" />
@@ -231,7 +232,7 @@ export default function CartPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-4 pb-28">
+      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 py-4 pb-28">
         <div className="md:flex md:gap-5">
           {/* LEFT — Cart Items */}
           <div className="md:flex-1 space-y-3">
@@ -350,7 +351,7 @@ export default function CartPage() {
 
       {/* Sticky Checkout Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] safe-area-bottom">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-[1300px] mx-auto px-4 md:px-5 py-3 flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
             <p className="text-lg font-bold text-foreground">{formatPrice(grandTotal)}</p>
