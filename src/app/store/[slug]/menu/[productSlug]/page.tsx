@@ -193,8 +193,8 @@ export default async function ProductDetailPage({ params }: Props) {
             <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
               {/* Categories link */}
               <Link href={`/store/${storeSlug}/menu`} prefetch={false}
-                className="flex-shrink-0 w-[140px] md:w-[160px] group">
-                <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                className="flex-shrink-0 w-[180px] md:w-[220px] group">
+                <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
                   <Image src="/images/categories/cakes.jpg" alt="All Cakes" fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">View All Menu</span>
@@ -203,9 +203,9 @@ export default async function ProductDetailPage({ params }: Props) {
               {/* Occasions */}
               {dbOccasions.map((occ) => (
                 <Link key={occ.id} href={`/cakes/${occ.slug}`} prefetch={false}
-                  className="flex-shrink-0 w-[140px] md:w-[160px] group">
-                  <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
-                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />}
+                  className="flex-shrink-0 w-[180px] md:w-[220px] group">
+                  <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="220px" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">{occ.name}</span>
                   </div>
@@ -214,9 +214,9 @@ export default async function ProductDetailPage({ params }: Props) {
               {/* Themes */}
               {dbThemes.map((theme) => (
                 <Link key={theme.id} href={`/themes/${theme.slug}`} prefetch={false}
-                  className="flex-shrink-0 w-[140px] md:w-[160px] group">
-                  <div className="relative h-[100px] md:h-[110px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
-                    {theme.image && <Image src={theme.image} alt={theme.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="160px" />}
+                  className="flex-shrink-0 w-[180px] md:w-[220px] group">
+                  <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
+                    {theme.image && <Image src={theme.image} alt={theme.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="220px" />}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs leading-tight">{theme.name}</span>
                   </div>
