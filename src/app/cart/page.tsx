@@ -4,11 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCartStore, CartItem } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageSquare, Home, ChevronRight, X, Leaf, Clock, Gift, Tag } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageSquare, Home, ChevronRight, X, Leaf, Clock, Gift, Tag, Check, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SiteHeader } from "@/components/shared/site-header";
 
-function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: CartItem & { index: number }; storeSlug: string; addOnImages: Record<string, string>; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void }) {
+interface StoreAddOn {
+  id: string;
+  name: string;
+  price: number;
+  image: string | null;
+  category: string;
+}
+
+function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn, storeAddOns, onAddAddOn }: { item: CartItem & { index: number }; storeSlug: string; addOnImages: Record<string, string>; onRemoveAddOn: (productId: string, addonIndex: number, variantName?: string) => void; storeAddOns: StoreAddOn[]; onAddAddOn: (productId: string, addon: { name: string; price: number }, variantName?: string) => void }) {
   const { updateQuantity } = useCartStore();
   const addOnTotal = (item.addOns || []).reduce((s, a) => s + a.price, 0);
   const productPrice = item.unitPrice * item.quantity;
@@ -131,6 +139,115 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn }: { item: C
           <span className="font-bold text-foreground">{formatPrice(lineTotal)}</span>
         </div>
       )}
+
+      {/* Add Extras — horizontal scroll strip */}
+      {storeAddOns.length > 0 && (
+        <AddExtrasStrip
+          storeAddOns={storeAddOns}
+          existingAddOns={item.addOns || []}
+          onAdd={(addon) => onAddAddOn(item.productId, addon, item.variantName)}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddExtrasStrip({ storeAddOns, existingAddOns, onAdd }: {
+  storeAddOns: StoreAddOn[];
+  existingAddOns: { name: string; price: number }[];
+  onAdd: (addon: { name: string; price: number }) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const existingNames = new Set(existingAddOns.map(a => a.name));
+
+  if (!expanded) {
+    return (
+      <button
+        onClick={() => setExpanded(true)}
+        className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-primary/25 text-primary text-xs font-semibold hover:bg-primary/5 hover:border-primary/40 transition-all"
+      >
+        <Sparkles className="w-3.5 h-3.5" />
+        Add Extras — Gifts, Candles & More
+      </button>
+    );
+  }
+
+  // Group by category
+  const groups = [
+    { key: "GIFT", label: "Gifts", items: storeAddOns.filter(a => a.category === "GIFT") },
+    { key: "DECORATION", label: "Decorations", items: storeAddOns.filter(a => a.category === "DECORATION") },
+    { key: "ACCESSORY", label: "Extras", items: storeAddOns.filter(a => a.category === "ACCESSORY") },
+  ].filter(g => g.items.length > 0);
+
+  // Fallback: if no categories match, show all
+  const allItems = groups.length > 0 ? groups : [{ key: "ALL", label: "Add-ons", items: storeAddOns }];
+
+  return (
+    <div className="mt-3 bg-gradient-to-b from-primary/[0.03] to-transparent rounded-xl border border-primary/15 overflow-hidden">
+      <div className="px-3 py-2 flex items-center justify-between">
+        <p className="text-[11px] font-bold text-foreground flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-primary" /> Make it special
+        </p>
+        <button onClick={() => setExpanded(false)} className="text-[10px] text-muted-foreground hover:text-foreground font-medium">
+          Close
+        </button>
+      </div>
+      <div className="px-3 pb-3 space-y-3">
+        {allItems.map(group => (
+          <div key={group.key}>
+            {allItems.length > 1 && (
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">{group.label}</p>
+            )}
+            <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+              {group.items.map(addon => {
+                const alreadyAdded = existingNames.has(addon.name);
+                return (
+                  <button
+                    key={addon.id}
+                    onClick={() => {
+                      if (!alreadyAdded) onAdd({ name: addon.name, price: addon.price });
+                    }}
+                    disabled={alreadyAdded}
+                    className={`flex-shrink-0 w-[110px] rounded-xl border overflow-hidden text-left transition-all ${
+                      alreadyAdded
+                        ? "border-primary/30 bg-primary/5 opacity-70"
+                        : "border-border bg-white hover:border-primary/40 hover:shadow-sm active:scale-[0.97]"
+                    }`}
+                  >
+                    <div className="aspect-[4/3] relative bg-muted overflow-hidden">
+                      {addon.image ? (
+                        <Image src={addon.image} alt={addon.name} fill className="object-cover" sizes="110px" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-accent/10">
+                          <Gift className="w-6 h-6 text-primary/30" />
+                        </div>
+                      )}
+                      {alreadyAdded && (
+                        <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-2 py-1.5">
+                      <p className="text-[10px] font-medium text-foreground line-clamp-1 leading-tight">{addon.name}</p>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <p className="text-[10px] font-bold text-primary">+{formatPrice(addon.price)}</p>
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
+                          alreadyAdded ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                        }`}>
+                          {alreadyAdded ? "Added" : "Add"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -139,11 +256,13 @@ export default function CartPage() {
   const [hydrated, setHydrated] = useState(false);
   const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, gstRate: 0 });
   const [addOnImages, setAddOnImages] = useState<Record<string, string>>({});
+  const [storeAddOns, setStoreAddOns] = useState<StoreAddOn[]>([]);
   useEffect(() => {
     setHydrated(true);
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig({ packagingCharge: data.packagingCharge ?? 15, gstRate: data.gstRate ?? 0 });
       if (data.addOnImages) setAddOnImages(data.addOnImages);
+      if (data.addOns) setStoreAddOns(data.addOns);
     }).catch(() => {});
   }, []);
 
@@ -171,6 +290,13 @@ export default function CartPage() {
     if (!item || !item.addOns) return;
     const newAddOns = item.addOns.filter((_, idx) => idx !== addonIndex);
     updateItemAddOns(productId, newAddOns, variantName);
+  };
+
+  const addAddOn = (productId: string, addon: { name: string; price: number }, variantName?: string) => {
+    const item = items.find(i => i.productId === productId && (i.variantName || "") === (variantName || ""));
+    if (!item) return;
+    const existingAddOns = item.addOns || [];
+    updateItemAddOns(productId, [...existingAddOns, addon], variantName);
   };
 
   if (!hydrated) {
@@ -257,6 +383,8 @@ export default function CartPage() {
                     storeSlug={slug}
                     addOnImages={addOnImages}
                     onRemoveAddOn={removeAddOn}
+                    storeAddOns={storeAddOns}
+                    onAddAddOn={addAddOn}
                   />
                 ))}
               </div>
