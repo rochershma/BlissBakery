@@ -317,23 +317,13 @@ export default function CheckoutPage() {
                     {formatPrice(item.unitPrice * item.quantity)}
                   </span>
                 </div>
-                {/* Add-ons breakdown */}
+                {/* Add-ons — compact chips */}
                 {item.addOns && item.addOns.length > 0 && (
-                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 space-y-1">
+                  <div className="ml-[calc(3rem+0.75rem)] mt-1.5 flex flex-wrap gap-1">
                     {item.addOns.map((a, ai) => (
-                      <div key={ai} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded overflow-hidden flex-shrink-0 relative bg-muted">
-                            {addOnImages[a.name] ? (
-                              <img src={addOnImages[a.name]} alt={a.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-[10px]">🎁</div>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-muted-foreground">{a.name}</span>
-                        </div>
-                        <span className="text-[11px] text-muted-foreground">+{formatPrice(a.price)}</span>
-                      </div>
+                      <span key={ai} className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-blush border border-border/40 rounded-md text-[10px] text-muted-foreground">
+                        {a.name} <span className="font-semibold">+{formatPrice(a.price)}</span>
+                      </span>
                     ))}
                   </div>
                 )}

@@ -94,37 +94,23 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn, storeAddOns
         </div>
       </div>
 
-      {/* Add-ons — separate section like Swiggy */}
+      {/* Add-ons — clean chip style */}
       {item.addOns && item.addOns.length > 0 && (
-        <div className="mt-3 bg-muted/50 rounded-xl border border-border/50 overflow-hidden">
-          <div className="px-3 py-1.5 border-b border-border/50 flex items-center justify-between">
-            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1">
-              <Gift className="w-3 h-3 text-primary" /> Add-ons ({item.addOns.length})
-            </p>
-            <p className="text-[10px] font-semibold text-foreground">+{formatPrice(addOnTotal)}</p>
-          </div>
-          <div className="divide-y divide-border/30">
+        <div className="mt-2.5 space-y-1.5">
+          <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider flex items-center gap-1">
+            <Gift className="w-3 h-3 text-primary" /> Extras
+          </p>
+          <div className="flex flex-wrap gap-1.5">
             {item.addOns.map((addon, addonIdx) => (
-              <div key={addonIdx} className="flex items-center justify-between px-3 py-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 relative bg-surface-blush">
-                    {addOnImages[addon.name] ? (
-                      <Image src={addOnImages[addon.name]} alt={addon.name} fill className="object-cover" sizes="40px" />
-                    ) : (
-                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] text-primary font-bold">+</div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-foreground truncate">{addon.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatPrice(addon.price)}</p>
-                  </div>
-                </div>
+              <div key={addonIdx} className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 bg-surface-blush border border-border/50 rounded-lg text-xs">
+                <span className="font-medium text-foreground">{addon.name}</span>
+                <span className="text-muted-foreground">+{formatPrice(addon.price)}</span>
                 <button
                   onClick={() => onRemoveAddOn(item.productId, addonIdx, item.variantName)}
-                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors flex-shrink-0"
-                  title="Remove add-on"
+                  className="ml-0.5 p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors"
+                  aria-label={`Remove ${addon.name}`}
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
