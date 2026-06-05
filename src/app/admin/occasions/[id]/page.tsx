@@ -25,10 +25,9 @@ export default async function EditOccasionPage({ params }: Props) {
     const name = formData.get("name") as string;
     const subtitle = formData.get("subtitle") as string;
     const image = formData.get("image") as string;
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     await db.occasion.update({
       where: { id },
-      data: { name, slug, subtitle: subtitle || null, image: image || null },
+      data: { name, subtitle: subtitle || null, image: image || null },
     });
     revalidatePath("/admin/occasions");
     redirect("/admin/occasions");
