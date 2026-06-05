@@ -99,7 +99,7 @@ export function SiteHeader() {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-full overflow-hidden relative bg-white shadow-sm flex-shrink-0">
-                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover" sizes="36px" priority />
+                <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-[1.15]" sizes="36px" priority />
               </div>
               <div className="hidden sm:block">
                 <span className="text-sm font-bold text-foreground leading-none font-serif tracking-tight">Bliss Bakery</span>
