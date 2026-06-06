@@ -43,13 +43,13 @@ export default async function OrderPage({ params }: Props) {
     <div className="flex flex-col min-h-screen bg-background pb-20">
       <SiteHeader />
 
-      <main className="max-w-2xl mx-auto w-full px-4 py-4">
+      <main className="max-w-2xl mx-auto w-full px-4 py-5">
         {/* Back + Order Number */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-5">
           <Link href="/orders" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="w-4 h-4" /> My Orders
           </Link>
-          <span className="text-xs font-mono text-muted-foreground">#{order.orderNumber}</span>
+          <span className="text-[11px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded">#{order.orderNumber}</span>
         </div>
 
         {/* Success Animation (only for fresh orders) */}
@@ -94,7 +94,7 @@ export default async function OrderPage({ params }: Props) {
         {/* Items with Images */}
         <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
           <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider">Items Ordered</h2>
+            <h2 className="text-sm font-bold text-foreground font-serif">Items Ordered</h2>
           </div>
           <div className="divide-y divide-dashed divide-border">
             {order.items.map((item) => {
@@ -139,7 +139,7 @@ export default async function OrderPage({ params }: Props) {
         {/* Bill Summary */}
         <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
           <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider">Bill Summary</h2>
+            <h2 className="text-sm font-bold text-foreground font-serif">Bill Summary</h2>
           </div>
           <div className="px-4 py-3 space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Item Total</span><span>{formatPrice(order.itemTotal)}</span></div>
@@ -160,7 +160,7 @@ export default async function OrderPage({ params }: Props) {
 
         {/* Payment Info */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
-          <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2">Payment</h2>
+          <h2 className="text-sm font-bold text-foreground font-serif mb-2">Payment</h2>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <span>{order.paymentStatus === "PAID" ? <CheckCircle className="w-4 h-4 text-green-600 inline" /> : order.paymentStatus === "FAILED" ? <XCircle className="w-4 h-4 text-red-600 inline" /> : <Clock className="w-4 h-4 text-amber-600 inline" />}</span>
@@ -172,7 +172,7 @@ export default async function OrderPage({ params }: Props) {
 
         {/* Pickup / Delivery Info */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
-          <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2">
+          <h2 className="text-sm font-bold text-foreground font-serif mb-2">
             {isPickup ? "Pickup Location" : "Delivery Address"}
           </h2>
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -190,7 +190,7 @@ export default async function OrderPage({ params }: Props) {
         {/* Help Section */}
         <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
           <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider">Need Help?</h2>
+            <h2 className="text-sm font-bold text-foreground font-serif">Need Help?</h2>
           </div>
           <div className="flex">
             <a

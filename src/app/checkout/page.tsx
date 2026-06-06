@@ -244,10 +244,12 @@ export default function CheckoutPage() {
       const payData = await payRes.json();
 
       if (payData.success) {
-        // Clear cart and redirect to order confirmation
-        const { clearCart } = await import("@/store/cart").then(m => m.useCartStore.getState());
-        clearCart();
+        // Redirect FIRST, then clear cart (prevents empty cart flash)
         window.location.href = `/order/${orderData.order.id}`;
+        // Clear cart after small delay so redirect happens before re-render
+        setTimeout(() => {
+          import("@/store/cart").then(m => m.useCartStore.getState().clearCart());
+        }, 500);
       } else {
         toast(payData.message || "Payment failed", "error");
       }
