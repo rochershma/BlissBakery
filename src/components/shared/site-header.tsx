@@ -189,7 +189,7 @@ export function SiteHeader() {
               {showProfile && user && (
                 <>
                   <div className="fixed inset-0 bg-black/40 z-[90]" onClick={() => setShowProfile(false)} />
-                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto overflow-y-auto animate-slide-up" style={{ maxHeight: '85dvh', paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
+                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl overflow-y-auto animate-slide-up md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:overflow-visible" style={{ maxHeight: '70dvh', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
                     {/* Drag handle — mobile only */}
                     <div className="md:hidden flex justify-center pt-2 pb-1">
                       <div className="w-10 h-1 rounded-full bg-border" />
@@ -212,21 +212,21 @@ export function SiteHeader() {
                         { href: "/offers", icon: Heart, label: "Offers" },
                       ].map(({ href, icon: Icon, label }) => (
                         <Link key={href} href={href} onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted transition-colors min-h-[48px]">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors no-min-touch">
                           <Icon className="w-5 h-5 text-muted-foreground" />{label}
                           <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
                         </Link>
                       ))}
                       {(user.role === "ADMIN" || user.role === "STAFF") && (
                         <Link href="/admin" onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-primary font-medium hover:bg-primary/5 transition-colors min-h-[48px]">
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary font-medium hover:bg-primary/5 transition-colors no-min-touch">
                           <Shield className="w-5 h-5" />Admin Panel<ChevronRight className="w-4 h-4 ml-auto" />
                         </Link>
                       )}
                     </nav>
                     <div className="p-1.5 border-t border-border">
                       <button onClick={() => { logout(); setShowProfile(false); }}
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors w-full min-h-[48px]">
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors w-full no-min-touch">
                         <LogOut className="w-5 h-5" />Logout
                       </button>
                     </div>
