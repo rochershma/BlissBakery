@@ -387,7 +387,7 @@ export default function CheckoutPage() {
                   : "bg-white text-foreground border-border hover:border-primary/50"
               }`}
             >
-              🚗 Delivery
+              Delivery
             </button>
           </div>
           {orderType === "PICKUP" && (

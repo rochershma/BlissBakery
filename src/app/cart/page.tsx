@@ -319,19 +319,32 @@ export default function CartPage() {
             <h1 className="text-base font-bold text-foreground">Your Cart</h1>
           </div>
         </header>
-        <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
-          <div className="w-28 h-28 mb-5 rounded-full bg-primary/5 flex items-center justify-center">
-            <ShoppingBag className="w-12 h-12 text-primary/30" />
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+          <div className="w-24 h-24 mb-6 rounded-2xl bg-surface-blush flex items-center justify-center">
+            <ShoppingBag className="w-10 h-10 text-primary/40" />
           </div>
           <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
-          <p className="text-sm text-muted-foreground mb-8 max-w-xs">Looks like you haven&apos;t added any treats yet. Explore our freshly baked collection!</p>
-          <Link
-            href={`/store/${slug}/menu`}
-            className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3.5 rounded-full font-semibold hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            Browse Menu
-          </Link>
+          <p className="text-sm text-muted-foreground mb-8 max-w-xs">Browse our freshly baked cakes, pastries and more. Your next celebration starts here.</p>
+          <div className="flex flex-col gap-2.5 w-full max-w-[260px]">
+            <Link
+              href={`/store/${slug}/menu`}
+              className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-primary-hover transition-colors shadow-md shadow-primary/20 text-sm"
+            >
+              Browse Menu
+            </Link>
+            <Link
+              href={`/store/${slug}/custom-cakes`}
+              className="flex items-center justify-center gap-2 border-2 border-primary/30 text-primary px-6 py-3 rounded-xl font-semibold hover:bg-primary/5 transition-colors text-sm"
+            >
+              Design Custom Cake
+            </Link>
+            <Link
+              href="/"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors mt-1"
+            >
+              Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     );

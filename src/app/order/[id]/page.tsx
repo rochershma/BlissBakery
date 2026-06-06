@@ -4,21 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { SiteHeader } from "@/components/shared/site-header";
-import { CheckCircle, Phone, MessageCircle, RotateCcw, MapPin, ArrowLeft, Copy, ChevronDown } from "lucide-react";
+import { CheckCircle, Phone, MessageCircle, RotateCcw, MapPin, ArrowLeft, Copy, ChevronDown, Clock, Truck, Package, XCircle, ChefHat } from "lucide-react";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  PENDING: { label: "Order Placed", color: "text-amber-700", bg: "bg-amber-50 border-amber-200", icon: "🕐" },
-  CONFIRMED: { label: "Confirmed", color: "text-blue-700", bg: "bg-blue-50 border-blue-200", icon: "✅" },
-  PREPARING: { label: "Being Prepared", color: "text-orange-700", bg: "bg-orange-50 border-orange-200", icon: "👨‍🍳" },
-  READY: { label: "Ready", color: "text-green-700", bg: "bg-green-50 border-green-200", icon: "📦" },
-  OUT_FOR_DELIVERY: { label: "Out for Delivery", color: "text-purple-700", bg: "bg-purple-50 border-purple-200", icon: "🚗" },
-  DELIVERED: { label: "Delivered", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", icon: "🎉" },
-  PICKED_UP: { label: "Picked Up", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", icon: "🎉" },
-  CANCELLED: { label: "Cancelled", color: "text-red-700", bg: "bg-red-50 border-red-200", icon: "❌" },
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  PENDING: { label: "Order Placed", color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+  CONFIRMED: { label: "Confirmed", color: "text-blue-700", bg: "bg-blue-50 border-blue-200" },
+  PREPARING: { label: "Being Prepared", color: "text-orange-700", bg: "bg-orange-50 border-orange-200" },
+  READY: { label: "Ready", color: "text-green-700", bg: "bg-green-50 border-green-200" },
+  OUT_FOR_DELIVERY: { label: "Out for Delivery", color: "text-purple-700", bg: "bg-purple-50 border-purple-200" },
+  DELIVERED: { label: "Delivered", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
+  PICKED_UP: { label: "Picked Up", color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200" },
+  CANCELLED: { label: "Cancelled", color: "text-red-700", bg: "bg-red-50 border-red-200" },
 };
 
 export default async function OrderPage({ params }: Props) {
@@ -64,7 +64,9 @@ export default async function OrderPage({ params }: Props) {
 
         {order.paymentStatus === "FAILED" && (
           <div className="text-center mb-5">
-            <div className="text-4xl mb-2">❌</div>
+            <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-red-50 flex items-center justify-center">
+              <XCircle className="w-7 h-7 text-destructive" />
+            </div>
             <h1 className="text-lg font-bold text-destructive font-serif">Payment Failed</h1>
           </div>
         )}
@@ -73,7 +75,9 @@ export default async function OrderPage({ params }: Props) {
         <div className={`rounded-2xl border p-4 mb-4 ${config.bg}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xl">{config.icon}</span>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${config.bg}`}>
+                {order.status === 'CANCELLED' ? <XCircle className="w-4 h-4" /> : order.status === 'DELIVERED' || order.status === 'PICKED_UP' ? <CheckCircle className="w-4 h-4" /> : order.status === 'PREPARING' ? <ChefHat className="w-4 h-4" /> : order.status === 'OUT_FOR_DELIVERY' ? <Truck className="w-4 h-4" /> : order.status === 'READY' ? <Package className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+              </div>
               <div>
                 <p className={`text-sm font-bold ${config.color}`}>{config.label}</p>
                 <p className="text-[10px] text-muted-foreground">
@@ -82,7 +86,7 @@ export default async function OrderPage({ params }: Props) {
               </div>
             </div>
             <span className="text-[10px] bg-white/60 backdrop-blur-sm px-2 py-1 rounded-full text-muted-foreground uppercase font-medium">
-              {isPickup ? "🏪 Pickup" : "🛵 Delivery"}
+              {isPickup ? "Pickup" : "Delivery"}
             </span>
           </div>
         </div>
@@ -102,7 +106,9 @@ export default async function OrderPage({ params }: Props) {
                     {img ? (
                       <Image src={img} alt={item.productName} fill className="object-cover" sizes="56px" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xl bg-primary/5">🎂</div>
+                      <div className="w-full h-full flex items-center justify-center bg-surface-blush">
+                        <Package className="w-5 h-5 text-primary/30" />
+                      </div>
                     )}
                   </Link>
                   <div className="flex-1 min-w-0">
@@ -157,7 +163,7 @@ export default async function OrderPage({ params }: Props) {
           <h2 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-2">Payment</h2>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <span>{order.paymentStatus === "PAID" ? "✅" : order.paymentStatus === "FAILED" ? "❌" : "⏳"}</span>
+              <span>{order.paymentStatus === "PAID" ? <CheckCircle className="w-4 h-4 text-green-600 inline" /> : order.paymentStatus === "FAILED" ? <XCircle className="w-4 h-4 text-red-600 inline" /> : <Clock className="w-4 h-4 text-amber-600 inline" />}</span>
               <span className="text-foreground font-medium">{order.paymentStatus === "PAID" ? "Paid" : order.paymentStatus}</span>
             </div>
             {order.paymentId && <span className="text-xs font-mono text-muted-foreground">{order.paymentId}</span>}

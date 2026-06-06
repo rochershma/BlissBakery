@@ -69,9 +69,9 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
 
   // Group by category
   const groups = [
-    { key: "GIFT", label: "Gifts", emoji: "🎁", items: storeAddOns.filter((a) => a.category === "GIFT") },
-    { key: "DECORATION", label: "Decorations", emoji: "🎉", items: storeAddOns.filter((a) => a.category === "DECORATION") },
-    { key: "ACCESSORY", label: "Extras", emoji: "✨", items: storeAddOns.filter((a) => a.category === "ACCESSORY") },
+    { key: "GIFT", label: "Gifts", emoji: "", items: storeAddOns.filter((a) => a.category === "GIFT") },
+    { key: "DECORATION", label: "Decorations", emoji: "", items: storeAddOns.filter((a) => a.category === "DECORATION") },
+    { key: "ACCESSORY", label: "Extras", emoji: "", items: storeAddOns.filter((a) => a.category === "ACCESSORY") },
   ].filter((g) => g.items.length > 0);
 
   return (
@@ -79,7 +79,7 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
       {/* Full-screen on mobile, centered modal on desktop */}
       <div
         className="absolute inset-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 bg-white md:w-full md:max-w-2xl md:max-h-[85vh] md:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden animate-slide-up md:animate-fade-in flex flex-col"
-        style={{ maxHeight: "calc(100vh - 20px)" }}
+        style={{ maxHeight: 'calc(100dvh - 20px)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag handle — mobile */}
@@ -183,7 +183,7 @@ export function AddOnsUpsellModal({ storeAddOns, productName, productImage, unit
         )}
 
         {/* Footer CTAs */}
-        <div className="border-t border-border px-5 py-4 bg-white safe-area-bottom">
+        <div className="border-t border-border px-5 py-4 bg-white" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
           {selectedAddOns.size > 0 && (
             <div className="flex items-center justify-between text-xs mb-2.5 px-1">
               <span className="text-muted-foreground">{selectedAddOns.size} add-on{selectedAddOns.size > 1 ? "s" : ""} selected</span>
