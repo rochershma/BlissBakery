@@ -304,10 +304,11 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       <div className="hidden md:block">
         <button
           onClick={handleAddToCart}
-          className="w-full max-w-[320px] flex items-center justify-center gap-2.5 bg-primary text-primary-foreground py-3 px-6 rounded-2xl text-sm font-bold hover:bg-primary-hover active:scale-[0.97] transition-all shadow-md shadow-primary/20"
+          disabled={added}
+          className="w-full max-w-[320px] flex items-center justify-center gap-2.5 bg-primary text-primary-foreground py-3 px-6 rounded-2xl text-sm font-bold hover:bg-primary-hover active:scale-[0.97] transition-all shadow-md shadow-primary/20 disabled:opacity-70"
         >
           <ShoppingCart className="w-4 h-4" />
-          Add to Cart · {formatPrice(totalPrice)}
+          {added ? "Added!" : `Add to Cart · ${formatPrice(totalPrice)}`}
         </button>
         <p className="text-[10px] text-muted-foreground mt-2.5 leading-relaxed max-w-[320px]">
           Note: Design and icing may vary slightly from the image, as each cake is handcrafted.
@@ -331,9 +332,9 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       {!showUpsell && (
         <div className="sticky-cta-bar">
           <span className="sticky-cta-price">{formatPrice(totalPrice)}</span>
-          <button onClick={handleAddToCart} className="sticky-cta-btn">
+          <button onClick={handleAddToCart} disabled={added} className="sticky-cta-btn disabled:opacity-70">
             <ShoppingCart className="w-4 h-4" />
-            Add to Cart
+            {added ? "Added!" : "Add to Cart"}
           </button>
         </div>
       )}
