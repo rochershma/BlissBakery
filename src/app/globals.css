@@ -141,6 +141,17 @@ img, video, canvas, svg {
     align-items: center;
     justify-content: center;
   }
+  /* Footer links — larger tap area */
+  footer a {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+  /* Pagination buttons */
+  .w-9.h-9 {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 /* Global: disable text selection everywhere by default */
