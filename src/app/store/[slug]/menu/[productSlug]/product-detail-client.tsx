@@ -101,9 +101,10 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
 
   useEffect(() => setHydrated(true), []);
 
-  // Only show cake-specific fields for cake categories
-  const cakeSlugs = ["cakes", "designer-cakes", "occasion-cakes", "custom-cakes"];
-  const isCake = cakeSlugs.includes(product.categorySlug || "");
+  // Show cake-specific fields (occasion, message, age) for cake categories
+  const cakePrefixes = ["cakes", "designer-cakes", "occasion-cakes", "custom-cakes"];
+  const catSlug = product.categorySlug || "";
+  const isCake = cakePrefixes.some(prefix => catSlug === prefix || catSlug.startsWith(prefix + "-"));
   const hasFlavours = product.flavours && product.flavours.length > 0;
 
   const unitPrice = selectedVariant ? selectedVariant.price : product.basePrice;
