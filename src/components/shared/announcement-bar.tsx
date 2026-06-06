@@ -5,9 +5,9 @@ import { Leaf, Clock, Star, Sparkles, Tag } from "lucide-react";
 export function AnnouncementBar() {
   return (
     <div className="bg-dark-bg text-dark-text overflow-hidden">
-      <div className="flex items-center gap-8 py-2 animate-marquee whitespace-nowrap">
+      <div className="flex items-center py-2 animate-marquee whitespace-nowrap" style={{ width: 'max-content' }}>
         {[1, 2].map((i) => (
-          <div key={i} className="flex items-center gap-8 text-xs tracking-wide">
+          <div key={i} className="flex items-center gap-6 md:gap-8 text-[11px] md:text-xs tracking-wide px-3">
             <span className="flex items-center gap-1.5 text-primary font-semibold">
               <Tag className="w-3 h-3" />
               Use WELCOME10 for 10% OFF

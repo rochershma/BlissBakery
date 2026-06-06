@@ -231,7 +231,7 @@ export default async function HomePage() {
 
       {/* Our Promise — Premium numbered cards */}
       <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full">
-        <div className="flex items-end justify-between gap-6 mt-10 md:mt-20 mb-4 md:mb-6">
+        <div className="flex items-end justify-between gap-6 mt-14 md:mt-20 mb-4 md:mb-6">
           <div>
             <p className="section-kicker">Why Choose Bliss</p>
             <h2 className="text-[clamp(20px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable</h2>
