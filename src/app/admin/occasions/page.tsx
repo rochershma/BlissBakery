@@ -7,6 +7,7 @@ import { Plus, Trash2, Eye, EyeOff, ChevronRight } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { getSession } from "@/lib/auth";
+import { SubmitIcon } from "@/components/admin/submit-icon";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 
 async function requireAdmin() {
@@ -111,9 +112,9 @@ export default async function AdminOccasionsPage() {
                   <form action={toggleOccasion}>
                     <input type="hidden" name="id" value={occ.id} />
                     <input type="hidden" name="isActive" value={String(occ.isActive)} />
-                    <button type="submit" className={`p-2 rounded-lg transition-colors ${occ.isActive ? "text-green-600 hover:bg-green-50" : "text-muted-foreground hover:bg-muted"}`}>
+                    <SubmitIcon className={`p-2 rounded-lg transition-colors ${occ.isActive ? "text-green-600 hover:bg-green-50" : "text-muted-foreground hover:bg-muted"}`}>
                       {occ.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
+                    </SubmitIcon>
                   </form>
                   <ConfirmDeleteForm action={deleteOccasion} confirmMessage={`Delete "${occ.name}" and all its recipients?`} hiddenInputs={{ id: occ.id }}>
                     <button type="submit" className="p-2 rounded-lg text-destructive hover:bg-red-50 transition-colors">

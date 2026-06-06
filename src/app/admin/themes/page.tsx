@@ -6,6 +6,7 @@ import { Plus, Trash2, Eye, EyeOff, Pencil } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { getSession } from "@/lib/auth";
+import { SubmitIcon } from "@/components/admin/submit-icon";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 
 async function requireAdmin() {
@@ -117,9 +118,9 @@ export default async function AdminThemesPage({ searchParams }: Props) {
                   <form action={toggleTheme}>
                     <input type="hidden" name="id" value={theme.id} />
                     <input type="hidden" name="isActive" value={String(theme.isActive)} />
-                    <button type="submit" className={`p-2 rounded-lg transition-colors ${theme.isActive ? "text-green-600 hover:bg-green-50" : "text-muted-foreground hover:bg-muted"}`}>
+                    <SubmitIcon className={`p-2 rounded-lg transition-colors ${theme.isActive ? "text-green-600 hover:bg-green-50" : "text-muted-foreground hover:bg-muted"}`}>
                       {theme.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
+                    </SubmitIcon>
                   </form>
                   <ConfirmDeleteForm action={deleteTheme} confirmMessage={`Delete "${theme.name}"?`} hiddenInputs={{ id: theme.id }}>
                     <button type="submit" className="p-2 rounded-lg text-destructive hover:bg-red-50 transition-colors">

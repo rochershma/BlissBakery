@@ -46,9 +46,7 @@ export default async function EditCategoryPage({ params }: Props) {
           <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {category.name}</h1>
         </div>
         <ConfirmDeleteForm action={deleteCategory} confirmMessage={category._count.products > 0 ? `Delete category "${category.name}" and its ${category._count.products} products? This cannot be undone.` : `Delete category "${category.name}"?`}>
-          <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
-            <Trash2 className="w-4 h-4" /> Delete
-          </button>
+          <SubmitButton variant="destructive-inline" label="Delete" pendingLabel="Deleting..." />
         </ConfirmDeleteForm>
       </div>
 
