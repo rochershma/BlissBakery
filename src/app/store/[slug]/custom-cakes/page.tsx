@@ -154,11 +154,11 @@ export default function CustomCakesPage() {
         </div>
       </section>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 page-enter pb-32">
+      <main className="max-w-3xl mx-auto px-3 md:px-4 py-6 page-enter pb-32" style={{ maxWidth: '100%' }}>
         {/* Inspiration Gallery Placeholder */}
         <div className="mb-8">
           <h2 className="text-lg font-bold text-foreground font-serif mb-3">Popular Custom Cake Styles</h2>
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ maxWidth: '100%' }}>
             {[
               { label: "Kids Theme", bg: "from-pink-100 to-pink-50" },
               { label: "Floral Wedding", bg: "from-rose-100 to-rose-50" },
@@ -167,7 +167,7 @@ export default function CustomCakesPage() {
               { label: "Chocolate Drip", bg: "from-yellow-100 to-yellow-50" },
               { label: "Minimal Cream", bg: "from-green-100 to-green-50" },
             ].map((style, i) => (
-              <div key={i} className={`w-28 h-28 flex-shrink-0 rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center text-center p-3 border border-border/30 hover:shadow-sm transition-shadow cursor-pointer`}>
+              <div key={i} className={`w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center text-center p-2 border border-border/30 hover:shadow-sm transition-shadow cursor-pointer`}>
                 <span className="text-xs font-semibold text-foreground leading-tight">{style.label}</span>
               </div>
             ))}
@@ -209,13 +209,13 @@ export default function CustomCakesPage() {
             {/* Size — visual cards */}
             <div className="mb-4">
               <p className="text-sm font-medium text-foreground mb-2">Select Size *</p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" style={{ maxWidth: '100%' }}>
                 {sizes.map((s) => (
                   <button
                     key={s.name}
                     type="button"
                     onClick={() => setForm({ ...form, size: s.name })}
-                    className={`flex-shrink-0 px-4 py-3 rounded-xl border-2 text-center transition-all btn-press ${
+                    className={`flex-shrink-0 w-[72px] px-2 py-3 rounded-xl border-2 text-center transition-all btn-press ${
                       form.size === s.name
                         ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                         : "bg-white text-foreground border-border hover:border-primary/50"

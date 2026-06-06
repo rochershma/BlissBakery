@@ -100,7 +100,7 @@ export function SiteHeader() {
           {/* Left: Logo + Store */}
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 min-h-[44px]">
               <div className="w-9 h-9 rounded-full overflow-hidden relative bg-white shadow-sm flex-shrink-0">
                 <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-[1.42]" sizes="36px" priority />
               </div>
@@ -155,7 +155,7 @@ export function SiteHeader() {
 
           {/* Right: Cart + Account */}
           <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0 ml-auto">
-            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors" aria-label="Open cart">
+            <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open cart">
               <ShoppingBag className="w-5 h-5 text-foreground" />
               {hydrated && itemCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">

@@ -167,7 +167,7 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
                       className="product-card-premium group">
                       <div className="product-img-container relative">
                         {product.images[0] ? (
-                          <HoverImageCycler images={product.images} alt={product.name} sizes="(max-width:640px) 50vw,25vw" />
+                          <HoverImageCycler images={[product.images[0]]} alt={product.name} sizes="(max-width:640px) 50vw,25vw" />
                         ) : (
                           <div className="w-full h-full bg-surface-blush flex items-center justify-center">
                             <span className="text-muted-foreground text-xs">No Image</span>
