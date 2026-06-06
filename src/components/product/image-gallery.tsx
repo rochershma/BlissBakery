@@ -120,7 +120,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
                 src={img}
                 alt={idx === 0 ? name : `${name} view ${idx + 1}`}
                 fill
-                quality={90}
+                quality={80}
                 className={`object-cover transition-opacity duration-300 ${idx === activeIdx ? "opacity-100" : "opacity-0"}`}
                 sizes="(max-width:768px) 100vw,40vw"
                 priority={idx === 0}
