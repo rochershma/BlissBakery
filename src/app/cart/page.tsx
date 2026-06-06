@@ -103,7 +103,7 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn, storeAddOns
           <div className="space-y-2">
             {item.addOns.map((addon, addonIdx) => (
               <div key={addonIdx} className="flex items-center gap-2.5 p-2 bg-surface-blush rounded-xl border border-border/40">
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 relative bg-white">
+                <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 relative bg-white border border-border/30">
                   {addOnImages[addon.name] ? (
                     <Image src={addOnImages[addon.name]} alt={addon.name} fill className="object-cover" sizes="40px" />
                   ) : (

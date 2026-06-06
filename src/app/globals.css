@@ -692,21 +692,26 @@ input[type="radio"] {
   }
 }
 
+/* Gradient only applies when banner has text overlay */
 .hero-premium::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(90deg, rgba(39, 25, 29, 0.82) 0%, rgba(39, 25, 29, 0.52) 34%, rgba(39, 25, 29, 0.04) 60%),
-    linear-gradient(180deg, rgba(39, 25, 29, 0.04), rgba(39, 25, 29, 0.24));
+  background: none;
   pointer-events: none;
 }
 
+/* Only add gradient when text is present (controlled via has-text class) */
+.hero-premium.has-text::after {
+  background:
+    linear-gradient(90deg, rgba(39, 25, 29, 0.55) 0%, rgba(39, 25, 29, 0.25) 40%, transparent 65%);
+}
+
 @media (max-width: 768px) {
-  .hero-premium::after {
+  .hero-premium.has-text::after {
     background:
-      linear-gradient(180deg, rgba(39, 25, 29, 0.08) 0%, rgba(39, 25, 29, 0.75) 100%);
+      linear-gradient(180deg, transparent 40%, rgba(39, 25, 29, 0.6) 100%);
   }
 }
 

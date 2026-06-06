@@ -322,7 +322,7 @@ export default function CheckoutPage() {
                   <div className="ml-[calc(3rem+0.75rem)] mt-2 space-y-1.5">
                     {item.addOns.map((a, ai) => (
                       <div key={ai} className="flex items-center gap-2 text-[11px]">
-                        <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0 relative bg-surface-blush">
+                        <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 relative bg-surface-blush border border-border/30">
                           {addOnImages[a.name] ? (
                             <img src={addOnImages[a.name]} alt={a.name} className="w-full h-full object-cover" />
                           ) : (

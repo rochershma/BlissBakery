@@ -188,19 +188,23 @@ export function SiteHeader() {
 
               {showProfile && user && (
                 <>
-                  <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setShowProfile(false)} />
-                  <div className="fixed inset-x-0 bottom-0 max-h-[80dvh] bg-white shadow-2xl z-[70] rounded-t-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:max-h-none overflow-y-auto" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-                    <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1 rounded-full hover:bg-muted z-10" aria-label="Close menu"><X className="w-4 h-4" /></button>
-                    <div className="p-4 border-b border-border">
+                  <div className="fixed inset-0 bg-black/40 z-[90]" onClick={() => setShowProfile(false)} />
+                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto overflow-y-auto animate-slide-up" style={{ maxHeight: '80dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+                    {/* Drag handle — mobile only */}
+                    <div className="md:hidden flex justify-center pt-2 pb-1">
+                      <div className="w-10 h-1 rounded-full bg-border" />
+                    </div>
+                    <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-muted z-10 md:block hidden" aria-label="Close menu"><X className="w-4 h-4" /></button>
+                    <div className="px-4 py-3 border-b border-border">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">{(user.name || user.phone)[0].toUpperCase()}</div>
+                        <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">{(user.name || user.phone)[0].toUpperCase()}</div>
                         <div>
                           <p className="font-semibold text-foreground text-sm">{user.name || "User"}</p>
                           <p className="text-[11px] text-muted-foreground">+91 {user.phone}</p>
                         </div>
                       </div>
                     </div>
-                    <nav className="p-1">
+                    <nav className="p-1.5">
                       {[
                         { href: "/profile", icon: User, label: "Profile" },
                         { href: "/orders", icon: Package, label: "My Orders" },
@@ -208,22 +212,22 @@ export function SiteHeader() {
                         { href: "/offers", icon: Heart, label: "Offers" },
                       ].map(({ href, icon: Icon, label }) => (
                         <Link key={href} href={href} onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors min-h-[44px]">
-                          <Icon className="w-4 h-4 text-muted-foreground" />{label}
-                          <ChevronRight className="w-3.5 h-3.5 text-muted-foreground ml-auto" />
+                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted transition-colors min-h-[48px]">
+                          <Icon className="w-5 h-5 text-muted-foreground" />{label}
+                          <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
                         </Link>
                       ))}
                       {(user.role === "ADMIN" || user.role === "STAFF") && (
                         <Link href="/admin" onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-primary font-medium hover:bg-primary/5 transition-colors min-h-[44px]">
-                          <Shield className="w-4 h-4" />Admin Panel<ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-primary font-medium hover:bg-primary/5 transition-colors min-h-[48px]">
+                          <Shield className="w-5 h-5" />Admin Panel<ChevronRight className="w-4 h-4 ml-auto" />
                         </Link>
                       )}
                     </nav>
-                    <div className="p-1 border-t border-border">
+                    <div className="p-1.5 border-t border-border">
                       <button onClick={() => { logout(); setShowProfile(false); }}
-                        className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-destructive hover:bg-red-50 transition-colors w-full min-h-[44px]">
-                        <LogOut className="w-4 h-4" />Logout
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors w-full min-h-[48px]">
+                        <LogOut className="w-5 h-5" />Logout
                       </button>
                     </div>
                   </div>

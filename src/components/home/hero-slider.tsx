@@ -42,7 +42,7 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
             return (
               <SwiperSlide key={banner.id}>
-                <div className={`hero-premium relative ${hasMobileBanner ? 'hero-has-mobile' : ''}`}>
+                <div className={`hero-premium relative ${hasMobileBanner ? 'hero-has-mobile' : ''} ${hasText ? 'has-text' : ''}`}>
                   {/* Desktop banner image */}
                   <div className={`absolute inset-0 overflow-hidden rounded-[16px] md:rounded-[22px] ${hasMobileBanner ? 'hidden md:block' : ''}`}>
                     <Image
@@ -75,29 +75,27 @@ export function HeroSlider({ banners }: { banners: Banner[] }) {
 
                   {/* Content overlay — only if banner has text from admin */}
                   {hasText && (
-                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] h-full flex flex-col justify-end md:justify-center p-4 md:p-[42px]">
+                    <div className="relative z-[2] w-full md:w-[44%] md:max-w-[460px] h-full flex flex-col justify-end md:justify-center p-5 md:p-[42px]">
                       {/* Title */}
                       {banner.title && (
-                        <h1 className="reveal reveal-delay-1 text-[28px] md:text-[clamp(36px,3.5vw,48px)] font-serif font-bold text-white leading-[0.96] tracking-[-0.055em] max-w-[460px]"
-                          style={{ textShadow: "0 8px 34px rgba(42,31,34,0.32)" }}
-                        >
+                        <h1 className="text-[22px] md:text-[clamp(36px,3.5vw,48px)] font-serif font-bold text-white leading-[1.05] tracking-[-0.03em] max-w-[460px] drop-shadow-lg">
                           {banner.title}
                         </h1>
                       )}
 
                       {/* Subtitle */}
                       {banner.subtitle && (
-                        <p className="reveal reveal-delay-2 text-white/[0.88] text-sm md:text-[15px] leading-[1.62] mt-3 max-w-[430px]">
+                        <p className="text-white/90 text-[13px] md:text-[15px] leading-[1.5] mt-2 md:mt-3 max-w-[430px] drop-shadow-md">
                           {banner.subtitle}
                         </p>
                       )}
 
                       {/* CTA Button */}
                       {banner.ctaText && (
-                        <div className="reveal reveal-delay-3 flex items-center gap-3.5 mt-5 flex-col md:flex-row">
+                        <div className="flex items-center gap-3.5 mt-4 md:mt-5">
                           <Link
                             href={banner.ctaLink || banner.linkUrl || "/store/kuchaman-city/menu"}
-                            className="btn-premium btn-premium-primary text-sm w-full md:w-auto"
+                            className="btn-premium btn-premium-primary text-sm"
                           >
                             {banner.ctaText}
                           </Link>
