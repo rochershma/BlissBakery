@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState<{ code: string; discount: number } | null>(null);
   const [promoError, setPromoError] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [storeConfig, setStoreConfig] = useState({ pincode: "341508", city: "Kuchaman City", packagingCharge: 15, deliveryCharge: 30, gstRate: 0, minDeliveryOrder: 200 });
@@ -152,6 +153,7 @@ export default function CheckoutPage() {
       return;
     }
     setPromoError("");
+    setPromoLoading(true);
     try {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
@@ -166,6 +168,8 @@ export default function CheckoutPage() {
       }
     } catch {
       setPromoError("Failed to validate promo code");
+    } finally {
+      setPromoLoading(false);
     }
   }
 
@@ -544,9 +548,10 @@ export default function CheckoutPage() {
                 />
                 <button
                   onClick={handleApplyPromo}
-                  className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary-hover transition-colors"
+                  disabled={promoLoading}
+                  className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:bg-primary-hover transition-colors disabled:opacity-60"
                 >
-                  Apply
+                  {promoLoading ? "Applying..." : "Apply"}
                 </button>
               </div>
               {promoError && <p className="text-xs text-destructive mt-2">{promoError}</p>}
