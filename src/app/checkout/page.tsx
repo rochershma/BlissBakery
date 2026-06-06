@@ -416,18 +416,18 @@ export default function CheckoutPage() {
               <DeliveryAddressSection
                 savedAddresses={savedAddresses}
                 selectedAddressId={selectedAddressId}
-                onSelectSaved={(id, addr) => {
-                  setSelectedAddressId(id);
+                onSelectAddress={(addr, addrId) => {
                   setDeliveryAddress(addr);
-                }}
-                onManualAddress={(addr) => {
-                  setDeliveryAddress(addr);
-                  setSelectedAddressId("");
+                  setSelectedAddressId(addrId || "");
                 }}
                 onServiceability={setServiceability}
                 storePincode={storeConfig.pincode}
               />
-              {deliveryAddress && <p className="text-xs text-muted-foreground mt-2">Delivering to: {deliveryAddress}</p>}
+              {deliveryAddress && (
+                <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mt-2 flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" /> Delivering to: {deliveryAddress.slice(0, 60)}{deliveryAddress.length > 60 ? "..." : ""}
+                </p>
+              )}
             </div>
           )}
         </div>
