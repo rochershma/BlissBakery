@@ -5,6 +5,7 @@ import Image from "next/image";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { SiteHeader } from "@/components/shared/site-header";
 import { CheckCircle, Phone, MessageCircle, RotateCcw, MapPin, ArrowLeft, Copy, ChevronDown, Clock, Truck, Package, XCircle, ChefHat } from "lucide-react";
+import { ClearCartOnMount } from "@/components/shared/clear-cart";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -42,6 +43,7 @@ export default async function OrderPage({ params }: Props) {
   return (
     <div className="flex flex-col min-h-screen bg-background pb-20">
       <SiteHeader />
+      {order.paymentStatus === "PAID" && <ClearCartOnMount />}
 
       <main className="max-w-2xl mx-auto w-full px-4 py-5">
         {/* Back + Order Number */}
