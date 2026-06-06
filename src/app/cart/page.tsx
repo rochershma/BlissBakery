@@ -362,11 +362,11 @@ export default function CartPage() {
             {/* Delivery promise banner */}
             <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-2.5 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-4 h-4 text-green-600" />
+                <Leaf className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-green-800">Same-Day Delivery Available</p>
-                <p className="text-[10px] text-green-600">Order 2 hours before your desired slot · Free pickup from store</p>
+                <p className="text-xs font-semibold text-green-800">100% Eggless · Freshly Baked</p>
+                <p className="text-[10px] text-green-600">Same-day delivery & free store pickup available</p>
               </div>
             </div>
 
@@ -436,12 +436,12 @@ export default function CartPage() {
                     <span className="font-semibold text-foreground">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Packaging</span>
+                    <span className="text-muted-foreground">Safe Cake Packaging</span>
                     <span className="font-semibold text-foreground">{formatPrice(storeConfig.packagingCharge)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Delivery</span>
-                    <span className="font-semibold text-green-600">FREE</span>
+                    <span className="font-semibold text-muted-foreground text-[11px]">Calculated at checkout</span>
                   </div>
                   {storeConfig.gstRate > 0 && (
                     <div className="flex justify-between text-sm">
@@ -467,8 +467,17 @@ export default function CartPage() {
 
               {/* Cancellation note */}
               <p className="text-[10px] text-muted-foreground text-center px-4">
-                By proceeding, you agree to our terms. Because each cake is freshly prepared, confirmed orders cannot be cancelled.
+                Because each cake is freshly prepared, confirmed orders cannot be cancelled after baking begins.
               </p>
+
+              {/* Desktop Checkout Button */}
+              <Link
+                href="/checkout"
+                className="hidden md:flex w-full items-center justify-between bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
+              >
+                <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
+                <span className="flex items-center gap-1 font-semibold">Checkout <ChevronRight className="w-4 h-4" /></span>
+              </Link>
             </div>
           </div>
         </div>
