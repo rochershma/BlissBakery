@@ -102,10 +102,19 @@ export default function CheckoutPage() {
 
   if (itemCount === 0) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center px-4 text-center">
-        <div className="text-6xl mb-4">🛒</div>
-        <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
-        <Link href="/" className="text-primary font-medium hover:underline">Go back to menu</Link>
+      <div className="flex flex-col min-h-screen bg-background">
+        <SiteHeader />
+        <div className="flex-1 flex flex-col items-center justify-center px-4 text-center">
+          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+            <ShieldCheck className="w-10 h-10 text-primary/50" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground font-serif mb-2">Your cart is empty</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-xs">Add a cake before checkout. Browse our freshly baked collection.</p>
+          <div className="flex flex-col gap-2 w-full max-w-[240px]">
+            <Link href="/store/kuchaman-city/menu" className="btn-premium btn-premium-primary text-sm w-full">Browse Cakes</Link>
+            <Link href="/store/kuchaman-city/custom-cakes" className="btn-premium btn-premium-secondary text-sm w-full">Design Custom Cake</Link>
+          </div>
+        </div>
       </div>
     );
   }
@@ -701,8 +710,8 @@ export default function CheckoutPage() {
         </div>{/* end md:flex-1 */}
 
         {/* RIGHT COLUMN — Bill (sticky on desktop) */}
-        <div className="hidden md:block md:w-80 md:flex-shrink-0">
-          <div className="sticky top-4 space-y-4">
+        <div className="hidden md:block md:w-[340px] md:flex-shrink-0">
+          <div className="sticky top-[80px] space-y-4">
             <div className="bg-white rounded-2xl border border-border overflow-hidden">
               <div className="px-4 py-3 bg-muted/50 border-b border-border">
                 <h2 className="label-premium text-foreground">Bill Details</h2>
@@ -740,15 +749,33 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground text-center">⚠️ Non-refundable once placed</p>
+            <p className="text-xs text-muted-foreground text-center mt-3">Because every cake is freshly prepared, confirmed orders cannot be cancelled after baking begins.</p>
+            {/* Desktop Pay Button */}
+            <button
+              onClick={handlePaySecurely}
+              disabled={processing}
+              className="w-full flex items-center justify-between bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 hover:bg-primary-hover transition-colors disabled:opacity-50 mt-4 shadow-lg shadow-primary/20"
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
+              </div>
+              <span className="flex items-center gap-1 font-semibold">
+                {processing ? "Processing..." : "Pay Securely →"}
+              </span>
+            </button>
+            <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1"><Leaf className="w-3 h-3 text-green-600" /> 100% Eggless</span>
+              <span className="flex items-center gap-1"><ShieldCheck className="w-3 h-3 text-blue-600" /> Secure</span>
+            </div>
           </div>
         </div>
         </div>{/* end md:flex */}
       </main>
 
-      {/* Sticky Pay Button */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-        <div className="max-w-3xl mx-auto px-4 py-3">
+      {/* Sticky Pay Button — mobile only */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="px-4 py-3">
           <button
             onClick={handlePaySecurely}
             disabled={processing}
