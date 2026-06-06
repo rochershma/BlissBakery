@@ -420,6 +420,11 @@ export default function CheckoutPage() {
                   if (svc) setServiceability(svc);
                 }}
                 onServiceability={setServiceability}
+                onAddressSaved={() => {
+                  fetch("/api/addresses").then((r) => r.json()).then((data) => {
+                    if (data.addresses) setSavedAddresses(data.addresses);
+                  }).catch(() => {});
+                }}
                 storePincode={storeConfig.pincode}
               />
               {deliveryAddress && (
