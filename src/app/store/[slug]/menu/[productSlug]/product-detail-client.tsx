@@ -102,8 +102,9 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   useEffect(() => setHydrated(true), []);
 
   // Only show cake-specific fields for cake categories
-  const cakeSlugs = ["cakes", "designer-cakes", "occasion-cakes"];
+  const cakeSlugs = ["cakes", "designer-cakes", "occasion-cakes", "custom-cakes"];
   const isCake = cakeSlugs.includes(product.categorySlug || "");
+  const hasFlavours = product.flavours && product.flavours.length > 0;
 
   const unitPrice = selectedVariant ? selectedVariant.price : product.basePrice;
   const productAddOnTotal = product.addOns.filter(a => selectedAddOns.has(a.id)).reduce((s, a) => s + a.price, 0);
@@ -207,17 +208,17 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       )}
 
       {/* Flavour & Occasion */}
+      {hasFlavours && (
+        <FlavourSelect
+          flavours={product.flavours!}
+          selected={selectedFlavour}
+          onSelect={setSelectedFlavour}
+        />
+      )}
+
       {isCake && (
       <>
       <div className="grid grid-cols-2 gap-3">
-        {/* Flavour */}
-        {product.flavours && product.flavours.length > 0 && (
-          <FlavourSelect
-            flavours={product.flavours}
-            selected={selectedFlavour}
-            onSelect={setSelectedFlavour}
-          />
-        )}
         {/* Occasion */}
         <OccasionSelect
           occasions={OCCASIONS}

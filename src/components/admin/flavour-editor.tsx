@@ -1,46 +1,34 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, X, Settings } from "lucide-react";
+import Link from "next/link";
 
 interface Props {
   defaultFlavours?: string[];
 }
 
-const COMMON_FLAVOURS = [
-  "Chocolate",
-  "Chocochips",
-  "Hazelnut",
-  "Nutella",
-  "Belgian Chocolate",
-  "Almond Truffle",
-  "Truffle Dutch",
-  "Vanilla",
-  "Butterscotch",
-  "Salted Caramel",
-  "Black Forest",
-  "Red Velvet",
-  "Pineapple",
-  "Blueberry",
-  "Strawberry",
-  "Mango",
-  "Raspberry",
-  "Real Fruit",
-  "Orange Almond Choco",
-  "Rasmalai",
-  "Kesar Pista",
-  "Rose",
-  "Filter Coffee",
-  "Thandai",
-  "Kunafa Pista",
-  "KitKat",
-  "Oreo",
-  "Ferrero Rocher",
+const FALLBACK_FLAVOURS = [
+  "Chocolate", "Vanilla", "Butterscotch", "Black Forest", "Red Velvet",
+  "Pineapple", "Strawberry", "Mango", "Blueberry",
 ];
 
 export function FlavourEditor({ defaultFlavours = [] }: Props) {
   const [flavours, setFlavours] = useState<string[]>(defaultFlavours);
   const [customInput, setCustomInput] = useState("");
+  const [commonFlavours, setCommonFlavours] = useState<string[]>(FALLBACK_FLAVOURS);
+
+  // Fetch default flavours from store settings
+  useEffect(() => {
+    fetch("/api/admin/flavours")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.flavours && data.flavours.length > 0) {
+          setCommonFlavours(data.flavours);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const normalizedSet = useMemo(
     () => new Set(flavours.map((item) => item.trim().toLowerCase())),
@@ -91,23 +79,26 @@ export function FlavourEditor({ defaultFlavours = [] }: Props) {
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-medium text-foreground">Common Flavours</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-medium text-foreground">Common Flavours</p>
+            <Link href="/admin/flavours" className="text-[10px] text-primary/60 hover:text-primary flex items-center gap-0.5 no-min-touch"><Settings className="w-3 h-3" /> Manage</Link>
+          </div>
           <button
             type="button"
             onClick={() => {
-              if (flavours.length === COMMON_FLAVOURS.length) {
+              if (flavours.length === commonFlavours.length) {
                 setFlavours([]);
               } else {
-                setFlavours([...COMMON_FLAVOURS]);
+                setFlavours([...commonFlavours]);
               }
             }}
             className="text-[11px] text-primary font-semibold hover:underline no-min-touch"
           >
-            {flavours.length === COMMON_FLAVOURS.length ? "Deselect All" : "Select All"}
+            {flavours.length === commonFlavours.length ? "Deselect All" : "Select All"}
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {COMMON_FLAVOURS.map((flavour) => {
+          {commonFlavours.map((flavour) => {
             const checked = normalizedSet.has(flavour.toLowerCase());
             return (
               <label
