@@ -189,12 +189,13 @@ export function SiteHeader() {
               {showProfile && user && (
                 <>
                   <div className="fixed inset-0 bg-black/40 z-[90]" onClick={() => setShowProfile(false)} />
-                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl overflow-y-auto animate-slide-up md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:overflow-visible" style={{ maxHeight: '70dvh', paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
-                    {/* Drag handle — mobile only */}
-                    <div className="md:hidden flex justify-center pt-2 pb-1">
-                      <div className="w-10 h-1 rounded-full bg-border" />
+                  {/* Mobile: slide-from-right drawer. Desktop: dropdown */}
+                  <div className="fixed top-0 right-0 bottom-0 w-[280px] z-[91] bg-white shadow-2xl overflow-y-auto animate-slide-in-right md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:animate-none" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
+                    {/* Close button */}
+                    <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Account</p>
+                      <button onClick={() => setShowProfile(false)} className="no-min-touch p-1.5 rounded-full hover:bg-muted" aria-label="Close menu"><X className="w-4 h-4" /></button>
                     </div>
-                    <button onClick={() => setShowProfile(false)} className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-muted z-10 md:block hidden" aria-label="Close menu"><X className="w-4 h-4" /></button>
                     <div className="px-4 py-3 border-b border-border">
                       <div className="flex items-center gap-3">
                         <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-base">{(user.name || user.phone)[0].toUpperCase()}</div>
@@ -212,21 +213,21 @@ export function SiteHeader() {
                         { href: "/offers", icon: Heart, label: "Offers" },
                       ].map(({ href, icon: Icon, label }) => (
                         <Link key={href} href={href} onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors no-min-touch">
+                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-foreground hover:bg-muted transition-colors no-min-touch">
                           <Icon className="w-5 h-5 text-muted-foreground" />{label}
                           <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
                         </Link>
                       ))}
                       {(user.role === "ADMIN" || user.role === "STAFF") && (
                         <Link href="/admin" onClick={() => setShowProfile(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-primary font-medium hover:bg-primary/5 transition-colors no-min-touch">
+                          className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-primary font-medium hover:bg-primary/5 transition-colors no-min-touch">
                           <Shield className="w-5 h-5" />Admin Panel<ChevronRight className="w-4 h-4 ml-auto" />
                         </Link>
                       )}
                     </nav>
-                    <div className="p-1.5 border-t border-border">
+                    <div className="p-1.5 border-t border-border mt-auto">
                       <button onClick={() => { logout(); setShowProfile(false); }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors w-full no-min-touch">
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-destructive hover:bg-red-50 transition-colors w-full no-min-touch">
                         <LogOut className="w-5 h-5" />Logout
                       </button>
                     </div>
