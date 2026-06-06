@@ -14,7 +14,7 @@ export default async function OffersPage() {
 
       <section className="bg-gradient-to-br from-primary/10 via-primary-light to-secondary py-12 animate-fade-in">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2 font-serif">🎉 Offers &amp; Promo Codes</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2 font-serif">Offers &amp; Promo Codes</h1>
           <p className="text-muted-foreground">Save more on your favourite treats</p>
         </div>
       </section>

@@ -146,7 +146,7 @@ export default function CustomCakesPage() {
       <section className="bg-gradient-to-br from-accent/10 via-primary-light to-primary/10 py-10 animate-fade-in">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h1 className="text-3xl font-bold text-foreground mb-2 font-serif">
-            🎂 Design Your Dream Cake
+            Design Your Dream Cake
           </h1>
           <p className="text-muted-foreground">
             Tell us what you want — we&apos;ll craft it with love. Birthdays, weddings, anniversaries &amp; more!

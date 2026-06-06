@@ -29,7 +29,7 @@ export default async function ThemePage({ params, searchParams }: Props) {
   if (!store) return notFound();
 
   const where = { isAvailable: true, themes: { contains: `"${slug}"` } };
-  const [products, totalCount, dbOccasions, dbThemes] = await Promise.all([
+  const [products, totalCount, dbOccasions, allThemes] = await Promise.all([
     db.product.findMany({
       where, include: { category: true },
       orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
@@ -39,6 +39,10 @@ export default async function ThemePage({ params, searchParams }: Props) {
     db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
     db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
   ]);
+  const dbThemes = (await Promise.all(allThemes.map(async (t) => {
+    const c = await db.product.count({ where: { isAvailable: true, themes: { contains: `"${t.slug}"` } } });
+    return c > 0 ? t : null;
+  }))).filter(Boolean) as typeof allThemes;
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (

@@ -212,11 +212,15 @@ export default async function OccasionPage({ params, searchParams }: Props) {
   ]);
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  // Explore ranges data
-  const [dbOccasions, dbThemes] = await Promise.all([
+  // Explore ranges data — filter out empty themes
+  const [dbOccasions, allThemes] = await Promise.all([
     db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
     db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
   ]);
+  const dbThemes = (await Promise.all(allThemes.map(async (t) => {
+    const count = await db.product.count({ where: { isAvailable: true, themes: { contains: `"${t.slug}"` } } });
+    return count > 0 ? t : null;
+  }))).filter(Boolean) as typeof allThemes;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
