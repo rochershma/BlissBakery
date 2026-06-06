@@ -117,7 +117,7 @@ export function HoverImageCycler({ images, alt, sizes = "(max-width:640px) 50vw,
             <button
               key={idx}
               onClick={(e) => goToImage(idx, e)}
-              className={`rounded-full transition-all ${idx === activeIdx ? "bg-white w-3 h-1.5" : "bg-white/50 w-1.5 h-1.5"}`}
+              className={`no-min-touch rounded-full transition-all ${idx === activeIdx ? "bg-white w-3 h-1.5" : "bg-white/50 w-1.5 h-1.5"}`}
             />
           ))}
         </div>

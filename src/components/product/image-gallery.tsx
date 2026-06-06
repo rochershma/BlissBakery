@@ -89,7 +89,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
                 key={idx}
                 onClick={() => setActiveIdx(idx)}
                 onMouseEnter={() => setActiveIdx(idx)}
-                className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+                className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
                   idx === activeIdx
                     ? "border-primary ring-1 ring-primary/30"
                     : "border-transparent opacity-60 hover:opacity-100"
@@ -154,10 +154,10 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
             {/* Mobile arrows */}
             {images.length > 1 && isMobile && (
               <>
-                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/70 flex items-center justify-center shadow-sm z-10">
+                <button onClick={(e) => { e.stopPropagation(); goPrev(); }} className="no-min-touch absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 flex items-center justify-center shadow-sm z-10">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/70 flex items-center justify-center shadow-sm z-10">
+                <button onClick={(e) => { e.stopPropagation(); goNext(); }} className="no-min-touch absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/70 flex items-center justify-center shadow-sm z-10">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </>
@@ -170,7 +170,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
                   <button
                     key={idx}
                     onClick={(e) => { e.stopPropagation(); setActiveIdx(idx); }}
-                    className={`rounded-full transition-all ${idx === activeIdx ? "bg-white w-4 h-1.5" : "bg-white/50 w-1.5 h-1.5"}`}
+                    className={`no-min-touch rounded-full transition-all ${idx === activeIdx ? "bg-white w-4 h-1.5" : "bg-white/50 w-1.5 h-1.5"}`}
                   />
                 ))}
               </div>
@@ -210,7 +210,7 @@ export function ProductImageGallery({ images, name, isBestseller }: Props) {
             <button
               key={idx}
               onClick={() => setActiveIdx(idx)}
-              className={`relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-all ${
+              className={`relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border-2 transition-all ${
                 idx === activeIdx
                   ? "border-primary ring-1 ring-primary/30"
                   : "border-transparent opacity-60 hover:opacity-100"

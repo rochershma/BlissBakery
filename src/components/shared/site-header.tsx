@@ -189,7 +189,7 @@ export function SiteHeader() {
               {showProfile && user && (
                 <>
                   <div className="fixed inset-0 bg-black/40 z-[90]" onClick={() => setShowProfile(false)} />
-                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto overflow-y-auto animate-slide-up" style={{ maxHeight: '80dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+                  <div className="fixed inset-x-0 bottom-0 z-[91] bg-white rounded-t-2xl shadow-2xl md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto overflow-y-auto animate-slide-up" style={{ maxHeight: '85dvh', paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
                     {/* Drag handle — mobile only */}
                     <div className="md:hidden flex justify-center pt-2 pb-1">
                       <div className="w-10 h-1 rounded-full bg-border" />

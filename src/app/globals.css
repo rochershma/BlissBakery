@@ -129,7 +129,7 @@ img, video, canvas, svg {
 
 /* Global 44px minimum touch targets on mobile */
 @media (max-width: 768px) {
-  button:not(.no-min-touch),
+  button:not(.no-min-touch):not(.swiper-pagination-bullet),
   [role="button"]:not(.no-min-touch) {
     min-height: 44px;
   }
