@@ -188,9 +188,9 @@ export function SiteHeader() {
 
               {showProfile && user && (
                 <>
-                  <div className="fixed inset-0 bg-black/40 z-[90]" onClick={() => setShowProfile(false)} />
-                  {/* Mobile: slide-from-right drawer. Desktop: dropdown */}
-                  <div className="fixed top-0 right-0 bottom-0 w-[280px] z-[91] bg-white shadow-2xl overflow-y-auto animate-slide-in-right md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:animate-none" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}>
+                  <div className="fixed inset-0 bg-black/40 z-[200]" onClick={() => setShowProfile(false)} />
+                  {/* Mobile: slide-from-right full-screen drawer. Desktop: dropdown */}
+                  <div className="fixed inset-y-0 right-0 w-[280px] z-[201] bg-white shadow-2xl overflow-y-auto md:absolute md:inset-auto md:right-0 md:top-full md:mt-1.5 md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:h-auto" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
                     {/* Close button */}
                     <div className="flex items-center justify-between px-4 pt-4 pb-2">
                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Account</p>
