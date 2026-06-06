@@ -90,7 +90,22 @@ export function FlavourEditor({ defaultFlavours = [] }: Props) {
       </div>
 
       <div>
-        <p className="text-xs font-medium text-foreground mb-2">Common Flavours</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-foreground">Common Flavours</p>
+          <button
+            type="button"
+            onClick={() => {
+              if (flavours.length === COMMON_FLAVOURS.length) {
+                setFlavours([]);
+              } else {
+                setFlavours([...COMMON_FLAVOURS]);
+              }
+            }}
+            className="text-[11px] text-primary font-semibold hover:underline no-min-touch"
+          >
+            {flavours.length === COMMON_FLAVOURS.length ? "Deselect All" : "Select All"}
+          </button>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {COMMON_FLAVOURS.map((flavour) => {
             const checked = normalizedSet.has(flavour.toLowerCase());
