@@ -241,15 +241,34 @@ export default function OrdersPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <Link key={order.id} href={`/order/${order.id}`} className="block">
-                <OrderCard order={order} />
-              </Link>
-            ))}
-          </div>
+          <OrdersList orders={orders} />
         )}
       </div>
+    </div>
+  );
+}
+
+function OrdersList({ orders }: { orders: Order[] }) {
+  const INITIAL_SHOW = 10;
+  const [showCount, setShowCount] = useState(INITIAL_SHOW);
+  const visible = orders.slice(0, showCount);
+  const hasMore = showCount < orders.length;
+
+  return (
+    <div className="space-y-4">
+      {visible.map((order) => (
+        <Link key={order.id} href={`/order/${order.id}`} className="block">
+          <OrderCard order={order} />
+        </Link>
+      ))}
+      {hasMore && (
+        <button
+          onClick={() => setShowCount(c => c + 10)}
+          className="w-full py-3 rounded-xl border border-border text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+        >
+          Show More Orders ({orders.length - showCount} remaining)
+        </button>
+      )}
     </div>
   );
 }

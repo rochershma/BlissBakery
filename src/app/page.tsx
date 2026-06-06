@@ -99,12 +99,24 @@ export default async function HomePage() {
         storeSlug={store.slug}
       />
 
-      {/* Shop by Occasion */}
-      <OccasionCarousel occasions={(dbOccasions.length > 0 ? dbOccasions : occasions).map(o => ({
-        name: o.name,
-        slug: o.slug,
-        image: o.image || "/images/categories/cakes.jpg",
-      }))} />
+      {/* Shop by Occasion — only show occasions with products */}
+      {await (async () => {
+        const allOccasions = dbOccasions.length > 0 ? dbOccasions : occasions.map(o => ({ ...o, id: o.slug }));
+        const withProducts = (await Promise.all(
+          allOccasions.map(async (o) => {
+            const count = await db.product.count({ where: { isAvailable: true, occasions: { contains: `"${o.slug}"` } } });
+            return count > 0 ? o : null;
+          })
+        )).filter(Boolean) as typeof allOccasions;
+        if (withProducts.length === 0) return null;
+        return (
+          <OccasionCarousel occasions={withProducts.map(o => ({
+            name: o.name,
+            slug: o.slug,
+            image: o.image || "/images/categories/cakes.jpg",
+          }))} />
+        );
+      })()}
 
       {/* Shop by Theme — only show themes with products */}
       {await (async () => {

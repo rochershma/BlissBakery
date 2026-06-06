@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, MessageSquare, Home, ChevronRight, X, Leaf, Clock, Gift, Tag, Check, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { SiteHeader } from "@/components/shared/site-header";
+import { useConfirm } from "@/components/shared/confirm-dialog";
 
 interface StoreAddOn {
   id: string;
@@ -254,6 +255,7 @@ export default function CartPage() {
   const [storeConfig, setStoreConfig] = useState({ packagingCharge: 15, gstRate: 0 });
   const [addOnImages, setAddOnImages] = useState<Record<string, string>>({});
   const [storeAddOns, setStoreAddOns] = useState<StoreAddOn[]>([]);
+  const { confirm } = useConfirm();
   useEffect(() => {
     setHydrated(true);
     fetch("/api/store/config").then(r => r.json()).then(data => {
@@ -349,7 +351,10 @@ export default function CartPage() {
               <p className="text-[11px] text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"} · {formatPrice(subtotal)}</p>
             </div>
           </div>
-          <button onClick={clearCart} className="text-xs text-destructive hover:underline font-medium">
+          <button onClick={async () => {
+            const ok = await confirm({ title: "Clear cart?", message: "This will remove all cakes and add-ons from your order.", confirmLabel: "Clear Cart", destructive: true });
+            if (ok) clearCart();
+          }} className="text-xs text-destructive hover:underline font-medium">
             Clear All
           </button>
         </div>
