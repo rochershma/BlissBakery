@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Navigation, Search, X, Home, Briefcase, AlertCircle, Loader2, Check, ChevronLeft } from "lucide-react";
+import { MapPin, Navigation, Search, X, Home, Briefcase, AlertCircle, Loader2, Check, ChevronLeft, Edit3 } from "lucide-react";
 
-// Types
 export interface DeliveryServiceability {
   serviceable: boolean;
   distanceKm: number;
@@ -31,12 +30,15 @@ export function calculateServiceability(lat: number, lng: number): DeliveryServi
   return { serviceable: false, distanceKm: d, deliveryFee: 0, reason: "Outside delivery area" };
 }
 
-interface SavedAddr { id: string; label: string; fullAddress: string; landmark: string | null; city: string | null; pincode: string; }
+interface SavedAddr {
+  id: string; label: string; fullAddress: string; landmark: string | null;
+  city: string | null; pincode: string; latitude: number | null; longitude: number | null;
+}
 
 interface Props {
   savedAddresses: SavedAddr[];
   selectedAddressId: string;
-  onSelectAddress: (formattedAddr: string, addrId?: string) => void;
+  onSelectAddress: (formattedAddr: string, addrId?: string, svc?: DeliveryServiceability) => void;
   onServiceability?: (s: DeliveryServiceability) => void;
   storePincode: string;
 }
@@ -46,7 +48,7 @@ export function DeliveryAddressSection({ savedAddresses, selectedAddressId, onSe
   const [searchQuery, setSearchQuery] = useState("");
   const [predictions, setPredictions] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [pickedPlace, setPickedPlace] = useState<{ name: string; address: string; lat?: number; lng?: number } | null>(null);
+  const [pickedPlace, setPickedPlace] = useState<{ name: string; address: string; lat: number; lng: number } | null>(null);
   const [details, setDetails] = useState({ flatHouse: "", landmark: "" });
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState("");
@@ -114,33 +116,35 @@ export function DeliveryAddressSection({ savedAddresses, selectedAddressId, onSe
         } catch {}
         setPickedPlace({ name: "Current Location", address: addr, lat, lng }); setLocating(false); setStep("details");
       },
-      (err) => { setLocating(false); setLocError(err.code === 1 ? "Location permission denied. Search or enter address below." : "Could not detect location."); },
+      (err) => { setLocating(false); setLocError(err.code === 1 ? "Location permission denied. Please search for your address above." : "Could not detect location. Please search instead."); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
   const handleSelectSaved = (addr: SavedAddr) => {
-    const svc: DeliveryServiceability = addr.pincode === storePincode
-      ? { serviceable: true, distanceKm: 0, deliveryFee: 30 }
-      : { serviceable: false, distanceKm: 0, deliveryFee: 0, reason: `We deliver only to ${storePincode} area` };
-    setSvcResult(svc); onServiceability?.(svc);
-    onSelectAddress([addr.fullAddress, addr.city, addr.pincode].filter(Boolean).join(", "), addr.id);
+    // Use lat/lng if available for distance check, otherwise pincode
+    if (addr.latitude && addr.longitude) {
+      const svc = calculateServiceability(addr.latitude, addr.longitude);
+      setSvcResult(svc); onServiceability?.(svc);
+      onSelectAddress([addr.fullAddress, addr.city, addr.pincode].filter(Boolean).join(", "), addr.id, svc);
+    } else {
+      const svc: DeliveryServiceability = addr.pincode === storePincode
+        ? { serviceable: true, distanceKm: 0, deliveryFee: 30 }
+        : { serviceable: false, distanceKm: 0, deliveryFee: 0, reason: `Outside delivery area (${storePincode})` };
+      setSvcResult(svc); onServiceability?.(svc);
+      if (svc.serviceable) onSelectAddress([addr.fullAddress, addr.city, addr.pincode].filter(Boolean).join(", "), addr.id, svc);
+    }
   };
 
   const handleConfirmDetails = () => {
     if (!pickedPlace) return;
-    onSelectAddress([details.flatHouse, pickedPlace.address, details.landmark].filter(Boolean).join(", "));
+    const fullAddr = [details.flatHouse, pickedPlace.address, details.landmark].filter(Boolean).join(", ");
+    // Save address with lat/lng for future distance checks
+    saveAddressWithCoords(fullAddr, pickedPlace.lat, pickedPlace.lng, details.landmark);
+    onSelectAddress(fullAddr, undefined, svcResult || undefined);
   };
 
-  const handleManualConfirm = (flat: string, street: string, landmark: string, pin: string) => {
-    onSelectAddress([flat, street, landmark, "Kuchaman City", pin].filter(Boolean).join(", "));
-    const svc: DeliveryServiceability = pin === storePincode
-      ? { serviceable: true, distanceKm: 0, deliveryFee: 30 }
-      : { serviceable: false, distanceKm: 0, deliveryFee: 0, reason: `We deliver only to ${storePincode} area` };
-    setSvcResult(svc); onServiceability?.(svc);
-  };
-
-  // ── Step 2: Add house/flat details after picking location ──
+  // ── Step 2: Add house/flat details after picking from Google ──
   if (step === "details" && pickedPlace) {
     return (
       <div className="space-y-3">
@@ -156,22 +160,23 @@ export function DeliveryAddressSection({ savedAddresses, selectedAddressId, onSe
         {svcResult && (
           <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${svcResult.serviceable ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-destructive border border-red-200"}`}>
             {svcResult.serviceable
-              ? <><Check className="w-3.5 h-3.5" /> Delivery available{svcResult.distanceKm > 0 ? ` · ${svcResult.distanceKm} km` : ""} · {svcResult.deliveryFee === 0 ? "Free" : `₹${svcResult.deliveryFee}`}</>
-              : <><AlertCircle className="w-3.5 h-3.5" /> {svcResult.reason}</>}
+              ? <><Check className="w-3.5 h-3.5" /> Delivery available{svcResult.distanceKm > 0 ? ` · ${svcResult.distanceKm} km` : ""} · {svcResult.deliveryFee === 0 ? "Free delivery" : `₹${svcResult.deliveryFee} delivery`}</>
+              : <><AlertCircle className="w-3.5 h-3.5" /> {svcResult.reason || "Outside delivery area. Choose pickup or call us."}</>}
           </div>
         )}
-        <input value={details.flatHouse} onChange={(e) => setDetails({ ...details, flatHouse: e.target.value })} placeholder="House / Flat / Floor (optional)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        <input value={details.flatHouse} onChange={(e) => setDetails({ ...details, flatHouse: e.target.value })} placeholder="House / Flat / Floor (helps delivery)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         <input value={details.landmark} onChange={(e) => setDetails({ ...details, landmark: e.target.value })} placeholder="Landmark (optional)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         <button onClick={handleConfirmDetails} disabled={!svcResult?.serviceable} className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:bg-primary-hover transition-colors">
-          {svcResult?.serviceable ? "Deliver Here" : "Not serviceable"}
+          {svcResult?.serviceable ? "Deliver Here" : "Not serviceable — choose pickup"}
         </button>
       </div>
     );
   }
 
-  // ── Step 1: Pick location ──
+  // ── Step 1: Pick location (Google search + current location + saved) ──
   return (
     <div className="space-y-3">
+      {/* Google Places search — always visible */}
       {mapsReady && (
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -181,6 +186,8 @@ export function DeliveryAddressSection({ savedAddresses, selectedAddressId, onSe
           {searchQuery && <button onClick={() => { setSearchQuery(""); setPredictions([]); }} className="absolute right-3 top-1/2 -translate-y-1/2 no-min-touch"><X className="w-4 h-4 text-muted-foreground" /></button>}
         </div>
       )}
+      {!mapsReady && <p className="text-xs text-muted-foreground text-center py-2">Loading address search...</p>}
+
       {searchLoading && <p className="text-xs text-muted-foreground px-1">Searching...</p>}
       {predictions.length > 0 && (
         <ul role="listbox" className="border border-border rounded-xl overflow-hidden bg-white divide-y divide-border/50 max-h-[240px] overflow-y-auto">
@@ -192,55 +199,69 @@ export function DeliveryAddressSection({ savedAddresses, selectedAddressId, onSe
           ))}
         </ul>
       )}
+
       {predictions.length === 0 && (
         <>
+          {/* Current location */}
           <button onClick={handleCurrentLocation} disabled={locating}
             className="w-full flex items-center gap-2.5 px-3 py-3 rounded-xl border border-blue-200 bg-blue-50/50 text-sm text-blue-700 font-medium hover:bg-blue-100 transition-colors no-min-touch">
             {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
             {locating ? "Detecting..." : "Use current location"}
           </button>
           {locError && <p className="text-xs text-muted-foreground">{locError}</p>}
+
+          {/* Saved addresses — with distance info */}
           {savedAddresses.length > 0 && (
             <div className="space-y-2">
               <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Saved addresses</p>
               {savedAddresses.map((addr) => {
-                const sel = selectedAddressId === addr.id, bad = addr.pincode !== storePincode;
+                const sel = selectedAddressId === addr.id;
+                // Calculate serviceability for each saved address
+                const addrSvc = addr.latitude && addr.longitude
+                  ? calculateServiceability(addr.latitude, addr.longitude)
+                  : (addr.pincode === storePincode ? { serviceable: true, distanceKm: 0, deliveryFee: 30 } as DeliveryServiceability : { serviceable: false, distanceKm: 0, deliveryFee: 0, reason: "Outside area" } as DeliveryServiceability);
                 return (
-                  <button key={addr.id} onClick={() => !bad && handleSelectSaved(addr)} disabled={bad}
-                    className={`w-full flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all no-min-touch ${bad ? "opacity-50 border-border cursor-not-allowed" : sel ? "bg-primary/5 border-primary" : "bg-white border-border hover:border-primary/40"}`}>
+                  <button key={addr.id} onClick={() => handleSelectSaved(addr)} disabled={!addrSvc.serviceable}
+                    className={`w-full flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all no-min-touch ${!addrSvc.serviceable ? "opacity-50 border-border cursor-not-allowed" : sel ? "bg-primary/5 border-primary" : "bg-white border-border hover:border-primary/40"}`}>
                     {addr.label === "Home" ? <Home className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" /> : addr.label === "Work" ? <Briefcase className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" /> : <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />}
-                    <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-foreground">{addr.label}</p><p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{addr.fullAddress}</p>{bad && <p className="text-[10px] text-destructive mt-1">Outside delivery area</p>}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-foreground">{addr.label || "Address"}</p>
+                        {addrSvc.serviceable && <span className="text-[10px] text-green-600 font-medium">{addrSvc.distanceKm > 0 ? `${addrSvc.distanceKm} km · ` : ""}{addrSvc.deliveryFee === 0 ? "Free" : `₹${addrSvc.deliveryFee}`}</span>}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{addr.fullAddress}</p>
+                      {!addrSvc.serviceable && <p className="text-[10px] text-destructive mt-1">Outside delivery area</p>}
+                    </div>
                     {sel && <Check className="w-4 h-4 text-primary flex-shrink-0 mt-1" />}
                   </button>
                 );
               })}
             </div>
           )}
-          <ManualEntry storePincode={storePincode} onConfirm={handleManualConfirm} />
         </>
       )}
     </div>
   );
 }
 
-function ManualEntry({ storePincode, onConfirm }: { storePincode: string; onConfirm: (f: string, s: string, l: string, p: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [flat, setFlat] = useState(""); const [street, setStreet] = useState(""); const [landmark, setLandmark] = useState(""); const [pin, setPin] = useState("");
-  if (!open) return <button onClick={() => setOpen(true)} className="w-full text-center text-xs text-primary font-medium py-2 no-min-touch">Or enter address manually</button>;
-  return (
-    <div className="border border-border rounded-xl p-3 space-y-2.5">
-      <div className="flex items-center justify-between"><p className="text-xs font-semibold text-foreground">Enter address</p><button onClick={() => setOpen(false)} className="text-xs text-muted-foreground no-min-touch">Cancel</button></div>
-      <input value={flat} onChange={(e) => setFlat(e.target.value)} placeholder="House / Flat *" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
-      <input value={street} onChange={(e) => setStreet(e.target.value)} placeholder="Street / Area *" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
-      <input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="Landmark (optional)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
-      <div className="flex gap-2">
-        <input value="Kuchaman City" disabled className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm bg-muted/30 text-muted-foreground" />
-        <input value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Pincode *" inputMode="numeric" maxLength={6}
-          className={`w-28 px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 ${pin.length === 6 ? (pin === storePincode ? "border-green-400" : "border-red-300") : "border-border"}`} />
-      </div>
-      {pin.length === 6 && pin !== storePincode && <p className="text-[10px] text-destructive">We deliver only to {storePincode} area</p>}
-      <button onClick={() => onConfirm(flat, street, landmark, pin)} disabled={!flat.trim() || !street.trim() || pin.length !== 6}
-        className="w-full py-2.5 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:bg-primary-hover transition-colors">Use This Address</button>
-    </div>
-  );
+// Save address with coordinates for future distance checks
+async function saveAddressWithCoords(fullAddress: string, lat: number, lng: number, landmark?: string) {
+  try {
+    // Extract pincode from address
+    const pincodeMatch = fullAddress.match(/\b\d{6}\b/);
+    await fetch("/api/addresses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: "Other",
+        fullAddress,
+        landmark: landmark || null,
+        city: "Kuchaman City",
+        state: "Rajasthan",
+        pincode: pincodeMatch?.[0] || "341508",
+        latitude: lat,
+        longitude: lng,
+      }),
+    });
+  } catch {} // Non-blocking
 }

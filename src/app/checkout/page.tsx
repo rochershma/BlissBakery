@@ -57,7 +57,7 @@ export default function CheckoutPage() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("");
   const { toast } = useToast();
-  const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string; fullAddress: string; landmark: string | null; city: string | null; pincode: string }[]>([]);
+  const [savedAddresses, setSavedAddresses] = useState<{ id: string; label: string; fullAddress: string; landmark: string | null; city: string | null; pincode: string; latitude: number | null; longitude: number | null }[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [newAddr, setNewAddr] = useState({ flatHouse: "", streetArea: "", landmark: "", city: "Kuchaman City", pincode: "" });
@@ -244,16 +244,6 @@ export default function CheckoutPage() {
       const payData = await payRes.json();
 
       if (payData.success) {
-        // Save delivery address for future use (if new address was entered)
-        if (orderType === "DELIVERY" && deliveryAddress && !selectedAddressId) {
-          try {
-            await fetch("/api/addresses", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ label: "Other", fullAddress: deliveryAddress, pincode: storeConfig.pincode, city: storeConfig.city, state: "Rajasthan" }),
-            });
-          } catch {} // Non-blocking — don't fail the order
-        }
         // Redirect to order page — cart clears automatically there
         window.location.href = `/order/${orderData.order.id}`;
       } else {
@@ -424,9 +414,10 @@ export default function CheckoutPage() {
               <DeliveryAddressSection
                 savedAddresses={savedAddresses}
                 selectedAddressId={selectedAddressId}
-                onSelectAddress={(addr, addrId) => {
+                onSelectAddress={(addr, addrId, svc) => {
                   setDeliveryAddress(addr);
                   setSelectedAddressId(addrId || "");
+                  if (svc) setServiceability(svc);
                 }}
                 onServiceability={setServiceability}
                 storePincode={storeConfig.pincode}
