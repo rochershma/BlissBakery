@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat, Check, ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/shared/site-header";
 import { useToast } from "@/components/shared/toast";
+import { DeliveryAddressSection, calculateServiceability, type DeliveryServiceability } from "@/components/checkout/delivery-address";
 
 function ProgressBar() {
   return (
@@ -60,6 +61,7 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>("");
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [newAddr, setNewAddr] = useState({ flatHouse: "", streetArea: "", landmark: "", city: "Kuchaman City", pincode: "" });
+  const [serviceability, setServiceability] = useState<DeliveryServiceability | null>(null);
 
   useEffect(() => setHydrated(true), []);
 
@@ -120,11 +122,23 @@ export default function CheckoutPage() {
   }
 
   const packagingCharge = storeConfig.packagingCharge;
-  const deliveryCharge = orderType === "DELIVERY" ? storeConfig.deliveryCharge : 0;
+  const deliveryCharge = orderType === "DELIVERY" ? (serviceability?.deliveryFee ?? storeConfig.deliveryCharge) : 0;
   const discount = promoApplied?.discount || 0;
   const taxableAmount = subtotal + packagingCharge + deliveryCharge - discount;
   const gst = Math.round(taxableAmount * (storeConfig.gstRate / 100) * 100) / 100;
   const grandTotal = taxableAmount + gst;
+
+  // Checkout validation — determines if pay CTA is enabled and what label to show
+  const checkoutValidation = (() => {
+    if (!user) return { canPay: false, reason: "Sign in to continue" };
+    if (!orderType) return { canPay: false, reason: "Choose pickup or delivery" };
+    if (orderType === "DELIVERY" && !deliveryAddress.trim()) return { canPay: false, reason: "Select delivery address" };
+    if (orderType === "DELIVERY" && serviceability && !serviceability.serviceable) return { canPay: false, reason: "Address outside delivery area" };
+    if (!deliveryDate) return { canPay: false, reason: "Select date" };
+    if (!deliverySlot) return { canPay: false, reason: "Select time slot" };
+    return { canPay: true, reason: null };
+  })();
+  const payLabel = processing ? "Processing..." : checkoutValidation.canPay ? `Pay Securely ₹${Math.round(grandTotal)}` : checkoutValidation.reason;
 
   async function handleApplyPromo() {
     if (!promoCode.trim()) return;
@@ -398,122 +412,22 @@ export default function CheckoutPage() {
             </div>
           )}
           {orderType === "DELIVERY" && (
-            <div className="mt-3 space-y-3">
-              <p className="text-xs font-semibold text-foreground">Delivery Address</p>
-
-              {/* Saved addresses */}
-              {savedAddresses.length > 0 && !showNewAddress && (
-                <div className="space-y-2">
-                  {savedAddresses.map((addr) => {
-                    const notDeliverable = addr.pincode !== storeConfig.pincode;
-                    const isSelected = selectedAddressId === addr.id;
-                    return (
-                      <button
-                        key={addr.id}
-                        type="button"
-                        disabled={notDeliverable}
-                        onClick={() => {
-                          setSelectedAddressId(addr.id);
-                          setDeliveryAddress([addr.fullAddress, addr.city, addr.pincode].filter(Boolean).join(", "));
-                        }}
-                        className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
-                          notDeliverable
-                            ? "opacity-40 border-red-200 bg-red-50/50 cursor-not-allowed"
-                            : isSelected
-                              ? "border-primary bg-primary/5 shadow-sm"
-                              : "border-border bg-white hover:border-primary/40"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                              isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                            }`}>
-                              {addr.label === "Home" ? "🏠" : addr.label === "Office" ? "🏢" : "📍"}
-                            </div>
-                            <span className="text-sm font-bold text-foreground">{addr.label || "Address"}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            {notDeliverable && <span className="text-[9px] text-red-600 bg-red-100 px-2 py-0.5 rounded-full font-medium">Not in area</span>}
-                            {!notDeliverable && isSelected && (
-                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                <Check className="w-3 h-3 text-white" />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-xs text-foreground/80 leading-relaxed ml-10">{addr.fullAddress}</p>
-                        <p className="text-[10px] text-muted-foreground ml-10 mt-0.5">{[addr.city, addr.pincode].filter(Boolean).join(" · ")}</p>
-                      </button>
-                    );
-                  })}
-                  <button type="button" onClick={() => setShowNewAddress(true)} className="w-full py-3 rounded-2xl border-2 border-dashed border-primary/30 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-1.5">
-                    <MapPin className="w-4 h-4" /> Add New Address
-                  </button>
-                </div>
-              )}
-
-              {/* New address form */}
-              {(savedAddresses.length === 0 || showNewAddress) && (
-                <div className="bg-white rounded-2xl border border-border p-4 space-y-3">
-                  {showNewAddress && (
-                    <button type="button" onClick={() => setShowNewAddress(false)} className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                      <ChevronLeft className="w-3 h-3" /> Back to saved addresses
-                    </button>
-                  )}
-                  <div>
-                    <label className="text-[11px] font-medium text-foreground block mb-1">Flat / House No. *</label>
-                    <input value={newAddr.flatHouse} onChange={(e) => setNewAddr({ ...newAddr, flatHouse: e.target.value })} placeholder="e.g., 42-A, Shiv Colony" className="w-full px-4 py-3 rounded-xl border-2 border-border text-sm bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-foreground block mb-1">Street / Area *</label>
-                    <input value={newAddr.streetArea} onChange={(e) => setNewAddr({ ...newAddr, streetArea: e.target.value })} placeholder="e.g., Main Market Road" className="w-full px-4 py-3 rounded-xl border-2 border-border text-sm bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-foreground block mb-1">Landmark</label>
-                    <input value={newAddr.landmark} onChange={(e) => setNewAddr({ ...newAddr, landmark: e.target.value })} placeholder="e.g., Near SBI Bank (optional)" className="w-full px-4 py-3 rounded-xl border-2 border-border text-sm bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[11px] font-medium text-foreground block mb-1">City *</label>
-                      <input value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} placeholder="Kuchaman City" className="w-full px-4 py-3 rounded-xl border-2 border-border text-sm bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" />
-                    </div>
-                    <div>
-                      <label className="text-[11px] font-medium text-foreground block mb-1">Pincode *</label>
-                      <input
-                        value={newAddr.pincode}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-                          const updated = { ...newAddr, pincode: val };
-                          setNewAddr(updated);
-                          if (val.length === 6 && val === storeConfig.pincode) {
-                            const full = [updated.flatHouse, updated.streetArea, updated.landmark, updated.city, val].filter(Boolean).join(", ");
-                            setDeliveryAddress(full);
-                            setSelectedAddressId("");
-                          } else {
-                            setDeliveryAddress("");
-                          }
-                        }}
-                        placeholder="6-digit"
-                        inputMode="numeric"
-                        maxLength={6}
-                        className={`w-full px-4 py-3 rounded-xl border-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors ${
-                          newAddr.pincode.length > 0 && (newAddr.pincode.length < 6 || newAddr.pincode !== storeConfig.pincode) ? "border-red-300" : newAddr.pincode === storeConfig.pincode ? "border-green-400" : "border-border"
-                        }`}
-                      />
-                    </div>
-                  </div>
-                  {newAddr.pincode.length === 6 && newAddr.pincode !== storeConfig.pincode && (
-                    <p className="text-xs text-red-600 flex items-center gap-1">We deliver only to {storeConfig.pincode} ({storeConfig.city})</p>
-                  )}
-                  {newAddr.pincode.length === 6 && newAddr.pincode === storeConfig.pincode && (
-                    <p className="text-xs text-green-600 flex items-center gap-1"><Check className="w-3 h-3" /> Delivery available in your area</p>
-                  )}
-                </div>
-              )}
-
-              {!deliveryAddress.trim() && <p className="text-[10px] text-destructive">* Select or enter a delivery address</p>}
-              <p className="text-[10px] text-muted-foreground">Delivery charge: {formatPrice(storeConfig.deliveryCharge)} · Min order: {formatPrice(storeConfig.minDeliveryOrder)}</p>
+            <div className="mt-3">
+              <DeliveryAddressSection
+                savedAddresses={savedAddresses}
+                selectedAddressId={selectedAddressId}
+                onSelectSaved={(id, addr) => {
+                  setSelectedAddressId(id);
+                  setDeliveryAddress(addr);
+                }}
+                onManualAddress={(addr) => {
+                  setDeliveryAddress(addr);
+                  setSelectedAddressId("");
+                }}
+                onServiceability={setServiceability}
+                storePincode={storeConfig.pincode}
+              />
+              {deliveryAddress && <p className="text-xs text-muted-foreground mt-2">Delivering to: {deliveryAddress}</p>}
             </div>
           )}
         </div>
@@ -753,15 +667,17 @@ export default function CheckoutPage() {
             {/* Desktop Pay Button */}
             <button
               onClick={handlePaySecurely}
-              disabled={processing}
-              className="w-full flex items-center justify-between bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 hover:bg-primary-hover transition-colors disabled:opacity-50 mt-4 shadow-lg shadow-primary/20"
+              disabled={processing || !checkoutValidation.canPay}
+              className={`w-full flex items-center justify-between rounded-2xl px-5 py-3.5 transition-colors mt-4 shadow-lg ${
+                checkoutValidation.canPay ? "bg-primary text-primary-foreground hover:bg-primary-hover shadow-primary/20" : "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
+              }`}
             >
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5" />
-                <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
+                <span className="font-bold text-lg">{checkoutValidation.canPay ? formatPrice(grandTotal) : ""}</span>
               </div>
               <span className="flex items-center gap-1 font-semibold">
-                {processing ? "Processing..." : "Pay Securely →"}
+                {payLabel}
               </span>
             </button>
             <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-muted-foreground">
@@ -778,15 +694,17 @@ export default function CheckoutPage() {
         <div className="px-4 py-3">
           <button
             onClick={handlePaySecurely}
-            disabled={processing}
-            className="flex items-center justify-between bg-primary text-primary-foreground rounded-2xl px-5 py-3.5 hover:bg-primary-hover transition-colors w-full disabled:opacity-50"
+            disabled={processing || !checkoutValidation.canPay}
+            className={`flex items-center justify-between rounded-2xl px-5 py-3.5 transition-colors w-full ${
+              checkoutValidation.canPay ? "bg-primary text-primary-foreground hover:bg-primary-hover" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            }`}
           >
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
+              <span className="font-bold text-lg">{checkoutValidation.canPay ? formatPrice(grandTotal) : ""}</span>
             </div>
-            <span className="flex items-center gap-1 font-semibold">
-              {processing ? "Processing..." : "Pay Securely →"}
+            <span className="flex items-center gap-1 font-semibold text-sm">
+              {payLabel}
             </span>
           </button>
         </div>
