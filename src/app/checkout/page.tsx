@@ -227,6 +227,7 @@ export default function CheckoutPage() {
           specialInstructions,
           promoCode: promoApplied?.code,
           deliveryAddress: orderType === "DELIVERY" ? deliveryAddress : undefined,
+          deliveryFee: orderType === "DELIVERY" && serviceability ? serviceability.deliveryFee : undefined,
           deliveryDate: deliveryDate || undefined,
           deliverySlot: deliverySlot || undefined,
         }),

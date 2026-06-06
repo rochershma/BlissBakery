@@ -25,6 +25,7 @@ const schema = z.object({
   specialInstructions: z.string().max(500).optional(),
   promoCode: z.string().max(20).optional(),
   deliveryAddress: z.string().max(500).optional(),
+  deliveryFee: z.number().min(0).max(500).optional(),
   deliveryDate: z.string().optional(),
   deliverySlot: z.string().max(30).optional(),
 });
@@ -81,7 +82,8 @@ export async function POST(req: NextRequest) {
     }
 
     const packagingCharge = store.packagingCharge ?? 15;
-    const deliveryCharge = data.orderType === "DELIVERY" ? (store.deliveryCharge ?? 30) : 0;
+    // Use client-provided delivery fee (from distance calculation), fall back to store default
+    const deliveryCharge = data.orderType === "DELIVERY" ? (data.deliveryFee ?? store.deliveryCharge ?? 30) : 0;
     const gstRate = store.gstRate ?? 0;
 
     // Apply promo discount
