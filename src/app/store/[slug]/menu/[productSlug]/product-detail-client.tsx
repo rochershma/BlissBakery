@@ -209,24 +209,27 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
       )}
 
       {/* Flavour & Occasion */}
-      {hasFlavours && (
-        <FlavourSelect
-          flavours={product.flavours!}
-          selected={selectedFlavour}
-          onSelect={setSelectedFlavour}
-        />
+      {(hasFlavours || isCake) && (
+        <div className={hasFlavours && isCake ? "grid grid-cols-2 gap-3" : ""}>
+          {hasFlavours && (
+            <FlavourSelect
+              flavours={product.flavours!}
+              selected={selectedFlavour}
+              onSelect={setSelectedFlavour}
+            />
+          )}
+          {isCake && (
+            <OccasionSelect
+              occasions={OCCASIONS}
+              selected={occasion}
+              onSelect={setOccasion}
+            />
+          )}
+        </div>
       )}
 
       {isCake && (
       <>
-      <div className="grid grid-cols-2 gap-3">
-        {/* Occasion */}
-        <OccasionSelect
-          occasions={OCCASIONS}
-          selected={occasion}
-          onSelect={setOccasion}
-        />
-      </div>
 
       {/* Age on Cake (if birthday) */}
       {occasion === "birthday" && (
