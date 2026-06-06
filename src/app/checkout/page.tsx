@@ -320,7 +320,7 @@ export default function CheckoutPage() {
         <div className="bg-white rounded-xl border border-border overflow-hidden mb-4">
           <div className="px-4 py-2.5 bg-muted/50 border-b border-border flex items-center justify-between">
             <h2 className="label-premium text-foreground">Order Summary</h2>
-            <span className="text-xs text-muted-foreground">{itemCount} items</span>
+            <span className="text-xs text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"}</span>
           </div>
           <div className="divide-y divide-border">
             {items.map((item, idx) => {
@@ -447,7 +447,7 @@ export default function CheckoutPage() {
 
         {/* When do you want it? — Modern pill-style pickers */}
         <div className="bg-white rounded-2xl border border-border p-4 mb-4">
-          <h2 className="label-premium text-foreground mb-3">📅 When do you want it?</h2>
+          <h2 className="label-premium text-foreground mb-3">When do you want it?</h2>
 
           {/* Date pills — horizontal scroll */}
           <div>

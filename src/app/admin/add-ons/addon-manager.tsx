@@ -165,7 +165,7 @@ export function AddOnManager({ initialAddOns }: Props) {
           return (
             <div key={cat.value} className="bg-white rounded-xl border border-border p-3">
               <p className="text-lg mb-0.5">{cat.label.split(" ")[0]}</p>
-              <p className="text-sm font-bold text-foreground">{count} items</p>
+              <p className="text-sm font-bold text-foreground">{count} {count === 1 ? "item" : "items"}</p>
               <p className="text-[10px] text-muted-foreground">{active} active</p>
             </div>
           );

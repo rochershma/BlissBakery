@@ -101,7 +101,7 @@ export default async function AdminDashboard() {
                       {order.user.name || order.user.phone}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {order.items.length} items · {formatPrice(order.grandTotal)}
+                      {order.items.length} {order.items.length === 1 ? "item" : "items"} · {formatPrice(order.grandTotal)}
                     </p>
                   </div>
                 </div>
