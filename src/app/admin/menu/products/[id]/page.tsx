@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { ProductFormFields } from "@/components/admin/product-form-fields";
 import { VariantEditor } from "@/components/admin/variant-editor";
 import { FlavourEditor } from "@/components/admin/flavour-editor";
@@ -113,9 +114,7 @@ export default async function EditProductPage({ params }: Props) {
           <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {product.name}</h1>
         </div>
         <form action={deleteProduct}>
-          <button type="submit" className="flex items-center gap-1 text-sm text-destructive hover:bg-red-50 px-3 py-2 rounded-xl transition-colors">
-            <Trash2 className="w-4 h-4" /> Delete
-          </button>
+          <SubmitButton variant="destructive-inline" label="Delete" pendingLabel="Deleting..." />
         </form>
       </div>
 
@@ -194,9 +193,7 @@ export default async function EditProductPage({ params }: Props) {
             <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isAvailable" defaultChecked={product.isAvailable} className="w-4 h-4 accent-primary" /> ✅ Available</label>
           </div>
         </div>
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press flex items-center justify-center gap-2">
-          <Save className="w-5 h-5" /> Save Changes
-        </button>
+        <SubmitButton label="Save Changes" pendingLabel="Saving..." />
       </form>
     </div>
   );

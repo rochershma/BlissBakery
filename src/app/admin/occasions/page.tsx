@@ -3,7 +3,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Save, Trash2, Eye, EyeOff, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, ChevronRight } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { getSession } from "@/lib/auth";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
@@ -140,9 +141,7 @@ export default async function AdminOccasionsPage() {
           </div>
         </div>
         <ImageField name="image" defaultValue="" label="Occasion Image" folder="occasions" />
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
-          <Save className="w-4 h-4" /> Add Occasion
-        </button>
+        <SubmitButton label="Add Occasion" pendingLabel="Creating..." />
       </form>
     </div>
   );

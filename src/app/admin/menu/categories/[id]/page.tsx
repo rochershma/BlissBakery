@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/server-utils";
@@ -72,9 +73,7 @@ export default async function EditCategoryPage({ params }: Props) {
           </label>
           <p className="text-xs text-muted-foreground">{category._count.products} products in this category</p>
         </div>
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press flex items-center justify-center gap-2">
-          <Save className="w-5 h-5" /> Save Changes
-        </button>
+        <SubmitButton label="Save Changes" pendingLabel="Saving..." />
       </form>
     </div>
   );

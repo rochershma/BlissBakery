@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 
 export default function NewPromoPage() {
   async function createPromo(formData: FormData) {
@@ -95,9 +96,7 @@ export default function NewPromoPage() {
             🟢 Go Live immediately
           </label>
         </div>
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press flex items-center justify-center gap-2">
-          <Save className="w-4 h-4" /> Create Promo Code
-        </button>
+        <SubmitButton label="Create Promo Code" pendingLabel="Creating..." />
       </form>
     </div>
   );

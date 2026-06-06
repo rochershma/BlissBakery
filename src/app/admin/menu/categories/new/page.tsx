@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 export default async function NewCategoryPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -72,10 +73,7 @@ export default async function NewCategoryPage({ searchParams }: { searchParams: 
           </div>
         </div>
 
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press flex items-center justify-center gap-2">
-          <Save className="w-5 h-5" />
-          Add Category
-        </button>
+        <SubmitButton label="Add Category" pendingLabel="Creating..." />
       </form>
     </div>
   );

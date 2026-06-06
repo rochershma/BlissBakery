@@ -2,7 +2,8 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Clock, MapPin, Phone, Store } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Phone, Store } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { parseJsonSafe } from "@/lib/utils";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 import { ImageField } from "@/components/admin/image-field";
@@ -188,9 +189,7 @@ export default async function AdminSettingsPage() {
           </div>
         </div>
 
-        <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press flex items-center justify-center gap-2">
-          <Save className="w-4 h-4" /> Save Settings
-        </button>
+        <SubmitButton label="Save Settings" pendingLabel="Saving..." />
       </form>
     </div>
   );

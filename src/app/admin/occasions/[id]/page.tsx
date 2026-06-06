@@ -3,7 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Save, Trash2, Plus, Pencil } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Pencil } from "lucide-react";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin } from "@/lib/server-utils";
 
@@ -96,9 +97,7 @@ export default async function EditOccasionPage({ params }: Props) {
             <label className="text-xs font-medium text-foreground block mb-1">Image</label>
             <ImageField name="image" defaultValue={occasion.image || ""} label="Occasion Image" folder="occasions" />
           </div>
-          <button type="submit" className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
-            <Save className="w-4 h-4" /> Save Changes
-          </button>
+          <SubmitButton label="Save Changes" pendingLabel="Saving..." />
         </div>
       </form>
 
