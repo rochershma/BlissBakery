@@ -12,6 +12,9 @@ export async function GET() {
       deliveryRadius: true,
       gstRate: true,
       logo: true,
+      deliveryTiers: true,
+      latitude: true,
+      longitude: true,
     },
   });
 
@@ -23,6 +26,15 @@ export async function GET() {
     orderBy: { sortOrder: "asc" },
   });
 
+  let deliveryTiers = [
+    { maxKm: 3, fee: 0 },
+    { maxKm: 6, fee: 30 },
+    { maxKm: 10, fee: 50 },
+  ];
+  try {
+    if (store.deliveryTiers) deliveryTiers = JSON.parse(store.deliveryTiers);
+  } catch {}
+
   return NextResponse.json({
     pincode: store.pincode || "341508",
     city: store.city || "Kuchaman City",
@@ -30,8 +42,11 @@ export async function GET() {
     deliveryCharge: store.deliveryCharge ?? 30,
     minDeliveryOrder: store.minDeliveryOrder ?? 200,
     deliveryRadius: store.deliveryRadius ?? 10,
-    gstRate: store.gstRate ?? 5,
+    gstRate: store.gstRate ?? 0,
     logo: store.logo || "/uploads/branding/logo.png",
+    deliveryTiers,
+    storeLat: store.latitude ?? 27.1517,
+    storeLng: store.longitude ?? 74.8560,
     addOnImages: Object.fromEntries(addOns.filter(a => a.image).map(a => [a.name, a.image])),
     addOns,
   });

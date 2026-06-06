@@ -10,8 +10,26 @@ export interface DeliveryServiceability {
   reason?: string;
 }
 
-const STORE_LAT = 27.1517;
-const STORE_LNG = 74.8560;
+export interface DeliveryTier {
+  maxKm: number;
+  fee: number;
+}
+
+const DEFAULT_TIERS: DeliveryTier[] = [
+  { maxKm: 3, fee: 0 },
+  { maxKm: 6, fee: 30 },
+  { maxKm: 10, fee: 50 },
+];
+
+let _storeLat = 27.1517;
+let _storeLng = 74.8560;
+let _tiers: DeliveryTier[] = DEFAULT_TIERS;
+
+export function setDeliveryConfig(storeLat: number, storeLng: number, tiers: DeliveryTier[]) {
+  _storeLat = storeLat;
+  _storeLng = storeLng;
+  _tiers = tiers.length > 0 ? tiers.sort((a, b) => a.maxKm - b.maxKm) : DEFAULT_TIERS;
+}
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -22,11 +40,11 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 export function calculateServiceability(lat: number, lng: number): DeliveryServiceability {
-  const dist = haversineKm(STORE_LAT, STORE_LNG, lat, lng);
+  const dist = haversineKm(_storeLat, _storeLng, lat, lng);
   const d = Math.round(dist * 10) / 10;
-  if (dist <= 3) return { serviceable: true, distanceKm: d, deliveryFee: 0 };
-  if (dist <= 6) return { serviceable: true, distanceKm: d, deliveryFee: 30 };
-  if (dist <= 10) return { serviceable: true, distanceKm: d, deliveryFee: 50 };
+  for (const tier of _tiers) {
+    if (dist <= tier.maxKm) return { serviceable: true, distanceKm: d, deliveryFee: tier.fee };
+  }
   return { serviceable: false, distanceKm: d, deliveryFee: 0, reason: "Outside delivery area" };
 }
 
@@ -99,7 +117,7 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
     if (!autocompleteRef.current || input.length < 3) { setPredictions([]); return; }
     setSearchLoading(true);
     autocompleteRef.current.getPlacePredictions(
-      { input, componentRestrictions: { country: "in" }, locationBias: { center: { lat: STORE_LAT, lng: STORE_LNG }, radius: 15000 } },
+      { input, componentRestrictions: { country: "in" }, locationBias: { center: { lat: _storeLat, lng: _storeLng }, radius: 15000 } },
       (r: any, st: string) => { setSearchLoading(false); setPredictions(st === "OK" && r ? r : []); }
     );
   }, []);

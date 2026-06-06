@@ -30,8 +30,9 @@ model Store {
   minDeliveryOrder Float?
   deliveryCharge Float?
   packagingCharge Float?
-  gstRate        Float    @default(5.0)
+  gstRate        Float    @default(0)
   defaultFlavours String?  @db.Text
+  deliveryTiers  String?  @db.Text
   staffWhatsApp  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

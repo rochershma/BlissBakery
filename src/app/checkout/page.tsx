@@ -9,7 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import { ArrowLeft, Tag, MapPin, Clock, CreditCard, ShieldCheck, Leaf, ChefHat, Check, ChevronLeft } from "lucide-react";
 import { SiteHeader } from "@/components/shared/site-header";
 import { useToast } from "@/components/shared/toast";
-import { DeliveryAddressSection, calculateServiceability, type DeliveryServiceability } from "@/components/checkout/delivery-address";
+import { DeliveryAddressSection, calculateServiceability, setDeliveryConfig, type DeliveryServiceability } from "@/components/checkout/delivery-address";
 
 function ProgressBar() {
   return (
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
   const [promoError, setPromoError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [storeConfig, setStoreConfig] = useState({ pincode: "341508", city: "Kuchaman City", packagingCharge: 15, deliveryCharge: 30, gstRate: 5, minDeliveryOrder: 200 });
+  const [storeConfig, setStoreConfig] = useState({ pincode: "341508", city: "Kuchaman City", packagingCharge: 15, deliveryCharge: 30, gstRate: 0, minDeliveryOrder: 200 });
   const [addOnImages, setAddOnImages] = useState<Record<string, string>>({});
   const [availablePromos, setAvailablePromos] = useState<{ code: string; discountType: string; discountValue: number; occasionTag: string | null }[]>([]);
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -77,6 +77,10 @@ export default function CheckoutPage() {
     fetch("/api/store/config").then(r => r.json()).then(data => {
       if (data.packagingCharge !== undefined) setStoreConfig(data);
       if (data.addOnImages) setAddOnImages(data.addOnImages);
+      // Configure delivery tiers from store
+      if (data.deliveryTiers) {
+        setDeliveryConfig(data.storeLat ?? 27.1517, data.storeLng ?? 74.8560, data.deliveryTiers);
+      }
     }).catch(() => {});
     // Fetch available promos
     fetch("/api/promo/list").then(r => r.json()).then(data => {

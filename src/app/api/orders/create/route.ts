@@ -80,9 +80,9 @@ export async function POST(req: NextRequest) {
       verifiedItems.push({ ...item, unitPrice: serverPrice, addOns: allVerifiedAddOns.length > 0 ? allVerifiedAddOns : undefined });
     }
 
-    const packagingCharge = store.packagingCharge || 15;
-    const deliveryCharge = data.orderType === "DELIVERY" ? (store.deliveryCharge || 30) : 0;
-    const gstRate = store.gstRate || 5;
+    const packagingCharge = store.packagingCharge ?? 15;
+    const deliveryCharge = data.orderType === "DELIVERY" ? (store.deliveryCharge ?? 30) : 0;
+    const gstRate = store.gstRate ?? 0;
 
     // Apply promo discount
     let discount = 0;
