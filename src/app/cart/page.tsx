@@ -82,11 +82,11 @@ function CartItemCard({ item, storeSlug, addOnImages, onRemoveAddOn, storeAddOns
           <div className="flex items-center justify-between mt-2">
             <span className="text-sm font-bold text-foreground">{formatPrice(productPrice)}</span>
             <div className="flex items-center gap-0.5 bg-primary/10 rounded-full">
-              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantName)} className="no-min-touch w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+              <button onClick={() => updateQuantity(item.productId, item.quantity - 1, item.variantName)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors no-min-touch">
                 {item.quantity === 1 ? <Trash2 className="w-3.5 h-3.5 text-destructive" /> : <Minus className="w-3.5 h-3.5 text-primary" />}
               </button>
               <span className="text-sm font-bold min-w-[28px] text-center text-primary">{item.quantity}</span>
-              <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantName)} className="no-min-touch w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors">
+              <button onClick={() => updateQuantity(item.productId, item.quantity + 1, item.variantName)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-primary/20 transition-colors no-min-touch">
                 <Plus className="w-3.5 h-3.5 text-primary" />
               </button>
             </div>

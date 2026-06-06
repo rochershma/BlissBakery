@@ -158,7 +158,7 @@ export function SiteHeader() {
             <Link href="/cart" className="relative p-2 rounded-lg hover:bg-muted transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label="Open cart">
               <ShoppingBag className="w-5 h-5 text-foreground" />
               {hydrated && itemCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none">
                   {itemCount > 9 ? "9+" : itemCount}
                 </span>
               )}

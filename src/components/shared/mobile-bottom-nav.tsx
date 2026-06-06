@@ -64,7 +64,7 @@ export function MobileBottomNav() {
               <div className="relative">
                 <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : ""}`} />
                 {isCart && hydrated && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-[16px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                  <span className="absolute -top-1 -right-2 min-w-[16px] h-[16px] bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
