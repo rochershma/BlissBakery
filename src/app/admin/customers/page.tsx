@@ -30,7 +30,7 @@ export default async function AdminCustomersPage() {
         <div className="bg-white rounded-2xl border border-border overflow-hidden">
           <div className="divide-y divide-border">
             {customers.map((customer) => (
-              <div key={customer.id} className="px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors">
+              <Link key={customer.id} href={`/admin/customers/${customer.id}`} className="px-4 py-3 flex items-center justify-between hover:bg-muted/20 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                     {(customer.name || customer.phone)[0].toUpperCase()}
@@ -55,7 +55,7 @@ export default async function AdminCustomersPage() {
                     Joined {new Date(customer.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

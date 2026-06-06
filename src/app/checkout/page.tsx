@@ -244,6 +244,16 @@ export default function CheckoutPage() {
       const payData = await payRes.json();
 
       if (payData.success) {
+        // Save delivery address for future use (if new address was entered)
+        if (orderType === "DELIVERY" && deliveryAddress && !selectedAddressId) {
+          try {
+            await fetch("/api/addresses", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ label: "Other", fullAddress: deliveryAddress, pincode: storeConfig.pincode, city: storeConfig.city, state: "Rajasthan" }),
+            });
+          } catch {} // Non-blocking — don't fail the order
+        }
         // Redirect to order page — cart clears automatically there
         window.location.href = `/order/${orderData.order.id}`;
       } else {
