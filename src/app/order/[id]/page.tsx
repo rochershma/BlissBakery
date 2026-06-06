@@ -144,14 +144,14 @@ export default async function OrderPage({ params }: Props) {
           <div className="px-4 py-3 space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Item Total</span><span>{formatPrice(order.itemTotal)}</span></div>
             {order.deliveryCharge > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{formatPrice(order.deliveryCharge)}</span></div>}
-            {order.packagingCharge > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Packaging</span><span>{formatPrice(order.packagingCharge)}</span></div>}
+            {order.packagingCharge > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Safe Cake Packaging</span><span>{formatPrice(order.packagingCharge)}</span></div>}
             {order.discount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount {order.promoCode && `(${order.promoCode})`}</span>
                 <span>-{formatPrice(order.discount)}</span>
               </div>
             )}
-            <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatPrice(order.tax)}</span></div>
+            {order.tax > 0 && <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span>{formatPrice(order.tax)}</span></div>}
             <div className="flex justify-between font-bold border-t border-border pt-2 mt-2 text-base">
               <span>Total Paid</span><span>{formatPrice(order.grandTotal)}</span>
             </div>
