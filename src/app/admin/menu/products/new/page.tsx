@@ -59,13 +59,14 @@ export default async function NewProductPage() {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
 
+    // Parse flavour prices
+    const flavourPricesArr: { name: string; price500g: number }[] = (() => {
+      try { return JSON.parse(flavourPricesJson || "[]"); } catch { return []; }
+    })();
+
     // Auto-calculate basePrice
     let finalBasePrice = basePrice;
     if (pricingStrategy === "CUSTOM") {
-      // For custom: basePrice = cheapest flavour at 500g * 1 + designCharge
-      const flavourPricesArr: { name: string; price500g: number }[] = (() => {
-        try { return JSON.parse(flavourPricesJson || "[]"); } catch { return []; }
-      })();
       const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
       finalBasePrice = Math.round(cheapest500g * 0.5 * 2 + designCharge);
     } else if (variants.length > 0) {
@@ -97,7 +98,32 @@ export default async function NewProductPage() {
     });
 
     // Create variants
-    if (variants.length > 0) {
+    if (pricingStrategy === "CUSTOM") {
+      // Auto-generate size variants from global custom sizes
+      const store = await db.store.findFirst({ select: { defaultCustomSizes: true } });
+      let customSizes = [
+        { kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" },
+        { kg: 1, name: "1 Kg", serves: "Serves 8-10" },
+        { kg: 1.5, name: "1.5 Kg", serves: "Serves 12-15" },
+        { kg: 2, name: "2 Kg", serves: "Serves 18-20" },
+        { kg: 2.5, name: "2.5 Kg", serves: "Serves 22-25" },
+        { kg: 3, name: "3 Kg", serves: "Serves 28-30" },
+        { kg: 4, name: "4 Kg", serves: "Serves 35-40" },
+        { kg: 5, name: "5 Kg", serves: "Serves 45-50" },
+      ];
+      try { if (store?.defaultCustomSizes) customSizes = JSON.parse(store.defaultCustomSizes); } catch {}
+      // Use cheapest flavour for variant prices
+      const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
+      await db.productVariant.createMany({
+        data: customSizes.map((s: { kg: number; name: string; serves: string }, i: number) => ({
+          productId: newProduct.id,
+          name: s.name,
+          price: Math.round(cheapest500g * s.kg * 2 + designCharge),
+          serves: s.serves || null,
+          sortOrder: i,
+        })),
+      });
+    } else if (variants.length > 0) {
       await db.productVariant.createMany({
         data: variants.map((v, i) => ({
           productId: newProduct.id,

@@ -48,6 +48,27 @@ export function PricingStrategyEditor({
 
   // Fetch global default base price — not needed for now
 
+  // Fetch global flavour prices and custom sizes
+  useEffect(() => {
+    if (strategy !== "CUSTOM") return;
+    fetch("/api/admin/flavours")
+      .then((r) => r.json())
+      .then((data) => {
+        // Load global flavour prices as defaults if product has none
+        if (data.flavourPrices?.length > 0 && flavourPrices.length === 0 && flavours.length > 0) {
+          const globalMap = new Map(data.flavourPrices.map((fp: { name: string; price500g: number }) => [fp.name, fp.price500g]));
+          setFlavourPrices(flavours.map((f) => ({
+            name: f,
+            price500g: globalMap.get(f) ?? (data.defaultBase500gPrice || base500gPrice),
+          })));
+        }
+        if (data.defaultBase500gPrice && base500gPrice === 300) {
+          setBase500gPrice(data.defaultBase500gPrice);
+        }
+      })
+      .catch(() => {});
+  }, [strategy]);
+
   // Sync flavour prices when flavours list changes (from FlavourEditor)
   useEffect(() => {
     if (strategy !== "CUSTOM" || flavours.length === 0) return;

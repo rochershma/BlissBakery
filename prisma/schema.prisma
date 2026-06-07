@@ -32,6 +32,8 @@ model Store {
   packagingCharge Float?
   gstRate        Float    @default(0)
   defaultFlavours String?  @db.Text
+  defaultFlavourPrices String? @db.Text
+  defaultCustomSizes String? @db.Text
   deliveryTiers  String?  @db.Text
   defaultBase500gPrice Float?  @default(300)
   staffWhatsApp  String?
