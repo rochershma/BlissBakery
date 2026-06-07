@@ -38,10 +38,13 @@ export function LoginModal() {
       }
     });
 
-    // Focus phone input after mount
+    // Focus phone input after mount — only on desktop (mobile keyboard is intrusive)
+    const isMobile = window.innerWidth < 768;
     const timer = setTimeout(() => {
-      if (step === "phone") phoneInputRef.current?.focus();
-      else if (step === "otp") otpRefs.current[0]?.focus();
+      if (!isMobile) {
+        if (step === "phone") phoneInputRef.current?.focus();
+        else if (step === "otp") otpRefs.current[0]?.focus();
+      }
     }, 100);
 
     // Focus trap: cycle focus within modal
@@ -251,7 +254,6 @@ export function LoginModal() {
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
                     className="flex-1 px-3 py-3 text-sm focus:outline-none"
-                    autoFocus
                   />
                 </div>
               </div>
