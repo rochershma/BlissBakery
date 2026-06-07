@@ -92,7 +92,7 @@ export function SiteHeader() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 glass-header border-b border-border/60">
+    <header className="sticky top-0 z-50 bg-white border-b border-border/60 shadow-sm">
       <div className="max-w-[1300px] mx-auto px-3 md:px-5">
         {/* Row 1: Logo + Location + Cart + Profile */}
         <div className="flex items-center h-[56px] md:h-[64px]">
