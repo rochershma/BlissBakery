@@ -48,7 +48,7 @@ export function SiteHeader() {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setShowProfile(false);
+      // Only handle search click-outside (profile uses overlay dismiss)
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
