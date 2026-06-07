@@ -64,18 +64,18 @@ export function OccasionCarousel({ occasions, sectionKicker = "For Every Celebra
             <button
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
-              className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-sm"
+              className="w-10 h-10 rounded-full border border-white/80 flex items-center justify-center hover:bg-white transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-md"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4 text-foreground" />
             </button>
             <button
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
-              className="w-10 h-10 rounded-2xl border border-border flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-sm"
+              className="w-10 h-10 rounded-full border border-white/80 flex items-center justify-center hover:bg-white transition-colors disabled:opacity-30 disabled:cursor-default bg-white shadow-md"
               aria-label="Scroll right"
             >
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-4 h-4 text-foreground" />
             </button>
           </div>
         </div>
