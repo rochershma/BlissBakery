@@ -2,7 +2,7 @@
 
 :root {
   /* Bliss Bakery — Premium Rose Theme (redesigned) */
-  --background: #f3e3e7;
+  --background: #e8cdd3;
   --foreground: #27191d;
 
   /* Primary: Soft Pink */
@@ -100,9 +100,9 @@
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(198, 142, 155, 0.15), transparent 34rem),
-    radial-gradient(circle at 95% 8%, rgba(198, 142, 155, 0.2), transparent 30rem),
-    linear-gradient(180deg, #edd5db 0%, #f3e3e7 35%, #faf2f4 100%),
+    radial-gradient(circle at top left, rgba(198, 142, 155, 0.25), transparent 34rem),
+    radial-gradient(circle at 95% 8%, rgba(198, 142, 155, 0.3), transparent 30rem),
+    linear-gradient(180deg, #c68e9b 0%, #dbb8c1 30%, #f0d8de 100%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), 'Inter', system-ui, sans-serif;
