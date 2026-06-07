@@ -212,7 +212,7 @@ export function SiteHeader() {
     {showProfile && user && (
       <>
         <div className="fixed inset-0 bg-black/40 z-[200]" onClick={() => setShowProfile(false)} />
-        <div className="fixed inset-y-0 right-0 w-[280px] z-[201] bg-white shadow-2xl overflow-y-auto animate-slide-in-right md:absolute md:inset-auto md:right-4 md:top-[70px] md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:h-auto md:animate-none" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="fixed inset-y-0 right-0 w-[280px] z-[201] bg-white shadow-2xl overflow-y-auto animate-slide-in-right md:inset-auto md:right-4 md:top-[70px] md:w-64 md:rounded-xl md:border md:border-border md:shadow-xl md:bottom-auto md:h-auto md:max-h-[calc(100vh-90px)] md:animate-none" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Account</p>
             <button onClick={() => setShowProfile(false)} className="no-min-touch p-1.5 rounded-full hover:bg-muted" aria-label="Close menu"><X className="w-4 h-4" /></button>
