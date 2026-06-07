@@ -103,6 +103,7 @@ model Product {
   flavourPrices String?  @db.Text
   designCharge  Float?   @default(0)
   base500gPrice Float?
+  defaultFlavour String?
   servingInfo  String?
   categoryId   String
   category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)

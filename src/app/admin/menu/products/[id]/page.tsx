@@ -61,6 +61,7 @@ export default async function EditProductPage({ params }: Props) {
     const designCharge = Math.max(0, parseFloat(formData.get("designCharge") as string) || 0);
     const base500gPrice = Math.max(0, parseFloat(formData.get("base500gPrice") as string) || 0) || null;
     const flavourPricesJson = formData.get("flavourPrices") as string;
+    const defaultFlavour = (formData.get("defaultFlavour") as string) || null;
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
@@ -87,6 +88,7 @@ export default async function EditProductPage({ params }: Props) {
         designCharge,
         base500gPrice,
         flavourPrices: pricingStrategy === "CUSTOM" ? (flavourPricesJson || null) : null,
+        defaultFlavour,
       },
     });
 
@@ -165,6 +167,7 @@ export default async function EditProductPage({ params }: Props) {
           defaultDesignCharge={(product as any).designCharge || 0}
           defaultBase500gPrice={(product as any).base500gPrice || 300}
           defaultFlavourPrices={parseJsonSafe<{ name: string; price500g: number }[]>((product as any).flavourPrices, [])}
+          defaultFlavour={(product as any).defaultFlavour || ""}
           flavours={parseJsonSafe<string[]>((product as any).flavours, [])}
         />
 

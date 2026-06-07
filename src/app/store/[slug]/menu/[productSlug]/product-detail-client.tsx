@@ -36,13 +36,14 @@ interface Props {
     pricingStrategy?: "FIXED" | "CUSTOM";
     flavourPrices?: { name: string; price500g: number }[];
     designCharge?: number;
+    defaultFlavour?: string;
     variants: { id: string; name: string; price: number; serves?: string; weightKg?: number }[];
     addOns: { id: string; name: string; price: number }[];
   };
   storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
 }
 
-function FlavourSelect({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
+function FlavourSelect({ flavours, selected, onSelect, priceMap }: { flavours: string[]; selected: string; onSelect: (f: string) => void; priceMap?: Map<string, number> }) {
   return (
     <div>
       <label className="text-xs font-semibold text-foreground block mb-1.5">Flavour</label>
@@ -53,7 +54,7 @@ function FlavourSelect({ flavours, selected, onSelect }: { flavours: string[]; s
           className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
         >
           {flavours.map((f) => (
-            <option key={f} value={f}>{f}</option>
+            <option key={f} value={f}>{f}{priceMap?.has(f) ? ` — ₹${priceMap.get(f)}/500g` : ""}</option>
           ))}
         </select>
       </div>
@@ -90,16 +91,22 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const isCustomPricing = product.pricingStrategy === "CUSTOM";
   const flavourPriceMap = new Map((product.flavourPrices || []).map(fp => [fp.name, fp.price500g]));
 
-  // For custom pricing: sort flavours by price (cheapest first) and default to cheapest
-  const sortedFlavours = isCustomPricing && product.flavours
-    ? [...product.flavours].sort((a, b) => (flavourPriceMap.get(a) || 0) - (flavourPriceMap.get(b) || 0))
-    : product.flavours || [];
+  // Default flavour: admin-set default, or cheapest for custom, or first in list
+  const getDefaultFlavour = (): string => {
+    const flavours = product.flavours || [];
+    if (flavours.length === 0) return "";
+    // Admin set a specific default
+    if (product.defaultFlavour && flavours.includes(product.defaultFlavour)) return product.defaultFlavour;
+    // Custom pricing: default to cheapest
+    if (isCustomPricing && flavourPriceMap.size > 0) {
+      return [...flavours].sort((a, b) => (flavourPriceMap.get(a) || 999999) - (flavourPriceMap.get(b) || 999999))[0];
+    }
+    return flavours[0];
+  };
 
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const [selectedStoreAddOns, setSelectedStoreAddOns] = useState<Set<string>>(new Set());
-  const [selectedFlavour, setSelectedFlavour] = useState<string>(
-    sortedFlavours.length > 0 ? sortedFlavours[0] : ""
-  );
+  const [selectedFlavour, setSelectedFlavour] = useState<string>(getDefaultFlavour());
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -244,6 +251,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
               flavours={product.flavours!}
               selected={selectedFlavour}
               onSelect={setSelectedFlavour}
+              priceMap={isCustomPricing ? flavourPriceMap : undefined}
             />
           )}
           {isCake && (

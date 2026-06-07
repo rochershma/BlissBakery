@@ -14,7 +14,8 @@ interface Props {
   defaultBase500gPrice?: number;
   defaultFlavourPrices?: FlavourPrice[];
   defaultBasePrice?: number;
-  flavours?: string[]; // from FlavourEditor
+  defaultFlavour?: string;
+  flavours?: string[];
 }
 
 const WEIGHT_OPTIONS = [
@@ -36,23 +37,16 @@ export function PricingStrategyEditor({
   defaultBase500gPrice = 300,
   defaultFlavourPrices = [],
   defaultBasePrice = 0,
+  defaultFlavour = "",
   flavours = [],
 }: Props) {
   const [strategy, setStrategy] = useState<"FIXED" | "CUSTOM">(defaultStrategy);
   const [designCharge, setDesignCharge] = useState(defaultDesignCharge);
   const [base500gPrice, setBase500gPrice] = useState(defaultBase500gPrice);
   const [flavourPrices, setFlavourPrices] = useState<FlavourPrice[]>(defaultFlavourPrices);
-  const [globalDefault, setGlobalDefault] = useState(300);
+  const [selectedDefault, setSelectedDefault] = useState(defaultFlavour);
 
-  // Fetch global default base price
-  useEffect(() => {
-    fetch("/api/admin/delivery-config")
-      .then((r) => r.json())
-      .then((data) => {
-        // We'll add defaultBase500gPrice to this API later
-      })
-      .catch(() => {});
-  }, []);
+  // Fetch global default base price — not needed for now
 
   // Sync flavour prices when flavours list changes (from FlavourEditor)
   useEffect(() => {
@@ -208,15 +202,55 @@ export function PricingStrategyEditor({
             </div>
           )}
 
-          {/* Price Preview */}
-          <div className="bg-muted/50 rounded-xl p-3 space-y-1">
-            <p className="text-xs font-semibold text-foreground">Price Preview (cheapest flavour ₹{cheapestFlavour}/500g)</p>
-            {WEIGHT_OPTIONS.map((w) => (
-              <div key={w.name} className="flex justify-between text-xs text-muted-foreground">
-                <span>{w.name}</span>
-                <span className="font-semibold text-foreground">₹{calculateCustomPrice(cheapestFlavour, w.kg, designCharge)}</span>
+          {/* Default Flavour */}
+          {flavourPrices.length > 0 && (
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Default Flavour (shown first to customer)</label>
+              <select
+                value={selectedDefault}
+                onChange={(e) => setSelectedDefault(e.target.value)}
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white"
+              >
+                <option value="">Auto (cheapest)</option>
+                {flavourPrices.map((fp) => (
+                  <option key={fp.name} value={fp.name}>{fp.name} — ₹{fp.price500g}/500g</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Price Preview — show ALL flavours with prices for each size */}
+          <div className="bg-muted/50 rounded-xl p-3 space-y-2">
+            <p className="text-xs font-semibold text-foreground">Price Preview</p>
+            {flavourPrices.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-muted-foreground">
+                      <td className="py-1 pr-2 font-semibold">Flavour</td>
+                      {WEIGHT_OPTIONS.slice(0, 4).map((w) => (
+                        <td key={w.name} className="py-1 px-1 text-right font-semibold">{w.name}</td>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {flavourPrices.slice(0, 5).map((fp) => (
+                      <tr key={fp.name} className="border-t border-border/30">
+                        <td className="py-1 pr-2 text-foreground truncate max-w-[100px]">{fp.name}</td>
+                        {WEIGHT_OPTIONS.slice(0, 4).map((w) => (
+                          <td key={w.name} className="py-1 px-1 text-right font-semibold text-foreground">₹{calculateCustomPrice(fp.price500g, w.kg, designCharge)}</td>
+                        ))}
+                      </tr>
+                    ))}
+                    {flavourPrices.length > 5 && (
+                      <tr><td colSpan={5} className="py-1 text-muted-foreground">...and {flavourPrices.length - 5} more flavours</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            ) : (
+              <p className="text-xs text-muted-foreground">Add flavours above to see price preview</p>
+            )}
           </div>
         </>
       )}
@@ -226,6 +260,7 @@ export function PricingStrategyEditor({
       <input type="hidden" name="designCharge" value={designCharge} />
       <input type="hidden" name="base500gPrice" value={base500gPrice} />
       <input type="hidden" name="flavourPrices" value={JSON.stringify(flavourPrices)} />
+      <input type="hidden" name="defaultFlavour" value={selectedDefault} />
     </div>
   );
 }
