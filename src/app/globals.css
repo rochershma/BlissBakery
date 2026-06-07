@@ -1134,12 +1134,12 @@ input[type="radio"] {
   }
 }
 
-/* Product detail page gradient — top-to-bottom on mobile, right-to-left on desktop */
+/* Product detail page gradient — solid pink on mobile, left-to-right on desktop */
 .pdp-gradient {
-  background: linear-gradient(180deg, #c68e9b 0%, #dbb8c1 30%, #f0d8de 100%);
+  background: #dbb8c1;
 }
 @media (min-width: 769px) {
   .pdp-gradient {
-    background: linear-gradient(270deg, #c68e9b 0%, #dbb8c1 35%, #f0d8de 100%);
+    background: linear-gradient(90deg, #c68e9b 0%, #dbb8c1 40%, #f0d8de 100%);
   }
 }
