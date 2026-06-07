@@ -56,6 +56,7 @@ export default async function NewProductPage() {
     const flavourPricesJson = formData.get("flavourPrices") as string;
     const defaultFlavour = (formData.get("defaultFlavour") as string) || null;
     const discountPct = Math.max(0, Math.min(90, parseFloat(formData.get("discountPct") as string) || 0));
+    const customSizesJson = formData.get("customSizes") as string;
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
@@ -66,9 +67,9 @@ export default async function NewProductPage() {
     })();
 
     // Auto-calculate basePrice
+    const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
     let finalBasePrice = basePrice;
     if (pricingStrategy === "CUSTOM") {
-      const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
       finalBasePrice = Math.round(cheapest500g * 0.5 * 2 + designCharge);
     } else if (variants.length > 0) {
       finalBasePrice = Math.min(basePrice || Infinity, ...variants.map(v => v.price));
@@ -105,23 +106,24 @@ export default async function NewProductPage() {
 
     // Create variants
     if (pricingStrategy === "CUSTOM") {
-      // Auto-generate size variants from global custom sizes
-      const store = await db.store.findFirst({ select: { defaultCustomSizes: true } });
-      let customSizes = [
-        { kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" },
-        { kg: 1, name: "1 Kg", serves: "Serves 8-10" },
-        { kg: 1.5, name: "1.5 Kg", serves: "Serves 12-15" },
-        { kg: 2, name: "2 Kg", serves: "Serves 18-20" },
-        { kg: 2.5, name: "2.5 Kg", serves: "Serves 22-25" },
-        { kg: 3, name: "3 Kg", serves: "Serves 28-30" },
-        { kg: 4, name: "4 Kg", serves: "Serves 35-40" },
-        { kg: 5, name: "5 Kg", serves: "Serves 45-50" },
-      ];
-      try { if (store?.defaultCustomSizes) customSizes = JSON.parse(store.defaultCustomSizes); } catch {}
-      // Use cheapest flavour for variant prices
-      const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
+      // Use product-level custom sizes from form
+      let productSizes: { kg: number; name: string; serves: string }[] = [];
+      try { productSizes = JSON.parse(customSizesJson || "[]"); } catch {}
+      if (productSizes.length === 0) {
+        // Fallback to global sizes
+        const store2 = await db.store.findFirst({ select: { defaultCustomSizes: true } });
+        try { if (store2?.defaultCustomSizes) productSizes = JSON.parse(store2.defaultCustomSizes); } catch {}
+        if (productSizes.length === 0) {
+          productSizes = [
+            { kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" },
+            { kg: 1, name: "1 Kg", serves: "Serves 8-10" },
+            { kg: 1.5, name: "1.5 Kg", serves: "Serves 12-15" },
+            { kg: 2, name: "2 Kg", serves: "Serves 18-20" },
+          ];
+        }
+      }
       await db.productVariant.createMany({
-        data: customSizes.map((s: { kg: number; name: string; serves: string }, i: number) => ({
+        data: productSizes.map((s: { kg: number; name: string; serves: string }, i: number) => ({
           productId: newProduct.id,
           name: s.name,
           price: Math.round(cheapest500g * s.kg * 2 + designCharge),

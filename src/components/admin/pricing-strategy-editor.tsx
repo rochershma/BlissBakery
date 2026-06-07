@@ -1,11 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calculator, DollarSign } from "lucide-react";
+import { Calculator, DollarSign, Plus, X } from "lucide-react";
 
 interface FlavourPrice {
   name: string;
   price500g: number;
+}
+
+interface CustomSize {
+  kg: number;
+  name: string;
+  serves: string;
+  enabled: boolean;
 }
 
 interface Props {
@@ -16,6 +23,7 @@ interface Props {
   defaultBasePrice?: number;
   defaultFlavour?: string;
   defaultDiscountPct?: number;
+  defaultCustomSizes?: CustomSize[];
   flavours?: string[];
 }
 
@@ -40,6 +48,7 @@ export function PricingStrategyEditor({
   defaultBasePrice = 0,
   defaultFlavour = "",
   defaultDiscountPct = 0,
+  defaultCustomSizes,
   flavours = [],
 }: Props) {
   const [strategy, setStrategy] = useState<"FIXED" | "CUSTOM">(defaultStrategy);
@@ -48,6 +57,9 @@ export function PricingStrategyEditor({
   const [flavourPrices, setFlavourPrices] = useState<FlavourPrice[]>(defaultFlavourPrices);
   const [selectedDefault, setSelectedDefault] = useState(defaultFlavour);
   const [discountPct, setDiscountPct] = useState(defaultDiscountPct);
+  const [customSizes, setCustomSizes] = useState<CustomSize[]>(
+    defaultCustomSizes || WEIGHT_OPTIONS.map(w => ({ ...w, enabled: true }))
+  );
 
   // Fetch global default base price — not needed for now
 
@@ -67,6 +79,10 @@ export function PricingStrategyEditor({
         }
         if (data.defaultBase500gPrice && base500gPrice === 300) {
           setBase500gPrice(data.defaultBase500gPrice);
+        }
+        // Load global sizes if no product-level sizes set
+        if (data.customSizes?.length > 0 && !defaultCustomSizes) {
+          setCustomSizes(data.customSizes.map((s: { kg: number; name: string; serves: string }) => ({ ...s, enabled: true })));
         }
       })
       .catch(() => {});
@@ -239,17 +255,49 @@ export function PricingStrategyEditor({
             </div>
           )}
 
-          {/* Price Preview — show ALL flavours with prices for each size */}
+          {/* Sizes for this product */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-foreground">Sizes for this product</label>
+              <button type="button" onClick={() => setCustomSizes(prev => [...prev, { kg: prev.length > 0 ? prev[prev.length-1].kg + 0.5 : 0.5, name: "", serves: "", enabled: true }])}
+                className="text-[10px] text-primary font-semibold flex items-center gap-0.5 no-min-touch hover:underline">
+                <Plus className="w-3 h-3" /> Add Size
+              </button>
+            </div>
+            <div className="space-y-1.5">
+              {customSizes.map((size, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input type="checkbox" checked={size.enabled} onChange={(e) => {
+                    const updated = [...customSizes]; updated[idx] = { ...updated[idx], enabled: e.target.checked }; setCustomSizes(updated);
+                  }} className="w-4 h-4 accent-primary flex-shrink-0" />
+                  <input type="text" inputMode="decimal" value={size.kg || ''} onChange={(e) => {
+                    const updated = [...customSizes]; const kg = parseFloat(e.target.value) || 0;
+                    updated[idx] = { ...updated[idx], kg, name: kg ? `${kg} Kg` : '' }; setCustomSizes(updated);
+                  }} className="w-16 px-2 py-1.5 border border-border rounded-lg text-xs text-center" placeholder="kg" />
+                  <span className="text-xs text-muted-foreground flex-shrink-0">{size.name || `${size.kg} Kg`}</span>
+                  <input type="text" value={size.serves} onChange={(e) => {
+                    const updated = [...customSizes]; updated[idx] = { ...updated[idx], serves: e.target.value }; setCustomSizes(updated);
+                  }} className="flex-1 px-2 py-1.5 border border-border rounded-lg text-xs" placeholder="Serves 8-10" />
+                  <button type="button" onClick={() => setCustomSizes(customSizes.filter((_, i) => i !== idx))} className="no-min-touch">
+                    <X className="w-3.5 h-3.5 text-red-400 hover:text-red-600" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Price Preview — show ALL flavours with prices for enabled sizes */}
+          {(() => { const enabledSizes = customSizes.filter(s => s.enabled).sort((a, b) => a.kg - b.kg); return (
           <div className="bg-muted/50 rounded-xl p-3 space-y-2">
             <p className="text-xs font-semibold text-foreground">Price Preview</p>
-            {flavourPrices.length > 0 ? (
+            {flavourPrices.length > 0 && enabledSizes.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="text-muted-foreground">
                       <td className="py-1 pr-2 font-semibold">Flavour</td>
-                      {WEIGHT_OPTIONS.slice(0, 4).map((w) => (
-                        <td key={w.name} className="py-1 px-1 text-right font-semibold">{w.name}</td>
+                      {enabledSizes.slice(0, 5).map((w) => (
+                        <td key={w.kg} className="py-1 px-1 text-right font-semibold">{w.name || `${w.kg} Kg`}</td>
                       ))}
                     </tr>
                   </thead>
@@ -257,21 +305,22 @@ export function PricingStrategyEditor({
                     {flavourPrices.slice(0, 5).map((fp) => (
                       <tr key={fp.name} className="border-t border-border/30">
                         <td className="py-1 pr-2 text-foreground truncate max-w-[100px]">{fp.name}</td>
-                        {WEIGHT_OPTIONS.slice(0, 4).map((w) => (
-                          <td key={w.name} className="py-1 px-1 text-right font-semibold text-foreground">₹{calculateCustomPrice(fp.price500g, w.kg, designCharge)}</td>
+                        {enabledSizes.slice(0, 5).map((w) => (
+                          <td key={w.kg} className="py-1 px-1 text-right font-semibold text-foreground">₹{calculateCustomPrice(fp.price500g, w.kg, designCharge)}</td>
                         ))}
                       </tr>
                     ))}
                     {flavourPrices.length > 5 && (
-                      <tr><td colSpan={5} className="py-1 text-muted-foreground">...and {flavourPrices.length - 5} more flavours</td></tr>
+                      <tr><td colSpan={enabledSizes.length + 1} className="py-1 text-muted-foreground">...and {flavourPrices.length - 5} more</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">Add flavours above to see price preview</p>
+              <p className="text-xs text-muted-foreground">Add flavours and enable sizes to see preview</p>
             )}
           </div>
+          ); })()}
         </>
       )}
 
@@ -282,6 +331,7 @@ export function PricingStrategyEditor({
       <input type="hidden" name="flavourPrices" value={JSON.stringify(flavourPrices)} />
       <input type="hidden" name="defaultFlavour" value={selectedDefault} />
       <input type="hidden" name="discountPct" value={discountPct} />
+      <input type="hidden" name="customSizes" value={JSON.stringify(customSizes.filter(s => s.enabled).sort((a, b) => a.kg - b.kg))} />
 
       {/* Hide variants + base price sections when Custom is selected */}
       {strategy === "CUSTOM" && (
