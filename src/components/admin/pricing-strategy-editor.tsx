@@ -261,6 +261,13 @@ export function PricingStrategyEditor({
       <input type="hidden" name="base500gPrice" value={base500gPrice} />
       <input type="hidden" name="flavourPrices" value={JSON.stringify(flavourPrices)} />
       <input type="hidden" name="defaultFlavour" value={selectedDefault} />
+
+      {/* Hide variants + base price sections when Custom is selected */}
+      {strategy === "CUSTOM" && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          [data-section="variants"], [data-section="base-price"] { display: none !important; }
+        ` }} />
+      )}
     </div>
   );
 }

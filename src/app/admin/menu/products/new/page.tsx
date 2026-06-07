@@ -59,10 +59,18 @@ export default async function NewProductPage() {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
 
-    // Auto-sync basePrice to cheapest variant if variants exist
-    const finalBasePrice = variants.length > 0
-      ? Math.min(basePrice, ...variants.map(v => v.price))
-      : basePrice;
+    // Auto-calculate basePrice
+    let finalBasePrice = basePrice;
+    if (pricingStrategy === "CUSTOM") {
+      // For custom: basePrice = cheapest flavour at 500g * 1 + designCharge
+      const flavourPricesArr: { name: string; price500g: number }[] = (() => {
+        try { return JSON.parse(flavourPricesJson || "[]"); } catch { return []; }
+      })();
+      const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
+      finalBasePrice = Math.round(cheapest500g * 0.5 * 2 + designCharge);
+    } else if (variants.length > 0) {
+      finalBasePrice = Math.min(basePrice || Infinity, ...variants.map(v => v.price));
+    }
 
     const newProduct = await db.product.create({
       data: {
@@ -139,7 +147,9 @@ export default async function NewProductPage() {
         />
 
         {/* Size / Weight Variants */}
+        <div data-section="variants">
         <VariantEditor />
+        </div>
 
         {/* Flavours */}
         <FlavourEditor />
@@ -161,10 +171,10 @@ export default async function NewProductPage() {
             <label className="text-sm font-medium text-foreground block mb-1">Full Description</label>
             <textarea name="description" rows={3} placeholder="Detailed description" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" data-section="base-price">
             <div>
               <label className="text-sm font-medium text-foreground block mb-1">Starting Price (₹) *</label>
-              <input name="basePrice" inputMode="decimal" required placeholder="450" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <input name="basePrice" inputMode="decimal" placeholder="450" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               <p className="text-[10px] text-muted-foreground mt-1">Shown on product cards. Auto-set to cheapest variant if sizes added.</p>
             </div>
             <div>

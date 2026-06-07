@@ -43,7 +43,7 @@ interface Props {
   storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
 }
 
-function FlavourSelect({ flavours, selected, onSelect, priceMap }: { flavours: string[]; selected: string; onSelect: (f: string) => void; priceMap?: Map<string, number> }) {
+function FlavourSelect({ flavours, selected, onSelect }: { flavours: string[]; selected: string; onSelect: (f: string) => void }) {
   return (
     <div>
       <label className="text-xs font-semibold text-foreground block mb-1.5">Flavour</label>
@@ -54,7 +54,7 @@ function FlavourSelect({ flavours, selected, onSelect, priceMap }: { flavours: s
           className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-medium text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-colors appearance-none cursor-pointer"
         >
           {flavours.map((f) => (
-            <option key={f} value={f}>{f}{priceMap?.has(f) ? ` — ₹${priceMap.get(f)}/500g` : ""}</option>
+            <option key={f} value={f}>{f}</option>
           ))}
         </select>
       </div>
@@ -251,7 +251,6 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
               flavours={product.flavours!}
               selected={selectedFlavour}
               onSelect={setSelectedFlavour}
-              priceMap={isCustomPricing ? flavourPriceMap : undefined}
             />
           )}
           {isCake && (
