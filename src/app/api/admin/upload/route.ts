@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const folder = (formData.get("folder") as string) || "uploads";
 
     // Sanitize folder — whitelist allowed folders
-    const allowedFolders = ["products", "banners", "categories", "occasions", "themes", "assets", "uploads", "addons"];
+    const allowedFolders = ["products", "banners", "categories", "occasions", "themes", "assets", "uploads", "addons", "branding"];
     const cleanFolder = folder.replace(/[^a-zA-Z0-9-_]/g, "");
     if (!allowedFolders.includes(cleanFolder)) {
       return NextResponse.json({ success: false, message: "Invalid upload folder" }, { status: 400 });

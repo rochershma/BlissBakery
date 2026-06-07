@@ -5,7 +5,8 @@
 export default function cloudinaryLoader({ src, width, quality }: { src: string; width: number; quality?: number }) {
   // Only transform Cloudinary URLs
   if (!src.includes("res.cloudinary.com")) {
-    return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality || 75}`;
+    // Local images: serve directly (no /_next/image when using custom loader)
+    return src;
   }
 
   // Insert Cloudinary transformations before the version/path
