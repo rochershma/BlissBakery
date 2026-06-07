@@ -131,9 +131,8 @@ export function VariantEditor({ defaultVariants = [] }: Props) {
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            type="number"
-            min="1"
-            step="1"
+            type="text"
+            inputMode="numeric"
             placeholder="550"
             className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addVariant())}
@@ -166,10 +165,9 @@ export function VariantEditor({ defaultVariants = [] }: Props) {
               />
               <input
                 className="md:col-span-2 px-3 py-2 border border-border rounded-lg text-sm"
-                type="number"
-                min="1"
-                step="1"
-                value={variant.price}
+                type="text"
+                inputMode="numeric"
+                value={variant.price || ''}
                 onChange={(e) => updateVariant(index, { price: Number(e.target.value) || 0 })}
               />
               <button

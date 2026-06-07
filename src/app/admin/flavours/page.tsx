@@ -184,7 +184,7 @@ export default function AdminFlavoursPage() {
           </div>
           {customSizes.sort((a, b) => a.kg - b.kg).map((size, idx) => (
             <div key={idx} className="grid grid-cols-[80px_1fr_1fr_32px] gap-2 items-center">
-              <input type="number" min={0.25} step={0.25} value={size.kg}
+              <input type="text" inputMode="decimal" value={size.kg || ''}
                 onChange={(e) => updateSize(idx, "kg", e.target.value)}
                 className="px-2 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
               <input type="text" value={size.name}

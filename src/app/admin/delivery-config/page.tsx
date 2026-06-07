@@ -102,14 +102,14 @@ export default function AdminDeliveryConfigPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">GST Rate (%)</label>
-            <input type="number" min={0} max={28} step={0.1} value={gstRate}
+            <input type="text" inputMode="decimal" value={gstRate || ''}
               onChange={(e) => setGstRate(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
             <p className="text-[10px] text-muted-foreground mt-1">Set to 0 to disable GST</p>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Packaging Charge (₹)</label>
-            <input type="number" min={0} step={1} value={packagingCharge}
+            <input type="text" inputMode="numeric" value={packagingCharge || ''}
               onChange={(e) => setPackagingCharge(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </div>
@@ -126,14 +126,14 @@ export default function AdminDeliveryConfigPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Default Delivery Fee (₹)</label>
-            <input type="number" min={0} step={1} value={deliveryCharge}
+            <input type="text" inputMode="numeric" value={deliveryCharge || ''}
               onChange={(e) => setDeliveryCharge(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
             <p className="text-[10px] text-muted-foreground mt-1">Fallback when no tiers match</p>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1">Min Order for Delivery (₹)</label>
-            <input type="number" min={0} step={10} value={minDeliveryOrder}
+            <input type="text" inputMode="numeric" value={minDeliveryOrder || ''}
               onChange={(e) => setMinDeliveryOrder(parseFloat(e.target.value) || 0)}
               className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </div>
@@ -161,10 +161,10 @@ export default function AdminDeliveryConfigPage() {
           </div>
           {tiers.map((tier, idx) => (
             <div key={idx} className="grid grid-cols-[1fr_1fr_40px] gap-2 items-center">
-              <input type="number" min={0} step={0.5} value={tier.maxKm}
+              <input type="text" inputMode="decimal" value={tier.maxKm || ''}
                 onChange={(e) => updateTier(idx, "maxKm", parseFloat(e.target.value) || 0)}
                 className="px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
-              <input type="number" min={0} step={5} value={tier.fee}
+              <input type="text" inputMode="numeric" value={tier.fee || ''}
                 onChange={(e) => updateTier(idx, "fee", parseFloat(e.target.value) || 0)}
                 className="px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
               <button onClick={() => removeTier(idx)} className="w-8 h-8 rounded-full hover:bg-red-50 flex items-center justify-center no-min-touch">
