@@ -33,7 +33,10 @@ interface Props {
     categorySlug?: string;
     servingInfo?: string;
     flavours?: string[];
-    variants: { id: string; name: string; price: number; serves?: string }[];
+    pricingStrategy?: "FIXED" | "CUSTOM";
+    flavourPrices?: { name: string; price500g: number }[];
+    designCharge?: number;
+    variants: { id: string; name: string; price: number; serves?: string; weightKg?: number }[];
     addOns: { id: string; name: string; price: number }[];
   };
   storeAddOns?: { id: string; name: string; price: number; category: string; image?: string | null }[];
@@ -84,10 +87,18 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const [selectedVariant, setSelectedVariant] = useState(
     product.variants.length > 0 ? product.variants[0] : null
   );
+  const isCustomPricing = product.pricingStrategy === "CUSTOM";
+  const flavourPriceMap = new Map((product.flavourPrices || []).map(fp => [fp.name, fp.price500g]));
+
+  // For custom pricing: sort flavours by price (cheapest first) and default to cheapest
+  const sortedFlavours = isCustomPricing && product.flavours
+    ? [...product.flavours].sort((a, b) => (flavourPriceMap.get(a) || 0) - (flavourPriceMap.get(b) || 0))
+    : product.flavours || [];
+
   const [selectedAddOns, setSelectedAddOns] = useState<Set<string>>(new Set());
   const [selectedStoreAddOns, setSelectedStoreAddOns] = useState<Set<string>>(new Set());
   const [selectedFlavour, setSelectedFlavour] = useState<string>(
-    (product.flavours && product.flavours.length > 0) ? product.flavours[0] : ""
+    sortedFlavours.length > 0 ? sortedFlavours[0] : ""
   );
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -107,7 +118,24 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const isCake = cakePrefixes.some(prefix => catSlug === prefix || catSlug.startsWith(prefix + "-"));
   const hasFlavours = product.flavours && product.flavours.length > 0;
 
-  const unitPrice = selectedVariant ? selectedVariant.price : product.basePrice;
+  // Custom pricing calculation
+  const getCustomPrice = (flavour: string, weightKg: number): number => {
+    const flavour500g = flavourPriceMap.get(flavour) || 300;
+    const designCharge = product.designCharge || 0;
+    return Math.round(flavour500g * weightKg * 2 + designCharge);
+  };
+
+  // Parse weight from variant name (e.g., "0.5 Kg" → 0.5, "1 Kg" → 1)
+  const getVariantWeight = (variant: { name: string; weightKg?: number }): number => {
+    if (variant.weightKg) return variant.weightKg;
+    const match = variant.name.match(/([\d.]+)\s*[Kk][Gg]/);
+    return match ? parseFloat(match[1]) : 0.5;
+  };
+
+  const currentWeight = selectedVariant ? getVariantWeight(selectedVariant) : 0.5;
+  const unitPrice = isCustomPricing && selectedFlavour
+    ? getCustomPrice(selectedFlavour, currentWeight)
+    : (selectedVariant ? selectedVariant.price : product.basePrice);
   const productAddOnTotal = product.addOns.filter(a => selectedAddOns.has(a.id)).reduce((s, a) => s + a.price, 0);
   const storeAddOnTotal = storeAddOns.filter(a => selectedStoreAddOns.has(a.id)).reduce((s, a) => s + a.price, 0);
   const totalPrice = (unitPrice + productAddOnTotal) * quantity + storeAddOnTotal;

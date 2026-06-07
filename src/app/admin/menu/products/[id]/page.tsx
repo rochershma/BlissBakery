@@ -7,6 +7,7 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { ProductFormFields } from "@/components/admin/product-form-fields";
 import { VariantEditor } from "@/components/admin/variant-editor";
 import { FlavourEditor } from "@/components/admin/flavour-editor";
+import { PricingStrategyEditor } from "@/components/admin/pricing-strategy-editor";
 import { parseJsonSafe } from "@/lib/utils";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 
@@ -56,6 +57,10 @@ export default async function EditProductPage({ params }: Props) {
     const themesJson = formData.get("themes") as string;
     const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
+    const pricingStrategy = (formData.get("pricingStrategy") as string) || "FIXED";
+    const designCharge = Math.max(0, parseFloat(formData.get("designCharge") as string) || 0);
+    const base500gPrice = Math.max(0, parseFloat(formData.get("base500gPrice") as string) || 0) || null;
+    const flavourPricesJson = formData.get("flavourPrices") as string;
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
@@ -78,6 +83,10 @@ export default async function EditProductPage({ params }: Props) {
         forWhom: forWhomJson || null,
         themes: themesJson || null,
         flavours: flavoursJson || null,
+        pricingStrategy,
+        designCharge,
+        base500gPrice,
+        flavourPrices: pricingStrategy === "CUSTOM" ? (flavourPricesJson || null) : null,
       },
     });
 
@@ -149,6 +158,15 @@ export default async function EditProductPage({ params }: Props) {
 
         {/* Flavours */}
         <FlavourEditor defaultFlavours={parseJsonSafe<string[]>((product as any).flavours, [])} />
+
+        {/* Pricing Strategy */}
+        <PricingStrategyEditor
+          defaultStrategy={((product as any).pricingStrategy || "FIXED") as "FIXED" | "CUSTOM"}
+          defaultDesignCharge={(product as any).designCharge || 0}
+          defaultBase500gPrice={(product as any).base500gPrice || 300}
+          defaultFlavourPrices={parseJsonSafe<{ name: string; price500g: number }[]>((product as any).flavourPrices, [])}
+          flavours={parseJsonSafe<string[]>((product as any).flavours, [])}
+        />
 
         <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
           <h2 className="font-semibold text-foreground font-serif">Basic Info</h2>

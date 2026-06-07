@@ -33,6 +33,7 @@ model Store {
   gstRate        Float    @default(0)
   defaultFlavours String?  @db.Text
   deliveryTiers  String?  @db.Text
+  defaultBase500gPrice Float?  @default(300)
   staffWhatsApp  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -98,6 +99,10 @@ model Product {
   themes       String?  @db.Text
   forWhom      String?  @db.Text
   flavours     String?  @db.Text
+  pricingStrategy String  @default("FIXED")
+  flavourPrices String?  @db.Text
+  designCharge  Float?   @default(0)
+  base500gPrice Float?
   servingInfo  String?
   categoryId   String
   category     Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
