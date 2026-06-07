@@ -137,6 +137,16 @@ export default async function EditProductPage({ params }: Props) {
         })),
       });
     }
+
+    // Always sync basePrice to cheapest active variant (prevents stale tile prices)
+    const cheapestVariant = await db.productVariant.findFirst({
+      where: { productId: id, isAvailable: true },
+      orderBy: { price: "asc" },
+    });
+    if (cheapestVariant) {
+      await db.product.update({ where: { id }, data: { basePrice: cheapestVariant.price } });
+    }
+
     revalidatePath("/admin/menu");
     revalidatePath("/");
     revalidatePath("/store", "layout");
