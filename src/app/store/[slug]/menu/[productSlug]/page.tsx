@@ -72,13 +72,15 @@ export default async function ProductDetailPage({ params }: Props) {
 
       <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 pb-32">
         <div className="md:flex md:gap-10 md:py-4">
-          {/* Left: Image Gallery — 50% desktop, sticky */}
+          {/* Left: Image Gallery — white container for clean look */}
           <div className="md:w-1/2 mb-5 md:mb-0 md:sticky md:top-4 md:self-start">
+            <div className="bg-white rounded-2xl p-2 md:p-3 shadow-sm border border-primary/5">
             <ProductImageGallery
               images={productImgs.length > 0 ? productImgs : ["/images/hero/AMMO6974.jpg"]}
               name={product.name}
               isBestseller={product.isBestseller}
             />
+            </div>
           </div>
 
           {/* Right: Product Info — 50% desktop */}

@@ -837,21 +837,21 @@ input[type="radio"] {
   overflow: hidden;
   border-radius: 22px;
   background: #fff;
-  border: 1px solid rgba(234, 212, 218, 0.95);
-  box-shadow: var(--shadow-soft);
+  border: 1px solid rgba(198, 142, 155, 0.2);
+  box-shadow: 0 2px 16px rgba(198, 142, 155, 0.12), 0 1px 4px rgba(0,0,0,0.04);
   transition: transform 240ms var(--ease-premium), box-shadow 240ms var(--ease-premium);
 }
 
 .product-card-premium:hover {
   transform: translateY(-6px);
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 8px 32px rgba(198, 142, 155, 0.22), 0 2px 8px rgba(0,0,0,0.06);
 }
 
 .product-card-premium .product-img-container {
   position: relative;
   height: 200px;
   overflow: hidden;
-  background: var(--surface-blush);
+  background: linear-gradient(135deg, #fdf2f5 0%, #f8e8ec 100%);
   padding: 8px;
 }
 
