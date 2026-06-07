@@ -208,16 +208,16 @@ export default async function HomePage() {
       <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-10 md:mt-20">
         <div className="relative rounded-[20px] md:rounded-[28px] overflow-hidden bg-chocolate">
           {/* Background image — full bleed on mobile, right half on desktop */}
-          <div className="absolute inset-0 md:left-[45%]">
+          <div className="absolute inset-0 md:left-[35%]">
             <Image
               src={(store as any).customCakeImage || "/images/hero/customised-cakes-in-delhi.webp"}
               alt="Custom Cakes by Bliss Bakery"
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 55vw"
+              sizes="(max-width: 768px) 100vw, 65vw"
               quality={80}
             />
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-chocolate via-chocolate/90 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-chocolate via-chocolate/70 via-30% to-transparent" />
           </div>
 
           {/* Content */}

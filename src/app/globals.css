@@ -921,11 +921,11 @@ input[type="radio"] {
 /* Premium occasion cards */
 .occasion-card-premium {
   position: relative;
-  flex: 0 0 200px;
-  height: 240px;
+  flex: 0 0 220px;
+  height: 280px;
   overflow: hidden;
-  border-radius: 18px;
-  box-shadow: var(--shadow-soft);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(198, 142, 155, 0.15);
   background: var(--chocolate);
   scroll-snap-align: start;
   transition: transform 240ms var(--ease-premium), box-shadow 240ms var(--ease-premium);
@@ -933,7 +933,7 @@ input[type="radio"] {
 
 .occasion-card-premium:hover {
   transform: translateY(-5px);
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 12px 40px rgba(198, 142, 155, 0.25);
 }
 
 .occasion-card-premium img {
@@ -956,8 +956,8 @@ input[type="radio"] {
 
 @media (max-width: 768px) {
   .occasion-card-premium {
-    flex: 0 0 180px;
-    height: 220px;
+    flex: 0 0 200px;
+    height: 260px;
   }
 }
 

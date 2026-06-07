@@ -48,7 +48,7 @@ export default async function ProductDetailPage({ params }: Props) {
   ]);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(180deg, #dbb8c1 0%, #e8cdd3 25%, #f3e1e5 60%, #faf2f4 100%)' }}>
+    <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(90deg, #c68e9b 0%, #dbb8c1 30%, #f0d8de 70%, #faf2f4 100%)' }}>
       <SiteHeader />
 
       {/* Breadcrumb */}
@@ -74,7 +74,7 @@ export default async function ProductDetailPage({ params }: Props) {
         <div className="md:flex md:gap-10 md:py-4">
           {/* Left: Image Gallery — white container for clean look */}
           <div className="md:w-1/2 mb-5 md:mb-0 md:sticky md:top-4 md:self-start">
-            <div className="bg-white rounded-2xl p-1.5 md:p-2 shadow-sm border border-primary/[0.08]">
+            <div className="bg-white rounded-2xl p-1 md:p-1.5 shadow-sm border border-primary/[0.04]">
             <ProductImageGallery
               images={productImgs.length > 0 ? productImgs : ["/images/hero/AMMO6974.jpg"]}
               name={product.name}
