@@ -55,6 +55,7 @@ export default async function NewProductPage() {
     const base500gPrice = Math.max(0, parseFloat(formData.get("base500gPrice") as string) || 0) || null;
     const flavourPricesJson = formData.get("flavourPrices") as string;
     const defaultFlavour = (formData.get("defaultFlavour") as string) || null;
+    const discountPct = Math.max(0, Math.min(90, parseFloat(formData.get("discountPct") as string) || 0));
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
@@ -73,13 +74,18 @@ export default async function NewProductPage() {
       finalBasePrice = Math.min(basePrice || Infinity, ...variants.map(v => v.price));
     }
 
+    // Calculate mrpPrice for strikethrough if discount is set
+    const finalMrpPrice = pricingStrategy === "CUSTOM" && discountPct > 0
+      ? Math.round(finalBasePrice / (1 - discountPct / 100))
+      : mrpPrice;
+
     const newProduct = await db.product.create({
       data: {
         name,
         slug: slug + "-" + Date.now().toString(36),
         shortDesc: shortDesc || null,
         description: description || null,
-        basePrice: finalBasePrice, mrpPrice,
+        basePrice: finalBasePrice, mrpPrice: finalMrpPrice,
         categoryId,
         isBestseller, isNew, isFeatured, isAvailable,
         ingredients: ingredients || null,

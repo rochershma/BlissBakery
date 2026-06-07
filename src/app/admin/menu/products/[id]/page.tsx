@@ -62,6 +62,7 @@ export default async function EditProductPage({ params }: Props) {
     const base500gPrice = Math.max(0, parseFloat(formData.get("base500gPrice") as string) || 0) || null;
     const flavourPricesJson = formData.get("flavourPrices") as string;
     const defaultFlavour = (formData.get("defaultFlavour") as string) || null;
+    const discountPct = Math.max(0, Math.min(90, parseFloat(formData.get("discountPct") as string) || 0));
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
     })();
@@ -80,11 +81,15 @@ export default async function EditProductPage({ params }: Props) {
       finalBasePrice = Math.min(basePrice || Infinity, ...variants.map(v => v.price));
     }
 
+    const finalMrpPrice = pricingStrategy === "CUSTOM" && discountPct > 0
+      ? Math.round(finalBasePrice / (1 - discountPct / 100))
+      : mrpPrice;
+
     await db.product.update({
       where: { id },
       data: {
         name, shortDesc: shortDesc || null, description: description || null,
-        basePrice: finalBasePrice, mrpPrice, categoryId,
+        basePrice: finalBasePrice, mrpPrice: finalMrpPrice, categoryId,
         isBestseller, isNew, isFeatured, isAvailable,
         ingredients: ingredients || null,
         servingInfo: servingInfo || null,
@@ -149,6 +154,38 @@ export default async function EditProductPage({ params }: Props) {
     redirect("/admin/menu");
   }
 
+  async function cloneProduct() {
+    "use server";
+    await requireAdmin();
+    const src = await db.product.findUnique({ where: { id }, include: { variants: true, addOns: true } });
+    if (!src) return;
+    const cloned = await db.product.create({
+      data: {
+        name: src.name + " (Copy)",
+        slug: src.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-copy-" + Date.now().toString(36),
+        description: src.description, shortDesc: src.shortDesc,
+        basePrice: src.basePrice, mrpPrice: src.mrpPrice,
+        categoryId: src.categoryId,
+        isBestseller: false, isNew: false, isFeatured: false, isAvailable: false,
+        ingredients: src.ingredients, servingInfo: src.servingInfo,
+        images: src.images, occasions: src.occasions, themes: src.themes,
+        forWhom: src.forWhom, flavours: src.flavours,
+        pricingStrategy: src.pricingStrategy, designCharge: src.designCharge,
+        base500gPrice: src.base500gPrice, flavourPrices: src.flavourPrices,
+        defaultFlavour: src.defaultFlavour,
+      },
+    });
+    if (src.variants.length > 0) {
+      await db.productVariant.createMany({
+        data: src.variants.map((v, i) => ({
+          productId: cloned.id, name: v.name, price: v.price, serves: v.serves, sortOrder: i,
+        })),
+      });
+    }
+    revalidatePath("/admin/menu");
+    redirect(`/admin/menu/products/${cloned.id}`);
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -156,9 +193,16 @@ export default async function EditProductPage({ params }: Props) {
           <Link href="/admin/menu" className="p-1 rounded-full hover:bg-muted transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
           <h1 className="text-2xl font-bold text-foreground font-serif">Edit: {product.name}</h1>
         </div>
-        <form action={deleteProduct}>
-          <SubmitButton variant="destructive-inline" label="Delete" pendingLabel="Deleting..." />
-        </form>
+        <div className="flex items-center gap-2">
+          <form action={cloneProduct}>
+            <button type="submit" className="flex items-center gap-1 text-sm text-primary hover:bg-primary/5 px-3 py-2 rounded-xl transition-colors font-medium">
+              Clone
+            </button>
+          </form>
+          <form action={deleteProduct}>
+            <SubmitButton variant="destructive-inline" label="Delete" pendingLabel="Deleting..." />
+          </form>
+        </div>
       </div>
 
       <form action={updateProduct} className="max-w-2xl space-y-5">

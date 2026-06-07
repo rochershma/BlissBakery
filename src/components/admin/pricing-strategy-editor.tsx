@@ -15,6 +15,7 @@ interface Props {
   defaultFlavourPrices?: FlavourPrice[];
   defaultBasePrice?: number;
   defaultFlavour?: string;
+  defaultDiscountPct?: number;
   flavours?: string[];
 }
 
@@ -38,6 +39,7 @@ export function PricingStrategyEditor({
   defaultFlavourPrices = [],
   defaultBasePrice = 0,
   defaultFlavour = "",
+  defaultDiscountPct = 0,
   flavours = [],
 }: Props) {
   const [strategy, setStrategy] = useState<"FIXED" | "CUSTOM">(defaultStrategy);
@@ -45,6 +47,7 @@ export function PricingStrategyEditor({
   const [base500gPrice, setBase500gPrice] = useState(defaultBase500gPrice);
   const [flavourPrices, setFlavourPrices] = useState<FlavourPrice[]>(defaultFlavourPrices);
   const [selectedDefault, setSelectedDefault] = useState(defaultFlavour);
+  const [discountPct, setDiscountPct] = useState(defaultDiscountPct);
 
   // Fetch global default base price — not needed for now
 
@@ -69,56 +72,38 @@ export function PricingStrategyEditor({
       .catch(() => {});
   }, [strategy]);
 
-  // Sync flavour prices when flavours list changes (from FlavourEditor)
+  // Sync flavour prices when flavours change (via custom event from FlavourEditor)
   useEffect(() => {
-    if (strategy !== "CUSTOM" || flavours.length === 0) return;
+    if (strategy !== "CUSTOM") return;
 
-    // Listen for flavours hidden input changes
-    const observer = new MutationObserver(() => {
-      const input = document.querySelector('input[name="flavours"]') as HTMLInputElement;
-      if (!input) return;
-      try {
-        const currentFlavours: string[] = JSON.parse(input.value || "[]");
+    const handleFlavoursChanged = (e: Event) => {
+      const currentFlavours = (e as CustomEvent<string[]>).detail;
+      if (!currentFlavours || currentFlavours.length === 0) return;
+
+      // Fetch global prices to use as defaults
+      fetch("/api/admin/flavours").then(r => r.json()).then(data => {
+        const globalMap = new Map<string, number>((data.flavourPrices || []).map((fp: { name: string; price500g: number }) => [fp.name, fp.price500g]));
         setFlavourPrices((prev) => {
-          const existing = new Map(prev.map((fp) => [fp.name, fp.price500g]));
+          const existing = new Map<string, number>(prev.map((fp) => [fp.name, fp.price500g]));
+          return currentFlavours.map((f) => ({
+            name: f,
+            price500g: existing.get(f) ?? globalMap.get(f) ?? base500gPrice,
+          }));
+        });
+      }).catch(() => {
+        setFlavourPrices((prev) => {
+          const existing = new Map<string, number>(prev.map((fp) => [fp.name, fp.price500g]));
           return currentFlavours.map((f) => ({
             name: f,
             price500g: existing.get(f) ?? base500gPrice,
           }));
         });
-      } catch {}
-    });
+      });
+    };
 
-    const input = document.querySelector('input[name="flavours"]');
-    if (input) {
-      observer.observe(input, { attributes: true, attributeFilter: ["value"] });
-      // Initial sync
-      try {
-        const currentFlavours: string[] = JSON.parse((input as HTMLInputElement).value || "[]");
-        setFlavourPrices((prev) => {
-          const existing = new Map(prev.map((fp) => [fp.name, fp.price500g]));
-          return currentFlavours.map((f) => ({
-            name: f,
-            price500g: existing.get(f) ?? base500gPrice,
-          }));
-        });
-      } catch {}
-    }
-
-    return () => observer.disconnect();
-  }, [strategy, base500gPrice, flavours]);
-
-  // Auto-sync flavour prices when flavours prop changes
-  useEffect(() => {
-    if (strategy !== "CUSTOM" || flavours.length === 0) return;
-    setFlavourPrices((prev) => {
-      const existing = new Map(prev.map((fp) => [fp.name, fp.price500g]));
-      return flavours.map((f) => ({
-        name: f,
-        price500g: existing.get(f) ?? base500gPrice,
-      }));
-    });
-  }, [flavours, strategy, base500gPrice]);
+    window.addEventListener("flavours-changed", handleFlavoursChanged);
+    return () => window.removeEventListener("flavours-changed", handleFlavoursChanged);
+  }, [strategy, base500gPrice]);
 
   const updateFlavourPrice = (name: string, price: number) => {
     setFlavourPrices((prev) => prev.map((fp) => (fp.name === name ? { ...fp, price500g: price } : fp)));
@@ -175,14 +160,24 @@ export function PricingStrategyEditor({
           </p>
 
           {/* Design Charge */}
-          <div>
-            <label className="text-xs font-medium text-foreground block mb-1">Design / Customization Charge (₹)</label>
-            <input
-              type="number" min={0} step={10} value={designCharge}
-              onChange={(e) => setDesignCharge(Math.max(0, parseFloat(e.target.value) || 0))}
-              className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-            />
-            <p className="text-[10px] text-muted-foreground mt-1">Fixed charge added to every size for design work</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Design / Customization Charge (₹)</label>
+              <input
+                type="number" min={0} step={10} value={designCharge}
+                onChange={(e) => setDesignCharge(Math.max(0, parseFloat(e.target.value) || 0))}
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Discount % (strikethrough)</label>
+              <input
+                type="number" min={0} max={90} step={1} value={discountPct}
+                onChange={(e) => setDiscountPct(Math.max(0, Math.min(90, parseFloat(e.target.value) || 0)))}
+                className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">0 = no discount. Shows original as strikethrough.</p>
+            </div>
           </div>
 
           {/* Base 500g Price */}
@@ -282,6 +277,7 @@ export function PricingStrategyEditor({
       <input type="hidden" name="base500gPrice" value={base500gPrice} />
       <input type="hidden" name="flavourPrices" value={JSON.stringify(flavourPrices)} />
       <input type="hidden" name="defaultFlavour" value={selectedDefault} />
+      <input type="hidden" name="discountPct" value={discountPct} />
 
       {/* Hide variants + base price sections when Custom is selected */}
       {strategy === "CUSTOM" && (

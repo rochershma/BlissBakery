@@ -166,6 +166,15 @@ export function FlavourEditor({ defaultFlavours = [] }: Props) {
       )}
 
       <input type="hidden" name="flavours" value={JSON.stringify(flavours)} />
+      {/* Dispatch event for PricingStrategyEditor to pick up */}
+      <FlavourSync flavours={flavours} />
     </div>
   );
+}
+
+function FlavourSync({ flavours }: { flavours: string[] }) {
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("flavours-changed", { detail: flavours }));
+  }, [flavours]);
+  return null;
 }
