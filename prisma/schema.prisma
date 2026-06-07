@@ -36,6 +36,7 @@ model Store {
   defaultCustomSizes String? @db.Text
   deliveryTiers  String?  @db.Text
   defaultBase500gPrice Float?  @default(300)
+  customCakeImage String?
   staffWhatsApp  String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

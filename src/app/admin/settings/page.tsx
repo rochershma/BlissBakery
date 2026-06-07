@@ -35,6 +35,7 @@ export default async function AdminSettingsPage() {
     const longitude = parseFloat(formData.get("longitude") as string) || null;
     const isOpen = formData.get("isOpen") === "on";
     const logo = (formData.get("logo") as string) || null;
+    const customCakeImage = (formData.get("customCakeImage") as string) || null;
 
     // Parse operating hours
     const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -54,6 +55,7 @@ export default async function AdminSettingsPage() {
         latitude, longitude,
         operatingHours: JSON.stringify(hours), isOpen,
         logo,
+        customCakeImage,
       },
     });
     revalidatePath("/admin/settings");
@@ -80,6 +82,13 @@ export default async function AdminSettingsPage() {
               <p className="text-[10px] text-muted-foreground mt-1">Square image recommended (PNG with transparent background works best)</p>
             </div>
           </div>
+        </div>
+
+        {/* Custom Cake Image */}
+        <div className="bg-white rounded-xl border border-border p-5 space-y-4">
+          <h2 className="label-premium text-foreground">Custom Cake Section (Homepage)</h2>
+          <ImageField name="customCakeImage" defaultValue={(store as any).customCakeImage || ""} label="Custom Cake Image" folder="branding" aspectRatio="banner" />
+          <p className="text-[10px] text-muted-foreground">Shown in the "Your vision, our craft" section on homepage. Use a high-quality cake photo.</p>
         </div>
 
         <div className="bg-white rounded-xl border border-border p-5 space-y-4">

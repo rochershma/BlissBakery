@@ -204,39 +204,56 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Custom Cakes CTA — Premium two-column dark section */}
-      <section className="max-w-[1300px] mx-auto px-3 md:px-5 w-full mt-10 md:mt-20">
-        <div className="custom-cta-premium">
-          <div className="p-8 md:p-[54px] flex flex-col justify-center">
-            <p className="text-[var(--gold)] text-xs font-black tracking-[0.15em] uppercase mb-2">Made Just For You</p>
-            <h2 className="text-[clamp(28px,4vw,48px)] font-serif font-bold text-white leading-[0.98] tracking-[-0.055em]">
-              Custom cakes for your exact celebration.
-            </h2>
-            <p className="text-white/[0.76] text-base md:text-lg leading-[1.7] mt-4 max-w-[510px]">
-              Share a theme, reference image, flavor, message, and delivery date. Bliss Bakery turns your idea into a handcrafted eggless cake that feels personal and premium.
-            </p>
-            <div className="flex items-center gap-3.5 mt-5 flex-col md:flex-row">
-              <Link href={`/store/${store.slug}/custom-cakes`} className="btn-premium btn-premium-primary text-sm w-full md:w-auto">
-                Design Your Cake
-              </Link>
-              <a href={`https://wa.me/91${store.phone}`} className="btn-premium btn-premium-secondary text-sm w-full md:w-auto" target="_blank" rel="noopener noreferrer">
-                Chat on WhatsApp
-              </a>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 mt-6">
-              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">1. Pick occasion</div>
-              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">2. Share reference</div>
-              <div className="p-3.5 border border-white/[0.14] rounded-2xl bg-white/[0.08] text-sm font-bold text-white">3. Get fresh delivery</div>
-            </div>
-          </div>
-          <div className="relative min-h-[290px] md:min-h-[430px] overflow-hidden md:rounded-r-[42px]">
+      {/* Custom Cakes CTA — Clean premium section */}
+      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-10 md:mt-20">
+        <div className="relative rounded-[20px] md:rounded-[28px] overflow-hidden bg-chocolate">
+          {/* Background image — full bleed on mobile, right half on desktop */}
+          <div className="absolute inset-0 md:left-[45%]">
             <Image
-              src="/images/hero/customised-cakes-in-delhi.webp"
-              alt="Custom Cakes"
+              src={(store as any).customCakeImage || "/images/hero/customised-cakes-in-delhi.webp"}
+              alt="Custom Cakes by Bliss Bakery"
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 100vw, 55vw"
+              quality={80}
             />
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-chocolate via-chocolate/90 to-transparent" />
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 p-6 pb-8 md:p-12 md:max-w-[50%]">
+            <p className="text-[var(--gold)] text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">Custom Order</p>
+            <h2 className="text-[clamp(24px,4vw,42px)] font-serif font-bold text-white leading-[1.05] tracking-[-0.04em] mt-2">
+              Your vision, our craft
+            </h2>
+            <p className="text-white/70 text-sm md:text-base leading-[1.65] mt-3 max-w-[420px]">
+              Share a reference image and occasion — we'll create a fresh, handcrafted eggless cake that's uniquely yours.
+            </p>
+
+            {/* Steps — horizontal on desktop, vertical on mobile */}
+            <div className="flex flex-col md:flex-row gap-2 mt-5">
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+                <span className="text-white text-xs font-medium">Pick occasion & flavour</span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>
+                <span className="text-white text-xs font-medium">Share reference photo</span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                <span className="text-white text-xs font-medium">Get fresh delivery</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-6">
+              <Link href={`/store/${store.slug}/custom-cakes`} className="btn-premium btn-premium-primary text-sm">
+                Design Your Cake
+              </Link>
+              <a href={`https://wa.me/91${store.phone}`} className="btn-premium btn-premium-secondary text-sm" target="_blank" rel="noopener noreferrer">
+                WhatsApp Us
+              </a>
+            </div>
           </div>
         </div>
       </section>
