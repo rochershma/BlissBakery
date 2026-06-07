@@ -143,12 +143,12 @@ export default function AdminFlavoursPage() {
           </div>
           <div className="divide-y divide-border max-h-[400px] overflow-y-auto">
             {flavourPrices.map((fp, idx) => (
-              <div key={fp.name} className="grid grid-cols-[1fr_100px_32px] gap-2 items-center px-4 py-2 hover:bg-muted/20 transition-colors group">
+              <div key={fp.name} className="grid grid-cols-[1fr_100px_32px] gap-2 items-center px-4 py-2 hover:bg-muted/20 transition-colors">
                 <span className="text-sm font-medium text-foreground truncate">{fp.name}</span>
                 <input type="number" min={0} step={10} value={fp.price500g}
                   onChange={(e) => updatePrice(fp.name, Math.max(0, parseFloat(e.target.value) || 0))}
                   className="w-full px-2 py-1.5 border border-border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                <button onClick={() => removeFlavour(idx)} className="opacity-0 group-hover:opacity-100 transition-opacity w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center no-min-touch">
+                <button onClick={() => removeFlavour(idx)} className="w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center no-min-touch">
                   <X className="w-3.5 h-3.5 text-red-500" />
                 </button>
               </div>
