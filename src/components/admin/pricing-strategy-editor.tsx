@@ -164,16 +164,18 @@ export function PricingStrategyEditor({
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Design / Customization Charge (₹)</label>
               <input
-                type="number" min={0} step={10} value={designCharge}
-                onChange={(e) => setDesignCharge(Math.max(0, parseFloat(e.target.value) || 0))}
+                type="text" inputMode="numeric" value={designCharge || ''}
+                onChange={(e) => setDesignCharge(parseFloat(e.target.value) || 0)}
+                onBlur={(e) => setDesignCharge(Math.max(0, parseFloat(e.target.value) || 0))}
                 className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Discount % (strikethrough)</label>
               <input
-                type="number" min={0} max={90} step={1} value={discountPct}
-                onChange={(e) => setDiscountPct(Math.max(0, Math.min(90, parseFloat(e.target.value) || 0)))}
+                type="text" inputMode="numeric" value={discountPct || ''}
+                onChange={(e) => setDiscountPct(parseFloat(e.target.value) || 0)}
+                onBlur={(e) => setDiscountPct(Math.max(0, Math.min(90, parseFloat(e.target.value) || 0)))}
                 className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <p className="text-[10px] text-muted-foreground mt-1">0 = no discount. Shows original as strikethrough.</p>
@@ -185,8 +187,9 @@ export function PricingStrategyEditor({
             <label className="text-xs font-medium text-foreground block mb-1">Default Base Price per 500g (₹)</label>
             <div className="flex gap-2">
               <input
-                type="number" min={0} step={10} value={base500gPrice}
-                onChange={(e) => setBase500gPrice(Math.max(0, parseFloat(e.target.value) || 0))}
+                type="text" inputMode="numeric" value={base500gPrice || ''}
+                onChange={(e) => setBase500gPrice(parseFloat(e.target.value) || 0)}
+                onBlur={(e) => setBase500gPrice(Math.max(0, parseFloat(e.target.value) || 0))}
                 className="flex-1 px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button type="button" onClick={setAllToBase} className="px-3 py-2.5 text-xs text-primary font-semibold bg-primary/10 rounded-xl hover:bg-primary/20 transition-colors whitespace-nowrap">
@@ -207,8 +210,9 @@ export function PricingStrategyEditor({
                     <div className="flex items-center gap-1">
                       <span className="text-xs text-muted-foreground">₹</span>
                       <input
-                        type="number" min={0} step={10} value={fp.price500g}
-                        onChange={(e) => updateFlavourPrice(fp.name, Math.max(0, parseFloat(e.target.value) || 0))}
+                        type="text" inputMode="numeric" value={fp.price500g || ''}
+                        onChange={(e) => updateFlavourPrice(fp.name, parseFloat(e.target.value) || 0)}
+                        onBlur={(e) => updateFlavourPrice(fp.name, Math.max(0, parseFloat(e.target.value) || 0))}
                         className="w-20 px-2 py-1.5 border border-border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                     </div>

@@ -246,6 +246,12 @@ export default async function EditProductPage({ params }: Props) {
           defaultBase500gPrice={(product as any).base500gPrice || 300}
           defaultFlavourPrices={parseJsonSafe<{ name: string; price500g: number }[]>((product as any).flavourPrices, [])}
           defaultFlavour={(product as any).defaultFlavour || ""}
+          defaultDiscountPct={(() => {
+            if ((product as any).mrpPrice && (product as any).mrpPrice > product.basePrice) {
+              return Math.round((1 - product.basePrice / (product as any).mrpPrice) * 100);
+            }
+            return 0;
+          })()}
           flavours={parseJsonSafe<string[]>((product as any).flavours, [])}
         />
 

@@ -118,7 +118,8 @@ export default function AdminFlavoursPage() {
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <label className="text-xs font-medium text-foreground block mb-1">Default 500g Price (₹)</label>
-            <input type="number" min={0} step={10} value={defaultBase} onChange={(e) => setDefaultBase(Math.max(0, parseFloat(e.target.value) || 0))}
+            <input type="text" inputMode="numeric" value={defaultBase || ''} onChange={(e) => setDefaultBase(parseFloat(e.target.value) || 0)}
+              onBlur={(e) => setDefaultBase(Math.max(0, parseFloat(e.target.value) || 0))}
               className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
           </div>
           <button onClick={setAllPrices} className="px-3 py-2.5 text-xs text-primary font-semibold bg-primary/10 rounded-xl hover:bg-primary/20 transition-colors whitespace-nowrap">
@@ -145,8 +146,9 @@ export default function AdminFlavoursPage() {
             {flavourPrices.map((fp, idx) => (
               <div key={fp.name} className="grid grid-cols-[1fr_100px_32px] gap-2 items-center px-4 py-2 hover:bg-muted/20 transition-colors">
                 <span className="text-sm font-medium text-foreground truncate">{fp.name}</span>
-                <input type="number" min={0} step={10} value={fp.price500g}
-                  onChange={(e) => updatePrice(fp.name, Math.max(0, parseFloat(e.target.value) || 0))}
+                <input type="text" inputMode="numeric" value={fp.price500g || ''}
+                  onChange={(e) => updatePrice(fp.name, parseFloat(e.target.value) || 0)}
+                  onBlur={(e) => updatePrice(fp.name, Math.max(0, parseFloat(e.target.value) || 0))}
                   className="w-full px-2 py-1.5 border border-border rounded-lg text-sm text-right focus:outline-none focus:ring-2 focus:ring-primary/20" />
                 <button onClick={() => removeFlavour(idx)} className="w-7 h-7 rounded-full hover:bg-red-50 flex items-center justify-center no-min-touch">
                   <X className="w-3.5 h-3.5 text-red-500" />
