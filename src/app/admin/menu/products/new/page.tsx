@@ -144,6 +144,9 @@ export default async function NewProductPage() {
     }
 
     revalidatePath("/admin/menu");
+    revalidatePath("/");
+    revalidatePath("/store", "layout");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/menu");
   }
 

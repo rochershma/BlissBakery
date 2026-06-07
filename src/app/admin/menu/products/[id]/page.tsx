@@ -138,6 +138,9 @@ export default async function EditProductPage({ params }: Props) {
       });
     }
     revalidatePath("/admin/menu");
+    revalidatePath("/");
+    revalidatePath("/store", "layout");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/menu");
   }
 
@@ -146,6 +149,9 @@ export default async function EditProductPage({ params }: Props) {
     await requireAdmin();
     await db.product.delete({ where: { id } });
     revalidatePath("/admin/menu");
+    revalidatePath("/");
+    revalidatePath("/store", "layout");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/menu");
   }
 
@@ -178,6 +184,9 @@ export default async function EditProductPage({ params }: Props) {
       });
     }
     revalidatePath("/admin/menu");
+    revalidatePath("/");
+    revalidatePath("/store", "layout");
+    revalidatePath("/cakes", "layout");
     redirect(`/admin/menu/products/${cloned.id}`);
   }
 

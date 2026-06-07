@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
@@ -89,6 +90,7 @@ interface Props {
 }
 
 export default async function OccasionPage({ params, searchParams }: Props) {
+  noStore();
   const { occasion } = await params;
   const { for: forWhom, page: pageStr } = await searchParams;
   const currentPage = Math.max(1, parseInt(pageStr || "1", 10));
