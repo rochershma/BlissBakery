@@ -482,9 +482,11 @@ input[type="time"]:hover::-webkit-calendar-picker-indicator {
   opacity: 1;
 }
 
-/* Focus ring for all form elements */
+/* Focus ring for all form elements — pink border on focus */
 input:focus, textarea:focus, select:focus {
   outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(196, 117, 144, 0.2) !important;
 }
 
 /* Placeholder styling */
@@ -528,15 +530,17 @@ input[type="radio"] {
 /* Swiper hero customization */
 .hero-swiper .swiper-pagination-bullet {
   background: white;
-  opacity: 0.4;
-  width: 8px;
-  height: 8px;
+  opacity: 0.5;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(0,0,0,0.1);
 }
 .hero-swiper .swiper-pagination-bullet-active {
-  background: var(--primary);
+  background: white;
   opacity: 1;
-  width: 24px;
-  border-radius: 4px;
+  width: 28px;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .hero-swiper .swiper-slide {
   opacity: 0 !important;

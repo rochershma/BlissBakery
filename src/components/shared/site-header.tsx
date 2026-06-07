@@ -92,7 +92,7 @@ export function SiteHeader() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 bg-white border-b border-border/60 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border/40 shadow-sm">
       <div className="max-w-[1300px] mx-auto px-3 md:px-5">
         {/* Row 1: Logo + Location + Cart + Profile */}
         <div className="flex items-center h-[56px] md:h-[64px]">
@@ -242,7 +242,7 @@ export function SiteHeader() {
         <div className="md:hidden pb-2.5">
           <button
             onClick={openMobileSearch}
-            className="flex items-center gap-2 w-full h-[44px] px-3.5 bg-white/80 border border-border/50 rounded-xl text-[13px] text-muted-foreground/60 hover:border-primary/30 transition-colors text-left"
+            className="flex items-center gap-2 w-full h-[44px] px-3.5 bg-white border border-primary/20 rounded-xl text-[13px] text-muted-foreground/60 hover:border-primary/40 transition-colors text-left shadow-sm"
           >
             <Search className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
             Search cakes, pastries...
