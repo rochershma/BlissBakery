@@ -121,7 +121,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   useEffect(() => setHydrated(true), []);
 
   // Show cake-specific fields (occasion, message, age) for cake categories
-  const cakePrefixes = ["cakes", "designer-cakes", "occasion-cakes", "custom-cakes"];
+  const cakePrefixes = ["cakes", "designer-cakes", "occasion-cakes", "custom-cakes", "theme-cakes"];
   const catSlug = product.categorySlug || "";
   const isCake = cakePrefixes.some(prefix => catSlug === prefix || catSlug.startsWith(prefix + "-"));
   const hasFlavours = product.flavours && product.flavours.length > 0;

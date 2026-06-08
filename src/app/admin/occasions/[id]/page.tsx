@@ -65,9 +65,12 @@ export default async function EditOccasionPage({ params }: Props) {
     await requireAdmin();
     const recipientId = formData.get("recipientId") as string;
     const name = (formData.get("name") as string).trim();
+    const image = formData.get("image") as string;
     if (!name) return;
-    await db.recipient.update({ where: { id: recipientId }, data: { name } });
+    await db.recipient.update({ where: { id: recipientId }, data: { name, image: image || undefined } });
     revalidatePath(`/admin/occasions/${id}`);
+    revalidatePath("/");
+    revalidatePath("/cakes", "layout");
     redirect(`/admin/occasions/${id}`);
   }
 
@@ -112,31 +115,35 @@ export default async function EditOccasionPage({ params }: Props) {
           <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
             <div className="divide-y divide-border">
               {occasion.recipients.map((r) => (
-                <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0 relative">
-                    {r.image ? (
-                      <Image src={r.image} alt={r.name} fill className="object-cover" sizes="40px" />
-                    ) : (
-                      <div className="w-full h-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{r.name[0]}</div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{r.name}</p>
-                    <p className="text-[10px] text-muted-foreground">slug: {r.slug}</p>
-                  </div>
-                  <form action={updateRecipient} className="flex items-center gap-1">
+                <div key={r.id} className="px-4 py-3 space-y-2">
+                  <form action={updateRecipient}>
                     <input type="hidden" name="recipientId" value={r.id} />
-                    <input name="name" defaultValue={r.name} className="w-28 px-2 py-1 border border-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/30" />
-                    <button type="submit" className="p-1.5 rounded-lg text-primary hover:bg-primary/5 transition-colors" title="Save">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex-shrink-0 relative">
+                        {r.image ? (
+                          <Image src={r.image} alt={r.name} fill className="object-cover" sizes="40px" />
+                        ) : (
+                          <div className="w-full h-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">{r.name[0]}</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <input name="name" defaultValue={r.name} className="w-full px-2 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                        <p className="text-[10px] text-muted-foreground mt-0.5">slug: {r.slug}</p>
+                      </div>
+                      <SubmitButton label="Save" pendingLabel="..." />
+                    </div>
+                    <div className="ml-[52px] mt-2">
+                      <ImageField name="image" defaultValue={r.image || ""} label="Recipient Image" folder="occasions" />
+                    </div>
                   </form>
-                  <form action={deleteRecipient}>
-                    <input type="hidden" name="recipientId" value={r.id} />
-                    <button type="submit" className="p-1.5 rounded-lg text-destructive hover:bg-red-50 transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </form>
+                  <div className="ml-[52px]">
+                    <form action={deleteRecipient} className="inline">
+                      <input type="hidden" name="recipientId" value={r.id} />
+                      <button type="submit" className="text-xs text-destructive hover:underline flex items-center gap-1">
+                        <Trash2 className="w-3 h-3" /> Remove
+                      </button>
+                    </form>
+                  </div>
                 </div>
               ))}
             </div>
