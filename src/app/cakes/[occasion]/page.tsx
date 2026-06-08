@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
 import { ExploreRanges } from "@/components/shared/explore-ranges";
 import { Pagination } from "@/components/shared/pagination";
-import { formatPrice, parseJsonSafe } from "@/lib/utils";
+import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
@@ -118,7 +118,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
 
     const products = await db.product.findMany({
       where: { isAvailable: true, forWhom: { contains: `"${recipientSlug}"` } },
-      include: { category: true },
+      include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
       orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
     });
 
@@ -144,8 +144,9 @@ export default async function OccasionPage({ params, searchParams }: Props) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
               {products.map((product) => {
                 const imgs = parseJsonSafe<string[]>(product.images, []);
-                const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
-                const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+                const displayPrice = getDisplayPrice(product);
+                const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+                const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
                 return (
                   <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false}
                     className="product-card-premium group">
@@ -159,7 +160,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
                       <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
                       <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                       <div className="flex items-center justify-between gap-2 mt-2">
-                        <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                        <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
                         <span className="mini-add-btn inline-flex items-center">Add</span>
                       </div>
                       {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
@@ -205,7 +206,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
   const [products, totalCount] = await Promise.all([
     db.product.findMany({
       where,
-      include: { category: true },
+      include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
       orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
       skip: (currentPage - 1) * ITEMS_PER_PAGE,
       take: ITEMS_PER_PAGE,
@@ -278,8 +279,9 @@ export default async function OccasionPage({ params, searchParams }: Props) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
             {products.map((product) => {
               const imgs = parseJsonSafe<string[]>(product.images, []);
-              const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
-              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+              const displayPrice = getDisplayPrice(product);
+              const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
               return (
                 <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false}
                   className="product-card-premium group">
@@ -294,7 +296,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
                     <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
                     <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-between gap-2 mt-2">
-                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
                       <span className="mini-add-btn inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}

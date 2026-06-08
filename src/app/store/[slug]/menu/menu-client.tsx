@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Search, X } from "lucide-react";
 import { useCartStore } from "@/store/cart";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getDisplayPrice } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 import { AddOnsUpsellModal } from "@/components/product/addons-upsell-modal";
@@ -160,8 +160,9 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
                   <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
                 {visibleProducts.map((product) => {
-                  const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
-                  const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+                  const displayPrice = getDisplayPrice(product);
+                  const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+                  const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
                   return (
                     <Link key={product.id} href={`/store/${storeSlug}/menu/${product.slug}`} prefetch={false}
                       className="product-card-premium group">
@@ -181,7 +182,7 @@ export function MenuClient({ storeSlug, categories, products, storeAddOns, activ
                         <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.categoryName}</p>
                         <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                         <div className="flex items-center justify-between gap-2 mt-2">
-                          <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                          <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
                           <span className="mini-add-btn inline-flex items-center text-xs">Add</span>
                         </div>
                         {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}

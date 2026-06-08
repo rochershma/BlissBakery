@@ -3,7 +3,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Clock, Phone, ChevronRight } from "lucide-react";
-import { formatPrice, parseJsonSafe } from "@/lib/utils";
+import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
 import { SiteHeader } from "@/components/shared/site-header";
 import { AnnouncementBar } from "@/components/shared/announcement-bar";
 import { HeroSlider } from "@/components/home/hero-slider";
@@ -36,7 +36,7 @@ export default async function HomePage() {
 
   const bestsellers = await db.product.findMany({
     where: { isBestseller: true, isAvailable: true },
-    include: { category: true },
+    include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
     take: 8,
   });
 
@@ -158,8 +158,9 @@ export default async function HomePage() {
             {bestsellers.map((product) => {
               const imgs = parseJsonSafe<string[]>(product.images, []);
               const img = imgs[0] || "/images/hero/AMMO6974.jpg";
-              const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
-              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+              const displayPrice = getDisplayPrice(product);
+              const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
               return (
                 <Link
                   key={product.id}
@@ -185,7 +186,7 @@ export default async function HomePage() {
                       {product.name}
                     </h3>
                     <div className="flex items-center justify-between gap-2 mt-2">
-                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(getDisplayPrice(product))}</span>
                       <span className="mini-add-btn inline-flex items-center">Add</span>
                     </div>
                     {hasDiscount && (

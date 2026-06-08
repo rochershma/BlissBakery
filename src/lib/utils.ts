@@ -14,6 +14,13 @@ export function formatPrice(price: number): string {
   return `\u20b9${formatted}`;
 }
 
+/** Compute display price from cheapest available variant, falling back to basePrice */
+export function getDisplayPrice(product: { basePrice: number; variants?: { price: number; isAvailable?: boolean }[] }): number {
+  const available = product.variants?.filter(v => v.isAvailable !== false) ?? [];
+  if (available.length === 0) return product.basePrice;
+  return Math.min(...available.map(v => v.price));
+}
+
 export function generateOrderNumber(prefix: string = "BB"): string {
   const timestamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).substring(2, 5).toUpperCase();

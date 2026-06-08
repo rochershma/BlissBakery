@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
-import { formatPrice, parseJsonSafe } from "@/lib/utils";
+import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: Props) {
       const where = { isAvailable: true, basePrice: { lte: maxPrice } };
       [products, totalCount] = await Promise.all([
         db.product.findMany({
-          where, include: { category: true },
+          where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
           orderBy: [{ basePrice: "asc" }, { isBestseller: "desc" }],
           skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
         }),
@@ -64,7 +64,7 @@ export default async function SearchPage({ searchParams }: Props) {
     const where = { isAvailable: true, OR: orConditions };
     [products, totalCount] = await Promise.all([
       db.product.findMany({
-        where, include: { category: true },
+        where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
         orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
         skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
       }),
@@ -76,7 +76,7 @@ export default async function SearchPage({ searchParams }: Props) {
       const ids = new Set(products.map((p: any) => p.id));
       const extra = await db.product.findMany({
         where: { isAvailable: true, id: { notIn: Array.from(ids) } },
-        include: { category: true },
+        include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
         orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
         take: ITEMS_PER_PAGE - products.length,
       });
@@ -87,7 +87,7 @@ export default async function SearchPage({ searchParams }: Props) {
     // No query — show all products
     [products, totalCount] = await Promise.all([
       db.product.findMany({
-        where: { isAvailable: true }, include: { category: true },
+        where: { isAvailable: true }, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
         orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
         skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
       }),
@@ -149,8 +149,9 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
           {products.map((product: any) => {
             const imgs = parseJsonSafe<string[]>(product.images, []);
-            const hasDiscount = product.mrpPrice && product.mrpPrice > product.basePrice;
-            const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - product.basePrice) / product.mrpPrice!) * 100) : 0;
+            const displayPrice = getDisplayPrice(product);
+            const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+            const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
             return (
               <Link key={product.id} href={`/store/${storeSlug}/menu/${product.slug}`} prefetch={false}
                 className="product-card-premium group">
@@ -164,7 +165,7 @@ export default async function SearchPage({ searchParams }: Props) {
                   <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
                   <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                   <div className="flex items-center justify-between gap-2 mt-2">
-                    <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(product.basePrice)}</span>
+                    <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
                     <span className="mini-add-btn inline-flex items-center">Add</span>
                   </div>
                   {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
