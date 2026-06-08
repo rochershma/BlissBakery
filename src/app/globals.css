@@ -861,7 +861,7 @@ input[type="radio"] {
 
 @media (min-width: 769px) {
   .product-card-premium .product-img-container {
-    height: 240px;
+    height: 260px;
   }
 }
 
@@ -874,6 +874,7 @@ input[type="radio"] {
 .product-card-premium .product-img-container img {
   border-radius: 14px;
   object-fit: cover;
+  object-position: center 35%;
   transition: transform 560ms var(--ease-premium);
 }
 
