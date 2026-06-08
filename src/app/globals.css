@@ -671,7 +671,6 @@ input[type="radio"] {
 /* ====== MOBILE PRODUCT GRID ENHANCEMENTS ====== */
 @media (max-width: 768px) {
   .product-card-premium .product-img-container {
-    height: 150px;
     padding: 5px;
   }
   .product-card-premium {
@@ -853,7 +852,7 @@ input[type="radio"] {
 
 .product-card-premium .product-img-container {
   position: relative;
-  height: 200px;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   background: linear-gradient(135deg, #fdf2f5 0%, #f8e8ec 100%);
   padding: 8px;
@@ -861,7 +860,6 @@ input[type="radio"] {
 
 @media (max-width: 768px) {
   .product-card-premium .product-img-container {
-    height: 160px;
     padding: 6px;
   }
 }

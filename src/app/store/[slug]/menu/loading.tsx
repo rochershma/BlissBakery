@@ -16,7 +16,7 @@ export default function MenuLoading() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="rounded-2xl border border-border overflow-hidden">
-              <div className="aspect-square bg-muted" />
+              <div className="aspect-[4/5] bg-muted" />
               <div className="p-3 space-y-2">
                 <div className="h-3 bg-muted rounded w-16" />
                 <div className="h-4 bg-muted rounded w-3/4" />
