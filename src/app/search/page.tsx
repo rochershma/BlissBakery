@@ -4,21 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
-import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
-import { HoverImageCycler } from "@/components/product/hover-image-cycler";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ExploreRanges } from "@/components/shared/explore-ranges";
+import { InfiniteProductGrid } from "@/components/shared/infinite-product-grid";
+import { parseJsonSafe, getDisplayPrice } from "@/lib/utils";
+import { Search } from "lucide-react";
 
-const ITEMS_PER_PAGE = 20;
+const INITIAL_BATCH = 12;
 
 interface Props {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string }>;
 }
 
 export default async function SearchPage({ searchParams }: Props) {
   noStore();
-  const { q, page: pageStr } = await searchParams;
+  const { q } = await searchParams;
   const query = q?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50) || "";
-  const currentPage = Math.max(1, parseInt(pageStr || "1", 10));
 
   const store = await db.store.findFirst();
   const storeSlug = store?.slug || "kuchaman-city";
@@ -27,75 +27,50 @@ export default async function SearchPage({ searchParams }: Props) {
   let totalCount = 0;
 
   if (query.length >= 2) {
-    // Detect price intent (e.g. "under 500", "below 700", "under ₹500")
     const priceMatch = query.match(/(?:under|below|upto|up to|less than|within)\s*₹?\s*(\d+)/i);
     const maxPrice = priceMatch ? parseInt(priceMatch[1], 10) : null;
 
     if (maxPrice) {
-      // Price-based filter
       const where = { isAvailable: true, basePrice: { lte: maxPrice } };
       [products, totalCount] = await Promise.all([
         db.product.findMany({
           where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
           orderBy: [{ basePrice: "asc" }, { isBestseller: "desc" }],
-          skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
+          take: INITIAL_BATCH,
         }),
         db.product.count({ where }),
       ]);
     } else {
-    // Split into words for broad matching ("kids cake" matches "kids" OR "cake")
-    const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
-    const orConditions: any[] = [];
-    for (const word of words) {
-      orConditions.push(
-        { name: { contains: word } },
-        { shortDesc: { contains: word } },
-        { description: { contains: word } },
-        { category: { name: { contains: word } } },
-        { occasions: { contains: word } },
-        { themes: { contains: word } },
-        { flavours: { contains: word } },
-        { forWhom: { contains: word } },
-      );
+      const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
+      const orConditions: any[] = [];
+      for (const word of words) {
+        orConditions.push(
+          { name: { contains: word } }, { shortDesc: { contains: word } },
+          { category: { name: { contains: word } } }, { occasions: { contains: word } },
+          { themes: { contains: word } }, { flavours: { contains: word } },
+        );
+      }
+      orConditions.push({ name: { contains: query } }, { shortDesc: { contains: query } });
+      const where = { isAvailable: true, OR: orConditions };
+      [products, totalCount] = await Promise.all([
+        db.product.findMany({
+          where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
+          orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
+          take: INITIAL_BATCH,
+        }),
+        db.product.count({ where }),
+      ]);
     }
-    // Also full phrase
-    orConditions.push({ name: { contains: query } }, { shortDesc: { contains: query } });
-
-    const where = { isAvailable: true, OR: orConditions };
-    [products, totalCount] = await Promise.all([
-      db.product.findMany({
-        where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
-        orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-        skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
-      }),
-      db.product.count({ where }),
-    ]);
-
-    // Pad with popular products if results are thin (page 1 only)
-    if (products.length < ITEMS_PER_PAGE / 2 && currentPage === 1) {
-      const ids = new Set(products.map((p: any) => p.id));
-      const extra = await db.product.findMany({
-        where: { isAvailable: true, id: { notIn: Array.from(ids) } },
-        include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
-        orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
-        take: ITEMS_PER_PAGE - products.length,
-      });
-      products = [...products, ...extra];
-    }
-    } // close text-search else
   } else {
-    // No query — show all products
     [products, totalCount] = await Promise.all([
       db.product.findMany({
         where: { isAvailable: true }, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
         orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-        skip: (currentPage - 1) * ITEMS_PER_PAGE, take: ITEMS_PER_PAGE,
+        take: INITIAL_BATCH,
       }),
       db.product.count({ where: { isAvailable: true } }),
     ]);
   }
-
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   // Explore ranges
   const [dbOccasions, dbThemes] = await Promise.all([
@@ -145,105 +120,27 @@ export default async function SearchPage({ searchParams }: Props) {
           </div>
         </form>
 
-        {/* Results grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
-          {products.map((product: any) => {
-            const imgs = parseJsonSafe<string[]>(product.images, []);
-            const displayPrice = getDisplayPrice(product);
-            const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
-            const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
-            return (
-              <Link key={product.id} href={`/store/${storeSlug}/menu/${product.slug}`} prefetch={false}
-                className="product-card-premium group">
-                <div className="product-img-container relative">
-                  <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
-                    {product.isBestseller && <span className="badge-premium">Bestseller</span>}
-                  </HoverImageCycler>
-                  {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
-                </div>
-                <div className="p-2.5 md:p-3.5">
-                  <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
-                  <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
-                    <span className="mini-add-btn inline-flex items-center">Add</span>
-                  </div>
-                  {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1.5 mt-8">
-            {currentPage > 1 && (
-              <Link href={`/search?q=${encodeURIComponent(query)}&page=${currentPage - 1}`}
-                className="w-9 h-9 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </Link>
-            )}
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 2)
-              .map((p, idx, arr) => (
-                <span key={p} className="inline-flex">
-                  {idx > 0 && arr[idx - 1] !== p - 1 && <span className="text-muted-foreground px-1 self-center">...</span>}
-                  <Link href={`/search?q=${encodeURIComponent(query)}&page=${p}`}
-                    className={`w-9 h-9 rounded-xl inline-flex items-center justify-center text-sm font-medium transition-colors ${
-                      p === currentPage ? "bg-primary text-white" : "border border-border hover:bg-muted"
-                    }`}>
-                    {p}
-                  </Link>
-                </span>
-              ))
-            }
-            {currentPage < totalPages && (
-              <Link href={`/search?q=${encodeURIComponent(query)}&page=${currentPage + 1}`}
-                className="w-9 h-9 rounded-xl border border-border flex items-center justify-center hover:bg-muted transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            )}
+        {/* Results */}
+        {products.length === 0 && query ? (
+          <div className="text-center py-16">
+            <h2 className="text-lg font-bold text-foreground font-serif mb-2">No results found</h2>
+            <p className="text-sm text-muted-foreground">Try a different search term</p>
           </div>
+        ) : (
+          <InfiniteProductGrid
+            initialProducts={products.map((p: any) => {
+              const imgs = parseJsonSafe<string[]>(p.images, []);
+              const displayPrice = getDisplayPrice(p);
+              return { id: p.id, name: p.name, slug: p.slug, displayPrice, mrpPrice: p.mrpPrice, image: imgs[0] || null, images: imgs, categoryName: p.category.name, isBestseller: p.isBestseller, isNew: p.isNew };
+            })}
+            totalCount={totalCount}
+            storeSlug={storeSlug}
+            apiParams={query ? `q=${encodeURIComponent(query)}` : ""}
+          />
         )}
       </main>
 
-      {/* Explore Our Cake Ranges */}
-      {(dbOccasions.length > 0 || dbThemes.length > 0) && (
-        <section className="border-t border-border/50">
-          <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-10">
-            <p className="section-kicker">Explore More</p>
-            <h3 className="text-xl font-bold text-foreground font-serif mb-5">Our Cake Ranges</h3>
-            <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
-              <Link href={`/store/${storeSlug}/menu`} prefetch={false} className="flex-shrink-0 w-[180px] md:w-[220px] group">
-                <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
-                  <Image src="/images/categories/cakes.jpg" alt="All" fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="220px" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs">View All Menu</span>
-                </div>
-              </Link>
-              {dbOccasions.map((occ) => (
-                <Link key={occ.id} href={`/cakes/${occ.slug}`} prefetch={false} className="flex-shrink-0 w-[180px] md:w-[220px] group">
-                  <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
-                    {occ.image && <Image src={occ.image} alt={occ.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="220px" />}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs">{occ.name}</span>
-                  </div>
-                </Link>
-              ))}
-              {dbThemes.map((t) => (
-                <Link key={t.id} href={`/themes/${t.slug}`} prefetch={false} className="flex-shrink-0 w-[180px] md:w-[220px] group">
-                  <div className="relative h-[140px] md:h-[160px] rounded-2xl overflow-hidden bg-chocolate shadow-sm">
-                    {t.image && <Image src={t.image} alt={t.name} fill className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" sizes="220px" />}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className="absolute bottom-2.5 left-3 right-3 text-white font-serif font-bold text-xs">{t.name}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <ExploreRanges storeSlug={storeSlug} occasions={dbOccasions} themes={dbThemes} />
 
       <SiteFooter storeSlug={storeSlug} phone={store?.phone || undefined} city={store?.city || undefined} state={store?.state || undefined} />
     </div>

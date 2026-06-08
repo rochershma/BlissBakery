@@ -6,12 +6,12 @@ import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
 import { SiteFooter } from "@/components/shared/site-footer";
 import { ExploreRanges } from "@/components/shared/explore-ranges";
-import { Pagination } from "@/components/shared/pagination";
+import { InfiniteProductGrid } from "@/components/shared/infinite-product-grid";
 import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
 import { ChevronRight, Home } from "lucide-react";
 import { HoverImageCycler } from "@/components/product/hover-image-cycler";
 
-const ITEMS_PER_PAGE = 20;
+const INITIAL_BATCH = 12;
 
 const OCCASION_CONFIG: Record<string, {
   title: string;
@@ -86,14 +86,13 @@ const OCCASION_CONFIG: Record<string, {
 
 interface Props {
   params: Promise<{ occasion: string }>;
-  searchParams: Promise<{ for?: string; page?: string }>;
+  searchParams: Promise<{ for?: string }>;
 }
 
 export default async function OccasionPage({ params, searchParams }: Props) {
   noStore();
   const { occasion } = await params;
-  const { for: forWhom, page: pageStr } = await searchParams;
-  const currentPage = Math.max(1, parseInt(pageStr || "1", 10));
+  const { for: forWhom } = await searchParams;
 
   // Handle "for-*" slugs as recipient pages (e.g., /cakes/for-wife)
   if (occasion.startsWith("for-")) {
@@ -208,12 +207,10 @@ export default async function OccasionPage({ params, searchParams }: Props) {
       where,
       include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
       orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-      skip: (currentPage - 1) * ITEMS_PER_PAGE,
-      take: ITEMS_PER_PAGE,
+      take: INITIAL_BATCH,
     }),
     db.product.count({ where }),
   ]);
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   // Explore ranges data — filter out empty themes
   const [dbOccasions, allThemes] = await Promise.all([
@@ -275,44 +272,16 @@ export default async function OccasionPage({ params, searchParams }: Props) {
             <Link href={`/cakes/${occasion}`} className="text-primary text-sm font-medium hover:underline">View All {config.title} →</Link>
           </div>
         ) : (
-          <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
-            {products.map((product) => {
-              const imgs = parseJsonSafe<string[]>(product.images, []);
-              const displayPrice = getDisplayPrice(product);
-              const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
-              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
-              return (
-                <Link key={product.id} href={`/store/${store.slug}/menu/${product.slug}`} prefetch={false}
-                  className="product-card-premium group">
-                  <div className="product-img-container relative">
-                    <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
-                      {product.isBestseller && <span className="badge-premium">Bestseller</span>}
-                      {product.isNew && !product.isBestseller && <span className="badge-premium">New</span>}
-                    </HoverImageCycler>
-                    {hasDiscount && <span className="badge-discount">{discountPct}% OFF</span>}
-                  </div>
-                  <div className="p-2.5 md:p-3.5">
-                    <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">{product.category.name}</p>
-                    <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                    <div className="flex items-center justify-between gap-2 mt-2">
-                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(displayPrice)}</span>
-                      <span className="mini-add-btn inline-flex items-center">Add</span>
-                    </div>
-                    {hasDiscount && <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>}
-                  </div>
-                </Link>
-              );
+          <InfiniteProductGrid
+            initialProducts={products.map(p => {
+              const imgs = parseJsonSafe<string[]>(p.images, []);
+              const displayPrice = getDisplayPrice(p);
+              return { id: p.id, name: p.name, slug: p.slug, displayPrice, mrpPrice: p.mrpPrice, image: imgs[0] || null, images: imgs, categoryName: p.category.name, isBestseller: p.isBestseller, isNew: p.isNew };
             })}
-          </div>
-
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            baseUrl={validForWhom ? `/cakes/${occasion}?for=${validForWhom}` : `/cakes/${occasion}`}
+            totalCount={totalCount}
+            storeSlug={store.slug}
+            apiParams={`occasion=${occasion}${validForWhom ? `&for=${validForWhom}` : ""}`}
           />
-          </>
         )}
       </main>
 
