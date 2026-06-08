@@ -59,6 +59,9 @@ export default async function AdminSettingsPage() {
       },
     });
     revalidatePath("/admin/settings");
+    revalidatePath("/");
+    revalidatePath("/store", "layout");
+    revalidatePath("/checkout");
     redirect("/admin/settings");
   }
 

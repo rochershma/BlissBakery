@@ -36,6 +36,7 @@ interface Props {
     pricingStrategy?: "FIXED" | "CUSTOM";
     flavourPrices?: { name: string; price500g: number }[];
     designCharge?: number;
+    base500gPrice?: number;
     defaultFlavour?: string;
     variants: { id: string; name: string; price: number; serves?: string; weightKg?: number }[];
     addOns: { id: string; name: string; price: number }[];
@@ -127,7 +128,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
 
   // Custom pricing calculation
   const getCustomPrice = (flavour: string, weightKg: number): number => {
-    const flavour500g = flavourPriceMap.get(flavour) || 300;
+    const flavour500g = flavourPriceMap.get(flavour) || (product.base500gPrice ?? 300);
     const designCharge = product.designCharge || 0;
     return Math.round(flavour500g * weightKg * 2 + designCharge);
   };

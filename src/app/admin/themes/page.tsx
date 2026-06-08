@@ -47,6 +47,8 @@ export default async function AdminThemesPage({ searchParams }: Props) {
       data: { name, slug, subtitle: subtitle || null, image: image || null, sortOrder: (maxOrder._max.sortOrder || 0) + 1, storeId: store.id },
     });
     revalidatePath("/admin/themes");
+    revalidatePath("/");
+    revalidatePath("/themes", "layout");
     redirect("/admin/themes");
   }
 
@@ -63,6 +65,8 @@ export default async function AdminThemesPage({ searchParams }: Props) {
       data: { name, subtitle: subtitle || null, image: image || null },
     });
     revalidatePath("/admin/themes");
+    revalidatePath("/");
+    revalidatePath("/themes", "layout");
     redirect("/admin/themes");
   }
 
@@ -72,6 +76,8 @@ export default async function AdminThemesPage({ searchParams }: Props) {
     const id = formData.get("id") as string;
     await db.theme.delete({ where: { id } });
     revalidatePath("/admin/themes");
+    revalidatePath("/");
+    revalidatePath("/themes", "layout");
     redirect("/admin/themes");
   }
 
@@ -82,6 +88,8 @@ export default async function AdminThemesPage({ searchParams }: Props) {
     const current = formData.get("isActive") === "true";
     await db.theme.update({ where: { id }, data: { isActive: !current } });
     revalidatePath("/admin/themes");
+    revalidatePath("/");
+    revalidatePath("/themes", "layout");
     redirect("/admin/themes");
   }
 

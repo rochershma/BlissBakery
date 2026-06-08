@@ -31,6 +31,8 @@ export default async function EditOccasionPage({ params }: Props) {
       data: { name, subtitle: subtitle || null, image: image || null },
     });
     revalidatePath("/admin/occasions");
+    revalidatePath("/");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/occasions");
   }
 

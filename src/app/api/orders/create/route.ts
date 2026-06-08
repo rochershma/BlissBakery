@@ -58,7 +58,22 @@ export async function POST(req: NextRequest) {
       }
       // Determine correct price from DB
       let serverPrice = product.basePrice;
-      if (item.variantName) {
+      if (product.pricingStrategy === "CUSTOM" && item.flavour) {
+        // Custom pricing: recalculate from flavourPrices + designCharge + weight
+        const flavourPrices: { name: string; price500g: number }[] = (() => {
+          try { return typeof product.flavourPrices === "string" ? JSON.parse(product.flavourPrices) : (product.flavourPrices || []); } catch { return []; }
+        })();
+        const fp = flavourPrices.find(f => f.name === item.flavour);
+        const flavour500g = fp?.price500g || (product.base500gPrice ?? 300);
+        const designCharge = product.designCharge ?? 0;
+        // Determine weight from variant name
+        let weightKg = 0.5;
+        if (item.variantName) {
+          const match = item.variantName.match(/([\d.]+)\s*[Kk][Gg]/);
+          if (match) weightKg = parseFloat(match[1]);
+        }
+        serverPrice = Math.round(flavour500g * weightKg * 2 + designCharge);
+      } else if (item.variantName) {
         const variant = product.variants.find(v => v.name === item.variantName);
         if (variant) serverPrice = variant.price;
       }
@@ -90,7 +105,7 @@ export async function POST(req: NextRequest) {
     let discount = 0;
     if (data.promoCode) {
       const promo = await db.promoCode.findUnique({ where: { code: data.promoCode } });
-      if (promo && promo.isActive && new Date(promo.validTo) > new Date()) {
+      if (promo && promo.isActive && new Date(promo.validTo) > new Date() && (!promo.validFrom || new Date(promo.validFrom) <= new Date())) {
         if (!promo.minOrderValue || itemTotal >= promo.minOrderValue) {
           if (promo.discountType === "PERCENTAGE") {
             discount = Math.min(itemTotal * (promo.discountValue / 100), promo.maxDiscount || Infinity);

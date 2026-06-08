@@ -133,6 +133,7 @@ export default async function ProductDetailPage({ params }: Props) {
               pricingStrategy: ((product as any).pricingStrategy || "FIXED") as "FIXED" | "CUSTOM",
               flavourPrices: parseJsonSafe<{ name: string; price500g: number }[]>((product as any).flavourPrices, []),
               designCharge: (product as any).designCharge || 0,
+              base500gPrice: (product as any).base500gPrice || undefined,
               defaultFlavour: (product as any).defaultFlavour || undefined,
               variants: product.variants.map((v) => ({ id: v.id, name: v.name, price: v.price, serves: v.serves || undefined })),
               addOns: product.addOns.map((a) => ({ id: a.id, name: a.name, price: a.price })),

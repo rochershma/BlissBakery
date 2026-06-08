@@ -43,6 +43,8 @@ export default function CheckoutPage() {
     specialInstructions,
     getItemCount,
     getSubtotal,
+    updateItemPrice,
+    removeItem,
   } = useCartStore();
 
   const [hydrated, setHydrated] = useState(false);
@@ -95,6 +97,34 @@ export default function CheckoutPage() {
       setShowLoginModal(true);
     }
   }, [hydrated, authLoading, user, setShowLoginModal]);
+
+  // Verify cart prices from server on checkout load
+  const [priceWarning, setPriceWarning] = useState("");
+  useEffect(() => {
+    if (!hydrated || items.length === 0) return;
+    fetch("/api/cart/verify-prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: items.map(i => ({ productId: i.productId, variantName: i.variantName, flavour: i.flavour, unitPrice: i.unitPrice })) }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (!data.updates || data.updates.length === 0) return;
+        let updated = false;
+        for (const u of data.updates) {
+          if (u.correctPrice === -1) {
+            removeItem(u.productId, u.variantName);
+            updated = true;
+          } else {
+            updateItemPrice(u.productId, u.correctPrice, u.variantName, u.flavour);
+            updated = true;
+          }
+        }
+        if (updated) setPriceWarning("Some prices were updated to the latest rates.");
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
 
   if (!hydrated) {
     return (
@@ -317,6 +347,11 @@ export default function CheckoutPage() {
         <div className="md:flex md:gap-6">
         <div className="md:flex-1">
         {/* Order Summary */}
+        {priceWarning && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 text-sm text-amber-800">
+            {priceWarning}
+          </div>
+        )}
         <div className="bg-white rounded-xl border border-border overflow-hidden mb-4">
           <div className="px-4 py-2.5 bg-muted/50 border-b border-border flex items-center justify-between">
             <h2 className="label-premium text-foreground">Order Summary</h2>

@@ -42,6 +42,8 @@ export default async function AdminOccasionsPage() {
       data: { name, slug, subtitle: subtitle || null, image: image || null, sortOrder: (maxOrder._max.sortOrder || 0) + 1, storeId: store.id },
     });
     revalidatePath("/admin/occasions");
+    revalidatePath("/");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/occasions");
   }
 
@@ -51,6 +53,8 @@ export default async function AdminOccasionsPage() {
     const id = formData.get("id") as string;
     await db.occasion.delete({ where: { id } });
     revalidatePath("/admin/occasions");
+    revalidatePath("/");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/occasions");
   }
 
@@ -61,6 +65,8 @@ export default async function AdminOccasionsPage() {
     const current = formData.get("isActive") === "true";
     await db.occasion.update({ where: { id }, data: { isActive: !current } });
     revalidatePath("/admin/occasions");
+    revalidatePath("/");
+    revalidatePath("/cakes", "layout");
     redirect("/admin/occasions");
   }
 

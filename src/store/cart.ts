@@ -30,6 +30,7 @@ interface CartState {
   removeItem: (productId: string, variantName?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantName?: string) => void;
   updateItemAddOns: (productId: string, addOns: { name: string; price: number }[], variantName?: string) => void;
+  updateItemPrice: (productId: string, price: number, variantName?: string, flavour?: string) => void;
   clearCart: () => void;
   setStoreSlug: (slug: string) => void;
   setOrderType: (type: "PICKUP" | "DELIVERY") => void;
@@ -70,12 +71,14 @@ export const useCartStore = create<CartState>()(
       },
 
       removeItem: (productId, variantName) => {
-        set({
-          items: get().items.filter(
-            (i) =>
-              !(i.productId === productId && (i.variantName || "") === (variantName || ""))
-          ),
-        });
+        // Remove only the first matching item (not all with same productId+variant)
+        const { items } = get();
+        const idx = items.findIndex(
+          (i) => i.productId === productId && (i.variantName || "") === (variantName || "")
+        );
+        if (idx !== -1) {
+          set({ items: [...items.slice(0, idx), ...items.slice(idx + 1)] });
+        }
       },
 
       updateQuantity: (productId, quantity, variantName) => {
@@ -97,6 +100,18 @@ export const useCartStore = create<CartState>()(
           items: get().items.map((i) =>
             i.productId === productId && (i.variantName || "") === (variantName || "")
               ? { ...i, addOns }
+              : i
+          ),
+        });
+      },
+
+      updateItemPrice: (productId, price, variantName, flavour) => {
+        set({
+          items: get().items.map((i) =>
+            i.productId === productId &&
+            (i.variantName || "") === (variantName || "") &&
+            (!flavour || (i.flavour || "") === flavour)
+              ? { ...i, unitPrice: price }
               : i
           ),
         });
