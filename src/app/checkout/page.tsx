@@ -377,6 +377,9 @@ export default function CheckoutPage() {
                       {item.flavour && ` · ${item.flavour}`}
                       {` × ${item.quantity}`}
                     </p>
+                    {item.cakeMessage && (
+                      <p className="text-[10px] text-primary/70 truncate">&quot;{item.cakeMessage}&quot;</p>
+                    )}
                   </div>
                   <span className="text-sm font-bold text-foreground flex-shrink-0">
                     {formatPrice(item.unitPrice * item.quantity)}

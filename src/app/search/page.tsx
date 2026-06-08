@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export default async function SearchPage({ searchParams }: Props) {
+  noStore();
   const { q, page: pageStr } = await searchParams;
   const query = q?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50) || "";
   const currentPage = Math.max(1, parseInt(pageStr || "1", 10));

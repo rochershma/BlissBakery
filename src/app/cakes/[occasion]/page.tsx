@@ -260,7 +260,7 @@ export default async function OccasionPage({ params, searchParams }: Props) {
       {/* Title + count */}
       <div className="max-w-[1300px] mx-auto w-full px-4 md:px-5 pt-2 pb-4">
         <h1 className="text-[clamp(20px,3vw,30px)] font-serif font-bold text-foreground tracking-[-0.03em]">{config.title}</h1>
-        <p className="text-xs text-muted-foreground mt-1">{totalCount} {totalCount === 1 ? "product" : "products"} · 100% Eggless</p>
+        <p className="text-xs text-muted-foreground mt-1">{totalCount === 0 ? "Coming soon" : `${totalCount} ${totalCount === 1 ? "product" : "products"} · 100% Eggless`}</p>
       </div>
 
       {/* Product Grid — same style as homepage bestsellers */}

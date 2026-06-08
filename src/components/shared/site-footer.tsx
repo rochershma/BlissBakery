@@ -28,20 +28,21 @@ export function SiteFooter({ storeSlug = "kuchaman-city", phone = "9602831559", 
           </div>
           <div>
             <h3 className="font-serif font-bold text-white text-lg mb-4">Quick Links</h3>
-            <div className="space-y-2.5 text-sm">
-              <Link href="/about" className="block hover:text-white transition-colors font-medium">About Us</Link>
-              <Link href={`/store/${storeSlug}/custom-cakes`} className="block hover:text-white transition-colors font-medium">Custom Cakes</Link>
-              <Link href="/offers" className="block hover:text-white transition-colors font-medium">Offers</Link>
-              <Link href="/contact" className="block hover:text-white transition-colors font-medium">Contact</Link>
-              <Link href="/privacy" className="block hover:text-white transition-colors font-medium">Privacy Policy</Link>
-              <Link href="/terms" className="block hover:text-white transition-colors font-medium">Terms & Conditions</Link>
+            <div className="space-y-1 text-sm">
+              <Link href="/about" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">About Us</Link>
+              <Link href={`/store/${storeSlug}/custom-cakes`} className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Custom Cakes</Link>
+              <Link href="/offers" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Offers</Link>
+              <Link href="/contact" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Contact</Link>
+              <Link href="/privacy" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Privacy Policy</Link>
+              <Link href="/terms" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Terms & Conditions</Link>
+              <Link href="/refund-policy" className="block hover:text-white transition-colors font-medium min-h-[44px] flex items-center">Refund Policy</Link>
             </div>
           </div>
           <div>
             <h3 className="font-serif font-bold text-white text-lg mb-4">Order Today</h3>
             <p className="text-white/70 text-sm leading-[1.7] font-medium">
               Same-day delivery before 8 PM.<br />
-              Call: +91 {phone}<br />
+              Call: <a href={`tel:+91${phone}`} className="hover:text-white transition-colors min-h-[44px] inline-flex items-center">+91 {phone}</a><br />
               {city}, {state}
             </p>
           </div>

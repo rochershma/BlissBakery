@@ -71,6 +71,9 @@ export default async function HomePage() {
       {/* Header */}
       <SiteHeader />
 
+      {/* SEO H1 — visually hidden, doesn't affect layout */}
+      <h1 className="sr-only">Bliss Bakery — Fresh Eggless Cakes & Pastries in Kuchaman City</h1>
+
       {/* Hero Slider — from DB banners */}
       <HeroSlider banners={store.banners.map(b => ({
         id: b.id,
