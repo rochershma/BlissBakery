@@ -40,9 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# backups
-*.sql
-backups/
+# backups - tracked in git for disaster recovery (repo MUST be private!)
+# Only root-level SQL files are ignored (prisma migrations etc.)
+/*.sql
 
 # database
 prisma/dev.db
