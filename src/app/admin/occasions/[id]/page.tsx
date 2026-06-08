@@ -115,7 +115,7 @@ export default async function EditOccasionPage({ params }: Props) {
           <div className="bg-white rounded-2xl border border-border overflow-hidden mb-4">
             <div className="divide-y divide-border">
               {occasion.recipients.map((r) => (
-                <div key={r.id} className="px-4 py-3 space-y-2">
+                <div key={r.id} className="px-4 py-3">
                   <form action={updateRecipient}>
                     <input type="hidden" name="recipientId" value={r.id} />
                     <div className="flex items-center gap-3">
@@ -128,15 +128,17 @@ export default async function EditOccasionPage({ params }: Props) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <input name="name" defaultValue={r.name} className="w-full px-2 py-1.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-primary/30" />
-                        <p className="text-[10px] text-muted-foreground mt-0.5">slug: {r.slug}</p>
+                        <p className="text-[10px] text-muted-foreground mt-1">slug: {r.slug}</p>
                       </div>
-                      <SubmitButton label="Save" pendingLabel="..." />
+                      <button type="submit" className="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors flex-shrink-0">
+                        Save
+                      </button>
                     </div>
                     <div className="ml-[52px] mt-2">
                       <ImageField name="image" defaultValue={r.image || ""} label="Recipient Image" folder="occasions" />
                     </div>
                   </form>
-                  <div className="ml-[52px]">
+                  <div className="ml-[52px] mt-1">
                     <form action={deleteRecipient} className="inline">
                       <input type="hidden" name="recipientId" value={r.id} />
                       <button type="submit" className="text-xs text-destructive hover:underline flex items-center gap-1">

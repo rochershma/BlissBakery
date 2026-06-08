@@ -76,6 +76,14 @@ export function InfiniteProductGrid({ initialProducts, totalCount, storeSlug, ap
   const sentinelRef = useRef<HTMLDivElement>(null);
   const fetchingRef = useRef(false);
 
+  // Reset state when props change (e.g., sub-category navigation)
+  useEffect(() => {
+    setProducts(initialProducts);
+    setHasMore(initialProducts.length < totalCount);
+    fetchingRef.current = false;
+    setLoading(false);
+  }, [apiParams, totalCount, initialProducts]);
+
   // Fetch next batch
   const fetchMore = useCallback(async () => {
     if (fetchingRef.current || !hasMore) return;
