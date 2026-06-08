@@ -40,6 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
+# backups
+*.sql
+backups/
+
 # database
 prisma/dev.db
 prisma/dev.db-journal
