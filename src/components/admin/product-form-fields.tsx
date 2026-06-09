@@ -26,14 +26,22 @@ interface ThemeTag {
   name: string;
 }
 
+interface ThemeSubTag {
+  themeSlug: string;
+  slug: string;
+  name: string;
+}
+
 interface Props {
   defaultImages: string[];
   defaultOccasions: string[];
   defaultForWhom: string[];
   defaultThemes?: string[];
+  defaultThemeTags?: string[];
   occasions: OccasionTag[];
   recipientGroups: RecipientGroup[];
   themes?: ThemeTag[];
+  themeSubTags?: ThemeSubTag[];
 }
 
 /**
@@ -73,13 +81,16 @@ export function ProductFormFields({
   defaultOccasions,
   defaultForWhom,
   defaultThemes = [],
+  defaultThemeTags = [],
   occasions,
   recipientGroups,
   themes = [],
+  themeSubTags = [],
 }: Props) {
   const [images, setImages] = useState<string[]>(defaultImages);
   const [selectedOccasions, setSelectedOccasions] = useState<string[]>(defaultOccasions);
   const [selectedThemes, setSelectedThemes] = useState<string[]>(defaultThemes);
+  const [selectedThemeTags, setSelectedThemeTags] = useState<string[]>(defaultThemeTags);
   const [modalOccasion, setModalOccasion] = useState<string | null>(null);
 
   const groupsByOccasion = useMemo(
@@ -281,6 +292,37 @@ export function ProductFormFields({
             })}
           </div>
           <input type="hidden" name="themes" value={JSON.stringify(selectedThemes)} />
+
+          {/* Theme Sub-Tags — show sub-categories for selected themes */}
+          {selectedThemes.length > 0 && themeSubTags.filter(st => selectedThemes.includes(st.themeSlug)).length > 0 && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">Sub-Categories (for filtering on theme pages)</p>
+              <div className="flex flex-wrap gap-2">
+                {themeSubTags.filter(st => selectedThemes.includes(st.themeSlug)).map((st) => {
+                  const active = selectedThemeTags.includes(st.slug);
+                  return (
+                    <button
+                      key={`${st.themeSlug}-${st.slug}`}
+                      type="button"
+                      onClick={() => active
+                        ? setSelectedThemeTags(prev => prev.filter(s => s !== st.slug))
+                        : setSelectedThemeTags(prev => [...prev, st.slug])
+                      }
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all border ${
+                        active
+                          ? "bg-primary/80 text-primary-foreground border-primary/80"
+                          : "bg-white text-foreground border-border hover:border-primary/40"
+                      }`}
+                    >
+                      {active && <Check className="w-2.5 h-2.5 inline mr-0.5" />}
+                      {st.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <input type="hidden" name="themeTags" value={JSON.stringify(selectedThemeTags)} />
         </div>
       )}
 

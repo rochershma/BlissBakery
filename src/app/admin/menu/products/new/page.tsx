@@ -13,7 +13,7 @@ import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 export default async function NewProductPage() {
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
-  const themes = await db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+  const themes = await db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, include: { tags: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const recipientGroups = occasions.map((occasion) => {
     const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
@@ -48,6 +48,7 @@ export default async function NewProductPage() {
     const occasionsJson = formData.get("occasions") as string;
     const forWhomJson = formData.get("forWhom") as string;
     const themesJson = formData.get("themes") as string;
+    const themeTagsJson = formData.get("themeTags") as string;
     const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
     const pricingStrategy = (formData.get("pricingStrategy") as string) || "FIXED";
@@ -95,6 +96,7 @@ export default async function NewProductPage() {
         occasions: occasionsJson || null,
         forWhom: forWhomJson || null,
         themes: themesJson || null,
+        themeTags: themeTagsJson || null,
         flavours: flavoursJson || null,
         pricingStrategy,
         designCharge,
@@ -178,9 +180,11 @@ export default async function NewProductPage() {
           defaultOccasions={[]}
           defaultForWhom={[]}
           defaultThemes={[]}
+          defaultThemeTags={[]}
           occasions={occasions.map(o => ({ slug: o.slug, name: o.name, image: o.image }))}
           recipientGroups={recipientGroups}
           themes={themes.map(t => ({ slug: t.slug, name: t.name }))}
+          themeSubTags={themes.flatMap(t => t.tags.map(tag => ({ themeSlug: t.slug, slug: tag.slug, name: tag.name })))}
         />
 
         {/* Size / Weight Variants */}

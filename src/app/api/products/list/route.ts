@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const occasion = sp.get("occasion");
   const theme = sp.get("theme");
   const forWhom = sp.get("for");
+  const tag = sp.get("tag");
   const query = sp.get("q")?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50);
   const offset = Math.max(0, parseInt(sp.get("offset") || "0", 10));
   const limit = Math.min(24, Math.max(1, parseInt(sp.get("limit") || "12", 10)));
@@ -16,7 +17,10 @@ export async function GET(request: NextRequest) {
     where.occasions = { contains: `"${occasion}"` };
     if (forWhom) where.forWhom = { contains: `"${forWhom}"` };
   }
-  if (theme) where.themes = { contains: `"${theme}"` };
+  if (theme) {
+    where.themes = { contains: `"${theme}"` };
+    if (tag) where.themeTags = { contains: `"${tag}"` };
+  }
   if (query) {
     const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
     const orConds: any[] = [];

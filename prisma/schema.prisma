@@ -100,6 +100,7 @@ model Product {
   ingredients  String?  @db.Text
   occasions    String?  @db.Text
   themes       String?  @db.Text
+  themeTags    String?  @db.Text
   forWhom      String?  @db.Text
   flavours     String?  @db.Text
   pricingStrategy String  @default("FIXED")
@@ -354,16 +355,30 @@ model Recipient {
 }
 
 model Theme {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
-  slug      String   @unique
+  slug      String     @unique
   subtitle  String?
   image     String?
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
   storeId   String
-  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  store     Store      @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+  tags      ThemeTag[]
 
   @@index([storeId])
+}
+
+model ThemeTag {
+  id        String  @id @default(cuid())
+  name      String
+  slug      String
+  image     String?
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+  themeId   String
+  theme     Theme   @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@index([themeId])
 }

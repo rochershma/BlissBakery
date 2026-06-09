@@ -120,6 +120,9 @@ export default async function AdminThemesPage({ searchParams }: Props) {
                   <p className="text-[10px] text-muted-foreground mt-1">/{theme.slug}</p>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <a href={`/admin/themes/${theme.id}`} className="px-2.5 py-1 rounded-lg text-xs font-medium text-primary bg-primary/5 hover:bg-primary/10 transition-colors">
+                    Sub-Cats
+                  </a>
                   <a href={`/admin/themes?edit=${theme.id}`} className="p-2 rounded-lg text-primary hover:bg-primary/5 transition-colors">
                     <Pencil className="w-4 h-4" />
                   </a>

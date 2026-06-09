@@ -22,7 +22,7 @@ export default async function EditProductPage({ params }: Props) {
 
   const categories = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
   const occasions = await db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
-  const themes = await db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
+  const themes = await db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, include: { tags: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } } });
   const allRecipients = await db.recipient.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } });
   const recipientGroups = occasions.map((occasion) => {
     const recipientMap = new Map<string, { slug: string; name: string; image: string | null }>();
@@ -55,6 +55,7 @@ export default async function EditProductPage({ params }: Props) {
     const occasionsJson = formData.get("occasions") as string;
     const forWhomJson = formData.get("forWhom") as string;
     const themesJson = formData.get("themes") as string;
+    const themeTagsJson = formData.get("themeTags") as string;
     const flavoursJson = formData.get("flavours") as string;
     const variantsJson = formData.get("variants") as string;
     const pricingStrategy = (formData.get("pricingStrategy") as string) || "FIXED";
@@ -98,6 +99,7 @@ export default async function EditProductPage({ params }: Props) {
         occasions: occasionsJson || null,
         forWhom: forWhomJson || null,
         themes: themesJson || null,
+        themeTags: themeTagsJson || null,
         flavours: flavoursJson || null,
         pricingStrategy,
         designCharge,
@@ -238,9 +240,11 @@ export default async function EditProductPage({ params }: Props) {
           defaultOccasions={parseJsonSafe<string[]>((product as any).occasions, [])}
           defaultForWhom={parseJsonSafe<string[]>((product as any).forWhom, [])}
           defaultThemes={parseJsonSafe<string[]>((product as any).themes, [])}
+          defaultThemeTags={parseJsonSafe<string[]>((product as any).themeTags, [])}
           occasions={occasions.map(o => ({ slug: o.slug, name: o.name, image: o.image }))}
           recipientGroups={recipientGroups}
           themes={themes.map(t => ({ slug: t.slug, name: t.name }))}
+          themeSubTags={themes.flatMap(t => t.tags.map(tag => ({ themeSlug: t.slug, slug: tag.slug, name: tag.name })))}
         />
 
         {/* Size / Weight Variants */}
