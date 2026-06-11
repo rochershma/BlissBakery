@@ -60,22 +60,22 @@ export function MultiImagePicker({ value, onChange, folder = "products", label =
       {/* Image Grid */}
       <div className="flex gap-2 flex-wrap mb-2">
         {value.map((url, idx) => (
-          <div key={`${url}-${idx}`} className="relative group w-20 h-20 rounded-lg overflow-hidden border border-border bg-muted">
-            <Image src={url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="80px" />
+          <div key={`${url}-${idx}`} className="relative group w-32 h-32 rounded-xl overflow-hidden border border-border bg-muted">
+            <Image src={url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="128px" />
             {/* Controls overlay */}
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
               {idx > 0 && (
-                <button type="button" onClick={() => moveImage(idx, idx - 1)} className="bg-white text-foreground w-5 h-5 rounded text-[10px] flex items-center justify-center">←</button>
+                <button type="button" onClick={() => moveImage(idx, idx - 1)} className="bg-white text-foreground w-7 h-7 rounded-lg text-xs flex items-center justify-center">←</button>
               )}
-              <button type="button" onClick={() => removeImage(idx)} className="bg-red-500 text-white w-5 h-5 rounded flex items-center justify-center">
-                <X className="w-3 h-3" />
+              <button type="button" onClick={() => removeImage(idx)} className="bg-red-500 text-white w-7 h-7 rounded-lg flex items-center justify-center">
+                <X className="w-4 h-4" />
               </button>
               {idx < value.length - 1 && (
-                <button type="button" onClick={() => moveImage(idx, idx + 1)} className="bg-white text-foreground w-5 h-5 rounded text-[10px] flex items-center justify-center">→</button>
+                <button type="button" onClick={() => moveImage(idx, idx + 1)} className="bg-white text-foreground w-7 h-7 rounded-lg text-xs flex items-center justify-center">→</button>
               )}
             </div>
             {idx === 0 && (
-              <span className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-[8px] text-center py-0.5 font-medium">Main</span>
+              <span className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-[10px] text-center py-0.5 font-medium">Main</span>
             )}
           </div>
         ))}
@@ -85,7 +85,7 @@ export function MultiImagePicker({ value, onChange, folder = "products", label =
           <button
             type="button"
             onClick={() => !uploading && fileRef.current?.click()}
-            className={`w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center transition-colors ${
+            className={`w-32 h-32 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${
               uploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50 bg-muted/30"
             }`}
           >
