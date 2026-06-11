@@ -60,8 +60,8 @@ export function MultiImagePicker({ value, onChange, folder = "products", label =
       {/* Image Grid */}
       <div className="flex gap-2 flex-wrap mb-2">
         {value.map((url, idx) => (
-          <div key={`${url}-${idx}`} className="relative group w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden border border-border bg-muted">
-            <Image src={url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="256px" />
+          <div key={`${url}-${idx}`} className="relative group w-72 h-72 md:w-[400px] md:h-[400px] rounded-2xl overflow-hidden border border-border bg-muted">
+            <Image src={url} alt={`Image ${idx + 1}`} fill className="object-cover" sizes="400px" />
             {/* Controls overlay */}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
               {idx > 0 && (
@@ -85,7 +85,7 @@ export function MultiImagePicker({ value, onChange, folder = "products", label =
           <button
             type="button"
             onClick={() => !uploading && fileRef.current?.click()}
-            className={`w-48 h-48 md:w-64 md:h-64 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${
+            className={`w-72 h-72 md:w-[400px] md:h-[400px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors ${
               uploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50 bg-muted/30"
             }`}
           >
