@@ -151,14 +151,20 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
         let addr = "";
         let placeName = "Current Location";
         try {
-          const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-          if (key) {
-            const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`);
-            const d = await r.json();
-            if (d.results?.[0]) {
-              addr = d.results[0].formatted_address;
-              // Use locality or sublocality as place name
-              const locality = d.results[0].address_components?.find((c: any) => c.types.includes("sublocality_level_1") || c.types.includes("locality"));
+          // Use client-side Google Maps Geocoder (no billing required, uses loaded JS library)
+          const google = (globalThis as any).google;
+          if (google?.maps?.Geocoder) {
+            const geocoder = new google.maps.Geocoder();
+            const result = await new Promise<any>((resolve) => {
+              geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
+                resolve(status === "OK" && results?.[0] ? results[0] : null);
+              });
+            });
+            if (result) {
+              addr = result.formatted_address || "";
+              const locality = result.address_components?.find((c: any) =>
+                c.types.includes("sublocality_level_1") || c.types.includes("locality") || c.types.includes("neighborhood")
+              );
               if (locality) placeName = locality.long_name;
             }
           }
