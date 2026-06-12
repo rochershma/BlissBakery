@@ -148,12 +148,23 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
         const svc = calculateServiceability(lat, lng); setSvcResult(svc); onServiceability?.(svc);
-        let addr = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        let addr = "";
+        let placeName = "Current Location";
         try {
           const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-          if (key) { const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`); const d = await r.json(); if (d.results?.[0]) addr = d.results[0].formatted_address; }
+          if (key) {
+            const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${key}`);
+            const d = await r.json();
+            if (d.results?.[0]) {
+              addr = d.results[0].formatted_address;
+              // Use locality or sublocality as place name
+              const locality = d.results[0].address_components?.find((c: any) => c.types.includes("sublocality_level_1") || c.types.includes("locality"));
+              if (locality) placeName = locality.long_name;
+            }
+          }
         } catch {}
-        setPickedPlace({ name: "Current Location", address: addr, lat, lng }); setLocating(false); setStep("details");
+        if (!addr) addr = `Near ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+        setPickedPlace({ name: placeName, address: addr, lat, lng }); setLocating(false); setStep("details");
       },
       (err) => { setLocating(false); setLocError(err.code === 1 ? "Location permission denied" : "Could not detect location"); },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -292,8 +303,14 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
               </div>
 
               {/* Details inputs */}
-              <input value={details.flatHouse} onChange={(e) => setDetails({ ...details, flatHouse: e.target.value })} placeholder="House / Flat / Floor (helps delivery)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
-              <input value={details.landmark} onChange={(e) => setDetails({ ...details, landmark: e.target.value })} placeholder="Landmark (optional)" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              <div>
+                <label className="text-xs font-medium text-foreground block mb-1">House / Flat / Floor <span className="text-destructive">*</span></label>
+                <input value={details.flatHouse} onChange={(e) => setDetails({ ...details, flatHouse: e.target.value })} placeholder="e.g., Flat 201, 2nd Floor" className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-foreground block mb-1">Landmark <span className="text-muted-foreground font-normal">(optional)</span></label>
+                <input value={details.landmark} onChange={(e) => setDetails({ ...details, landmark: e.target.value })} placeholder="Near hospital, school, etc." className="w-full px-3 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+              </div>
             </>
           )}
         </div>
@@ -301,7 +318,7 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
         {/* Footer CTA */}
         {step === "details" && pickedPlace && (
           <div className="px-4 py-3 border-t border-border flex-shrink-0" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
-            <button onClick={handleSaveAddress} disabled={!svcResult?.serviceable || saving}
+            <button onClick={handleSaveAddress} disabled={!svcResult?.serviceable || saving || !details.flatHouse.trim()}
               className="w-full py-3 rounded-xl bg-primary text-white text-sm font-semibold disabled:opacity-50 hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
               {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : svcResult?.serviceable ? "Save Address" : "Not serviceable — choose pickup"}
             </button>
