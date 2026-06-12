@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Clock, Phone, ChevronRight } from "lucide-react";
@@ -21,8 +20,9 @@ const occasions = [
   { name: "Retirement Cakes", image: "/images/categories/retirement.jpg", slug: "retirement" },
 ];
 
+export const revalidate = 120; // ISR: re-generate every 2 minutes
+
 export default async function HomePage() {
-  noStore(); // Make this page dynamic so banner/product changes show immediately
   const store = await db.store.findFirst({
     include: {
       categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },

@@ -153,6 +153,7 @@ export default async function EditProductPage({ params }: Props) {
     revalidatePath("/");
     revalidatePath("/store", "layout");
     revalidatePath("/cakes", "layout");
+    revalidatePath("/themes", "layout");
     redirect("/admin/menu");
   }
 
@@ -164,6 +165,7 @@ export default async function EditProductPage({ params }: Props) {
     revalidatePath("/");
     revalidatePath("/store", "layout");
     revalidatePath("/cakes", "layout");
+    revalidatePath("/themes", "layout");
     redirect("/admin/menu");
   }
 
@@ -199,6 +201,7 @@ export default async function EditProductPage({ params }: Props) {
     revalidatePath("/");
     revalidatePath("/store", "layout");
     revalidatePath("/cakes", "layout");
+    revalidatePath("/themes", "layout");
     redirect(`/admin/menu/products/${cloned.id}`);
   }
 

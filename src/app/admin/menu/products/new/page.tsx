@@ -149,6 +149,7 @@ export default async function NewProductPage() {
     revalidatePath("/");
     revalidatePath("/store", "layout");
     revalidatePath("/cakes", "layout");
+    revalidatePath("/themes", "layout");
     redirect("/admin/menu");
   }
 

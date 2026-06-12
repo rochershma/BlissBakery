@@ -1,10 +1,10 @@
-import { unstable_noStore as noStore } from "next/cache";
 import { db } from "@/lib/db";
 import { SiteHeader } from "@/components/shared/site-header";
 import { Tag, Copy, Lock } from "lucide-react";
 
+export const revalidate = 120;
+
 export default async function OffersPage() {
-  noStore();
   const promos = await db.promoCode.findMany({
     where: { isActive: true, validTo: { gte: new Date() } },
     orderBy: { discountValue: "desc" },

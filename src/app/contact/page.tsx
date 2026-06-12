@@ -1,11 +1,11 @@
-import { unstable_noStore as noStore } from "next/cache";
 import { SiteHeader } from "@/components/shared/site-header";
 import { db } from "@/lib/db";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { parseJsonSafe } from "@/lib/utils";
 
+export const revalidate = 3600; // ISR: re-generate every hour
+
 export default async function ContactPage() {
-  noStore();
   const store = await db.store.findFirst();
 
   const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(

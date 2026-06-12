@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { SiteHeader } from "@/components/shared/site-header";
@@ -17,8 +16,9 @@ interface Props {
   searchParams: Promise<{ tag?: string }>;
 }
 
+export const revalidate = 120;
+
 export default async function ThemePage({ params, searchParams }: Props) {
-  noStore();
   const { slug } = await params;
   const { tag: activeTag } = await searchParams;
 

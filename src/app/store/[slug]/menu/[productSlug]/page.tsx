@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { Home, ChevronRight, Leaf, Star, Clock, Truck, ShieldCheck } from "lucide-react";
@@ -12,8 +11,9 @@ import { ProductImageGallery } from "@/components/product/image-gallery";
 
 interface Props { params: Promise<{ slug: string; productSlug: string }>; }
 
+export const revalidate = 300; // ISR: re-generate every 5 minutes
+
 export default async function ProductDetailPage({ params }: Props) {
-  noStore();
   const { slug: storeSlug, productSlug } = await params;
   const product = await db.product.findUnique({
     where: { slug: productSlug },

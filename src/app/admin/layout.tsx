@@ -2,6 +2,8 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic"; // Admin always SSR — never cached
 import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart } from "lucide-react";
 import Image from "next/image";
 

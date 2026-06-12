@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import { MapPin, Clock } from "lucide-react";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
@@ -12,8 +11,9 @@ interface Props {
   searchParams: Promise<{ category?: string; q?: string }>;
 }
 
+export const revalidate = 120;
+
 export default async function MenuPage({ params, searchParams }: Props) {
-  noStore();
   const { slug } = await params;
   const { category: activeCategory, q: searchQuery } = await searchParams;
 
