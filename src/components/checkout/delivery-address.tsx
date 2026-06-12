@@ -151,23 +151,35 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
         let addr = "";
         let placeName = "Current Location";
         try {
-          // Use client-side Google Maps Geocoder (no billing required, uses loaded JS library)
+          // Try Google client-side Geocoder first
           const google = (globalThis as any).google;
           if (google?.maps?.Geocoder) {
             const geocoder = new google.maps.Geocoder();
-            const result = await new Promise<any>((resolve) => {
+            const result = await new Promise<any>((resolve, reject) => {
               geocoder.geocode({ location: { lat, lng } }, (results: any, status: string) => {
-                resolve(status === "OK" && results?.[0] ? results[0] : null);
+                if (status === "OK" && results?.[0]) resolve(results[0]);
+                else reject(new Error(status));
               });
             });
-            if (result) {
-              addr = result.formatted_address || "";
-              const locality = result.address_components?.find((c: any) =>
-                c.types.includes("sublocality_level_1") || c.types.includes("locality") || c.types.includes("neighborhood")
-              );
-              if (locality) placeName = locality.long_name;
-            }
+            addr = result.formatted_address || "";
+            const locality = result.address_components?.find((c: any) =>
+              c.types.includes("sublocality_level_1") || c.types.includes("locality") || c.types.includes("neighborhood")
+            );
+            if (locality) placeName = locality.long_name;
           }
+        } catch {
+          // Fallback: OpenStreetMap Nominatim (free, no key)
+          try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`, {
+              headers: { "Accept-Language": "en" },
+            });
+            const d = await r.json();
+            if (d.display_name) {
+              addr = d.display_name;
+              placeName = d.address?.suburb || d.address?.city_district || d.address?.town || d.address?.city || "Current Location";
+            }
+          } catch {}
+        }
         } catch {}
         if (!addr) addr = `Near ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
         setPickedPlace({ name: placeName, address: addr, lat, lng }); setLocating(false); setStep("details");
