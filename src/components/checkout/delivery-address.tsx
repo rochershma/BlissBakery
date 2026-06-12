@@ -180,7 +180,6 @@ function AddAddressModal({ onClose, onSaved, storePincode, onServiceability }: {
             }
           } catch {}
         }
-        } catch {}
         if (!addr) addr = `Near ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
         setPickedPlace({ name: placeName, address: addr, lat, lng }); setLocating(false); setStep("details");
       },
