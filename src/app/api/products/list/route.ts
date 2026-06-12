@@ -25,7 +25,11 @@ export async function GET(request: NextRequest) {
     const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
     const orConds: any[] = [];
     for (const word of words) {
-      orConds.push({ name: { contains: word } }, { shortDesc: { contains: word } }, { category: { name: { contains: word } } });
+      orConds.push(
+        { name: { contains: word } }, { shortDesc: { contains: word } },
+        { category: { name: { contains: word } } }, { occasions: { contains: word } },
+        { themes: { contains: word } }, { themeTags: { contains: word } },
+      );
     }
     orConds.push({ name: { contains: query } });
     where.OR = orConds;

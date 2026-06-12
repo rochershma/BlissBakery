@@ -47,19 +47,38 @@ export default async function SearchPage({ searchParams }: Props) {
         orConditions.push(
           { name: { contains: word } }, { shortDesc: { contains: word } },
           { category: { name: { contains: word } } }, { occasions: { contains: word } },
-          { themes: { contains: word } }, { flavours: { contains: word } },
+          { themes: { contains: word } }, { themeTags: { contains: word } },
+          { flavours: { contains: word } }, { forWhom: { contains: word } },
         );
       }
       orConditions.push({ name: { contains: query } }, { shortDesc: { contains: query } });
       const where = { isAvailable: true, OR: orConditions };
-      [products, totalCount] = await Promise.all([
-        db.product.findMany({
-          where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
-          orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
-          take: INITIAL_BATCH,
-        }),
-        db.product.count({ where }),
-      ]);
+      
+      // Fetch more candidates for scoring
+      const candidates = await db.product.findMany({
+        where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
+        take: 100,
+        orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
+      });
+      totalCount = await db.product.count({ where });
+      
+      // Score by relevance — name matches rank much higher
+      const scored = candidates.map(p => {
+        let score = 0;
+        const nameLower = p.name.toLowerCase();
+        const descLower = (p.shortDesc || "").toLowerCase();
+        if (nameLower.includes(query.toLowerCase())) score += 100;
+        for (const w of words) {
+          if (nameLower.includes(w)) score += 30;
+          if (p.category.name.toLowerCase().includes(w)) score += 15;
+          if (descLower.includes(w)) score += 10;
+        }
+        if (words.length > 1 && words.every(w => nameLower.includes(w))) score += 50;
+        if (p.isBestseller) score += 5;
+        return { p, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      products = scored.slice(0, INITIAL_BATCH).map(s => s.p);
     }
   } else {
     [products, totalCount] = await Promise.all([
