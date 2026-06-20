@@ -74,11 +74,11 @@ export default async function MenuPage({ params, searchParams }: Props) {
   }) : [];
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-white md:bg-background">
       <SiteHeader />
 
-      {/* Store info */}
-      <div className="border-b border-border/50 px-4 py-1.5">
+      {/* Store info — desktop only */}
+      <div className="hidden md:block border-b border-border/50 px-4 py-1.5">
         <div className="max-w-[1300px] mx-auto flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-primary" />{store.city}</span>
