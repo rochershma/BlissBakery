@@ -182,7 +182,7 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
   const toggleStoreAddOn = (id: string) => setSelectedStoreAddOns(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Dynamic Price */}
       <div className="flex items-baseline gap-3">
         <span className="text-2xl md:text-3xl font-bold text-foreground">{formatPrice(unitPrice)}</span>
@@ -196,10 +196,12 @@ export function ProductDetailClient({ storeSlug, product, storeAddOns = [] }: Pr
         )}
       </div>
 
-      {/* Weight / Size Variants */}
+      {/* Weight / Size Variants — Card style on mobile */}
       {product.variants.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold text-foreground mb-2">Select Size</p>
+        <div className="bg-white md:bg-transparent rounded-2xl md:rounded-none p-4 md:p-0 border border-pink-100/60 md:border-0 shadow-sm md:shadow-none">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-primary flex items-center gap-1.5 mb-2.5 md:text-xs md:font-semibold md:text-foreground md:tracking-normal md:uppercase-none">
+            <span className="md:hidden">1.</span> Select Size
+          </p>
           {(() => {
             const mainVariants = product.variants.filter((_, i) => i < 6);
             const overflowVariants = product.variants.filter((_, i) => i >= 6);

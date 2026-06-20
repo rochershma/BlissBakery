@@ -51,10 +51,13 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="flex flex-col min-h-screen pdp-gradient">
-      <SiteHeader />
+      {/* Header — hidden on mobile for full-screen product experience */}
+      <div className="hidden md:block">
+        <SiteHeader />
+      </div>
 
-      {/* Breadcrumb */}
-      <nav className="max-w-[1300px] mx-auto w-full px-4 md:px-5 py-2 text-xs text-muted-foreground flex items-center gap-1 no-scrollbar overflow-x-auto">
+      {/* Breadcrumb — desktop only */}
+      <nav className="hidden md:flex max-w-[1300px] mx-auto w-full px-4 md:px-5 py-2 text-xs text-muted-foreground items-center gap-1 no-scrollbar overflow-x-auto">
         <Link href="/" className="hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0"><Home className="w-3 h-3" /> Home</Link>
         <ChevronRight className="w-3 h-3 flex-shrink-0" />
         {primaryOccasion ? (
@@ -71,6 +74,13 @@ export default async function ProductDetailPage({ params }: Props) {
         <ChevronRight className="w-3 h-3 flex-shrink-0" />
         <span className="text-foreground font-medium truncate">{product.name}</span>
       </nav>
+
+      {/* Mobile: Back button overlay */}
+      <div className="md:hidden fixed top-3 left-3 z-50">
+        <Link href={`/store/${storeSlug}/menu`} className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center active:scale-90 transition-transform" aria-label="Back">
+          <ChevronRight className="w-5 h-5 text-foreground rotate-180" />
+        </Link>
+      </div>
 
       <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 pb-32">
         <div className="md:flex md:gap-10 md:py-4">
