@@ -51,10 +51,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background pb-20">
-      <SiteHeader />
+    <div className="flex flex-col min-h-screen bg-[#FFF8F9] md:bg-background pb-20">
+      {/* Header: compact on mobile, full on desktop */}
+      <div className="hidden md:block">
+        <SiteHeader />
+      </div>
+      <div className="md:hidden sticky top-0 z-50 bg-white/97 backdrop-blur-md border-b border-pink-100/60 px-4 py-3">
+        <h1 className="text-base font-bold text-foreground font-serif">My Account</h1>
+      </div>
 
-      <div className="max-w-2xl mx-auto w-full px-4 py-6 space-y-4">
+      <div className="max-w-2xl mx-auto w-full px-4 py-4 md:py-6 space-y-3 md:space-y-4">
         {/* Profile Card */}
         <div className="bg-white rounded-2xl border border-border p-5">
           <div className="flex items-center gap-4">
