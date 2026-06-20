@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Clock, Phone, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Phone, ChevronRight, Leaf, Truck } from "lucide-react";
 import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
 import { SiteHeader } from "@/components/shared/site-header";
 import { AnnouncementBar } from "@/components/shared/announcement-bar";
@@ -65,8 +65,10 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Announcement Bar */}
-      <AnnouncementBar />
+      {/* Announcement Bar — desktop only (mobile has delivery strip instead) */}
+      <div className="hidden md:block">
+        <AnnouncementBar />
+      </div>
 
       {/* Header */}
       <SiteHeader />
@@ -85,6 +87,23 @@ export default async function HomePage() {
         mobileMediaUrl: (b as any).mobileMediaUrl || null,
         linkUrl: b.linkUrl,
       }))} />
+
+      {/* Mobile: Delivery & trust strip (PWA feel) */}
+      <div className="md:hidden mx-4 mt-3 mb-1 flex items-center gap-2.5 bg-white rounded-2xl border border-pink-100/60 p-3 shadow-sm">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center flex-shrink-0">
+            <Truck className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider leading-none">Same Day Delivery</p>
+            <p className="text-[11px] font-bold text-foreground mt-0.5 leading-tight">Fresh cakes in Kuchaman City</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">100% Veg</span>
+        </div>
+      </div>
 
       {/* Category Circles — with real product images */}
       <CategoryCircles
@@ -340,8 +359,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
+      {/* Footer — hidden on mobile (bottom nav is the navigation) */}
+      <div className="hidden md:block">
+        <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
+      </div>
     </div>
   );
 }

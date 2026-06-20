@@ -54,12 +54,12 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
   }, [checkScroll]);
 
   return (
-    <section className="mt-4 md:mt-6 mb-6 md:mb-8">
+    <section className="mt-4 md:mt-6 mb-4 md:mb-8">
       <div className="max-w-[1300px] mx-auto px-4 md:px-5">
-        <div className="flex items-end justify-between gap-6 mb-5">
+        <div className="flex items-end justify-between gap-6 mb-3 md:mb-5">
           <div>
             <p className="section-kicker">Explore Our Menu</p>
-            <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Browse by category</h2>
+            <h2 className="text-[clamp(20px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Browse by category</h2>
           </div>
           <div className="hidden md:flex items-center gap-2">
             <button
@@ -81,7 +81,35 @@ export function CategoryCircles({ categories, storeSlug }: { categories: Categor
           </div>
         </div>
 
-        <div className="relative">
+        {/* Mobile: 3-col grid (app-like) */}
+        <div className="grid grid-cols-3 gap-2.5 md:hidden">
+          {categories.map((cat) => {
+            const img = cat.image || cat.productImage || fallbackImages[cat.slug] || "/images/categories/cakes.jpg";
+            return (
+              <Link
+                key={cat.id}
+                href={`/store/${storeSlug}/menu?category=${cat.slug}`}
+                prefetch={false}
+                className="bg-white rounded-2xl border border-pink-100/60 p-2 flex flex-col items-center text-center active:scale-95 transition-transform shadow-sm"
+              >
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-pink-50 mb-1.5">
+                  <Image
+                    src={img}
+                    alt={cat.name}
+                    width={120}
+                    height={120}
+                    className="w-full h-full object-cover"
+                    sizes="(max-width: 768px) 30vw"
+                  />
+                </div>
+                <span className="text-[11px] font-bold text-foreground leading-tight line-clamp-1">{cat.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Desktop: horizontal scroll carousel */}
+        <div className="relative hidden md:block">
           <div
             ref={scrollRef}
             className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1"
