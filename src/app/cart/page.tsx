@@ -373,7 +373,7 @@ export default function CartPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 py-4 pb-28">
+      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 py-4 pb-36 md:pb-8">
         <div className="md:flex md:gap-5">
           {/* LEFT — Cart Items */}
           <div className="md:flex-1 space-y-3">

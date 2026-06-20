@@ -343,7 +343,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-4 pb-32">
+      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-4 pb-40 md:pb-8">
         <div className="md:flex md:gap-6">
         <div className="md:flex-1">
         {/* Order Summary */}
@@ -742,13 +742,13 @@ export default function CheckoutPage() {
       </main>
 
       {/* Sticky Pay Button — mobile only */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/97 backdrop-blur-md border-t border-pink-100/60 shadow-[0_-8px_30px_rgba(196,117,144,0.1)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <div className="px-4 py-3">
           <button
             onClick={handlePaySecurely}
             disabled={processing || !checkoutValidation.canPay}
-            className={`flex items-center justify-between rounded-2xl px-5 py-3.5 transition-colors w-full ${
-              checkoutValidation.canPay ? "bg-primary text-primary-foreground hover:bg-primary-hover" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+            className={`flex items-center justify-between rounded-2xl px-5 py-4 transition-colors w-full ${
+              checkoutValidation.canPay ? "bg-primary text-primary-foreground hover:bg-primary-hover shadow-lg shadow-primary/20" : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
             <div className="flex items-center gap-2">
