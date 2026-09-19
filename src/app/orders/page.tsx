@@ -7,10 +7,10 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { AccountShell } from "@/components/v5/account-shell";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { formatPrice } from "@/lib/utils";
-import { img, firstImage } from "@/lib/img";
-import { IconBag } from "@/components/v5/icons";
+import { img } from "@/lib/img";
+import { IconBag, IconCake } from "@/components/v5/icons";
 
-type OrderItem = { id: string; productName: string; variantName: string | null; flavour: string | null; quantity: number; totalPrice: number; cakeMessage: string | null; product?: { images: string | null; slug: string } | null };
+type OrderItem = { id: string; productName: string; variantName: string | null; flavour: string | null; quantity: number; totalPrice: number; cakeMessage: string | null; image?: string | null; slug?: string | null };
 type Order = { id: string; orderNumber: string; status: string; paymentStatus: string; grandTotal: number; createdAt: string; deliveryDate: string | null; deliverySlot: string | null; items: OrderItem[] };
 
 const LABEL: Record<string, string> = {
@@ -76,10 +76,15 @@ export default function OrdersPage() {
 
               <div className="order5__body">
                 {o.items.map((it) => {
-                  const src = firstImage(it.product?.images);
+                  const src = it.image || null;
                   return (
                     <div className="order5__row" key={it.id}>
-                      {src ? <Image src={img(src, 130, 130)} alt="" width={54} height={54} unoptimized /> : <div className="sk" style={{ width: 54, height: 54 }} />}
+                      {src ? (
+                        <Image src={img(src, 130, 130)} alt="" width={54} height={54} unoptimized />
+                      ) : (
+                        // product deleted since ordering — show a static placeholder, not a skeleton
+                        <span className="order5__noimg" aria-hidden="true"><IconCake /></span>
+                      )}
                       <div style={{ minWidth: 0 }}>
                         <b>{it.productName}</b>
                         <span className="t-small">
@@ -104,8 +109,8 @@ export default function OrdersPage() {
                 </span>
                 <span style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
                   <Link className="btn btn--rose btn--sm" href={`/order/${o.id}`}>Track order</Link>
-                  {o.items[0]?.product?.slug ? (
-                    <Link className="btn btn--out btn--sm" href={`/store/kuchaman-city/menu/${o.items[0].product.slug}`}>Reorder</Link>
+                  {o.items[0]?.slug ? (
+                    <Link className="btn btn--out btn--sm" href={`/store/kuchaman-city/menu/${o.items[0].slug}`}>Reorder</Link>
                   ) : null}
                 </span>
               </div>

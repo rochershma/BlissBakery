@@ -8,7 +8,7 @@ import { img, firstImage } from "@/lib/img";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { navLinks } from "@/lib/nav";
-import { IconChevL } from "@/components/v5/icons";
+import { IconChevL, IconCake } from "@/components/v5/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -123,7 +123,12 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             const extras = parseJsonSafe<{ name: string; price: number }[]>(it.addOns, []);
             return (
               <div className="co5__item" key={it.id}>
-                {src ? <Image src={img(src, 120, 120)} alt="" width={52} height={52} unoptimized /> : <div className="sk" style={{ width: 52, height: 52 }} />}
+                {src ? (
+                  <Image src={img(src, 120, 120)} alt="" width={52} height={52} unoptimized />
+                ) : (
+                  // product deleted since ordering — static placeholder, not a skeleton
+                  <span className="order5__noimg" aria-hidden="true"><IconCake /></span>
+                )}
                 <div style={{ minWidth: 0 }}>
                   <b>{it.productName}</b>
                   <span className="t-small">

@@ -16,7 +16,7 @@ export async function GET() {
         items: {
           include: {
             product: {
-              select: { images: true },
+              select: { images: true, slug: true },
             },
           },
         },
@@ -59,6 +59,7 @@ export async function GET() {
             recipientName: i.recipientName,
             recipientAge: i.recipientAge,
             image: parseImages(i.product?.images ?? null)?.[0] || null,
+            slug: i.product?.slug ?? null,
           })),
         };
       }),

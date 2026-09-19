@@ -44,7 +44,13 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Bliss Bakery",
   },
+  // src/app/icon.png and apple-icon.png are picked up automatically;
+  // these entries add the sizes browsers prefer for tabs and bookmarks.
   icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     apple: "/apple-touch-icon.png",
   },
 };

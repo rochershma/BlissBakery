@@ -965,3 +965,8 @@ h4 { font-weight: 700; }
 .subtags__wrap { margin-top: 14px; }
 .subtags__lbl { margin-bottom: 8px; }
 @media (max-width: 767px) { .subtags__wrap { margin-top: 12px; } }
+
+/* Order rows fall back to a mark when the product no longer exists. */
+.order5__noimg { width: 54px; height: 54px; flex: none; border-radius: var(--r-sm);
+  background: var(--rose-50); border: 1px solid var(--line); display: grid; place-items: center; }
+.order5__noimg svg { width: 22px; height: 22px; stroke: var(--rose-300); fill: none; stroke-width: 1.4; }
