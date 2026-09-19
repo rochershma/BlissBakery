@@ -1,0 +1,368 @@
+import { db } from "@/lib/db";
+import Link from "next/link";
+import Image from "next/image";
+import { MapPin, Clock, Phone, ChevronRight, Leaf, Truck } from "lucide-react";
+import { formatPrice, parseJsonSafe, getDisplayPrice } from "@/lib/utils";
+import { SiteHeader } from "@/components/shared/site-header";
+import { AnnouncementBar } from "@/components/shared/announcement-bar";
+import { HeroSlider } from "@/components/home/hero-slider";
+import { CategoryCircles } from "@/components/home/category-circles";
+import { HoverImageCycler } from "@/components/product/hover-image-cycler";
+import { OccasionCarousel } from "@/components/home/occasion-carousel";
+import { SiteFooter } from "@/components/shared/site-footer";
+
+const occasions = [
+  { name: "Birthday Cakes", image: "/images/categories/birthday.jpg", slug: "birthday" },
+  { name: "Anniversary Cakes", image: "/images/categories/anniversary.jpg", slug: "anniversary" },
+  { name: "Wedding Cakes", image: "/images/categories/wedding.jpg", slug: "wedding" },
+  { name: "Designer Cakes", image: "/images/categories/designer.jpg", slug: "designer" },
+  { name: "Festival Cakes", image: "/images/categories/festival.jpg", slug: "festival" },
+  { name: "Retirement Cakes", image: "/images/categories/retirement.jpg", slug: "retirement" },
+];
+
+export const revalidate = 120; // ISR: re-generate every 2 minutes
+
+export default async function HomePage() {
+  const store = await db.store.findFirst({
+    include: {
+      categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },
+      banners: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  if (!store) {
+    return <div className="flex items-center justify-center min-h-screen"><p>Store not found.</p></div>;
+  }
+
+  const bestsellers = await db.product.findMany({
+    where: { isBestseller: true, isAvailable: true },
+    include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
+    take: 8,
+  });
+
+  // Fetch active promos for offers banner
+  const activePromos = await db.promoCode.findMany({
+    where: { isActive: true, validTo: { gt: new Date() }, validFrom: { lte: new Date() } },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
+  // Fetch occasions from DB
+  const dbOccasions = await db.occasion.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  // Fetch themes from DB
+  const dbThemes = await db.theme.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(store.operatingHours, {});
+  const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
+  const todayHours = hours[today];
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {/* Announcement Bar — desktop only (mobile has delivery strip instead) */}
+      <div className="hidden md:block">
+        <AnnouncementBar />
+      </div>
+
+      {/* Header */}
+      <SiteHeader />
+
+      {/* SEO H1 — visually hidden, doesn't affect layout */}
+      <h1 className="sr-only">Bliss Bakery — Fresh Eggless Cakes & Pastries in Kuchaman City</h1>
+
+      {/* Hero Slider — from DB banners */}
+      <HeroSlider banners={store.banners.map(b => ({
+        id: b.id,
+        title: b.title,
+        subtitle: b.subtitle,
+        ctaText: b.ctaText,
+        ctaLink: b.ctaLink,
+        mediaUrl: b.mediaUrl,
+        mobileMediaUrl: (b as any).mobileMediaUrl || null,
+        linkUrl: b.linkUrl,
+      }))} />
+
+      {/* Mobile: Delivery & trust strip (PWA feel) */}
+      <div className="md:hidden mx-4 mt-3 mb-1 flex items-center gap-2.5 bg-white rounded-2xl border border-pink-100/60 p-3 shadow-sm">
+        <div className="flex items-center gap-2 flex-1">
+          <div className="w-8 h-8 rounded-xl bg-pink-50 flex items-center justify-center flex-shrink-0">
+            <Truck className="w-4 h-4 text-primary" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider leading-none">Same Day Delivery</p>
+            <p className="text-[11px] font-bold text-foreground mt-0.5 leading-tight">Fresh cakes in Kuchaman City</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full border border-emerald-100">100% Veg</span>
+        </div>
+      </div>
+
+      {/* Category Circles — with real product images */}
+      <CategoryCircles
+        categories={(await Promise.all(store.categories.map(async (c) => {
+          const count = await db.product.count({ where: { categoryId: c.id, isAvailable: true } });
+          if (count === 0) return null;
+          const firstProduct = await db.product.findFirst({
+            where: { categoryId: c.id, isAvailable: true },
+            orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
+            select: { images: true },
+          });
+          const imgs = parseJsonSafe<string[]>(firstProduct?.images, []);
+          return { id: c.id, name: c.name, slug: c.slug, image: c.image, productImage: imgs[0] || null };
+        }))).filter(Boolean) as { id: string; name: string; slug: string; image: string | null; productImage: string | null }[]}
+        storeSlug={store.slug}
+      />
+
+      {/* Shop by Occasion — only show occasions with products */}
+      {await (async () => {
+        const allOccasions = dbOccasions.length > 0 ? dbOccasions : occasions.map(o => ({ ...o, id: o.slug }));
+        const withProducts = (await Promise.all(
+          allOccasions.map(async (o) => {
+            const count = await db.product.count({ where: { isAvailable: true, occasions: { contains: `"${o.slug}"` } } });
+            return count > 0 ? o : null;
+          })
+        )).filter(Boolean) as typeof allOccasions;
+        if (withProducts.length === 0) return null;
+        return (
+          <OccasionCarousel occasions={withProducts.map(o => ({
+            name: o.name,
+            slug: o.slug,
+            image: o.image || "/images/categories/cakes.jpg",
+          }))} />
+        );
+      })()}
+
+      {/* Shop by Theme — only show themes with products */}
+      {await (async () => {
+        if (dbThemes.length === 0) return null;
+        // Filter to only themes that have at least 1 product
+        const themesWithProducts = (await Promise.all(
+          dbThemes.map(async (t) => {
+            const count = await db.product.count({ where: { isAvailable: true, themes: { contains: `"${t.slug}"` } } });
+            return count > 0 ? t : null;
+          })
+        )).filter(Boolean) as typeof dbThemes;
+        if (themesWithProducts.length === 0) return null;
+        return (
+          <OccasionCarousel
+            occasions={themesWithProducts.map(t => ({
+              name: t.name,
+              slug: `themes/${t.slug}`,
+              image: t.image || "/images/categories/cakes.jpg",
+            }))}
+            sectionKicker="Handcrafted Cake Collections"
+            sectionTitle="Shop by Theme"
+          />
+        );
+      })()}
+
+      {/* Bestsellers — Premium product cards */}
+      {bestsellers.length > 0 && (
+        <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full">
+          <div className="flex items-end justify-between gap-6 mt-10 md:mt-20 mb-4 md:mb-6">
+            <div>
+              <p className="section-kicker">Our Signatures</p>
+              <h2 className="text-[clamp(24px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Bestsellers</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 md:gap-[22px]">
+            {bestsellers.map((product) => {
+              const imgs = parseJsonSafe<string[]>(product.images, []);
+              const img = imgs[0] || "/images/hero/AMMO6974.jpg";
+              const displayPrice = getDisplayPrice(product);
+              const hasDiscount = product.mrpPrice && product.mrpPrice > displayPrice;
+              const discountPct = hasDiscount ? Math.round(((product.mrpPrice! - displayPrice) / product.mrpPrice!) * 100) : 0;
+              return (
+                <Link
+                  key={product.id}
+                  href={`/store/${store.slug}/menu/${product.slug}`}
+                  prefetch={false}
+                  className="product-card-premium group"
+                >
+                  <div className="product-img-container relative">
+                    <HoverImageCycler images={imgs.length > 0 ? imgs : ['/images/hero/AMMO6974.jpg']} alt={product.name}>
+                      {product.isBestseller && (
+                        <span className="badge-premium">Bestseller</span>
+                      )}
+                    </HoverImageCycler>
+                    {hasDiscount && (
+                      <span className="badge-discount">{discountPct}% OFF</span>
+                    )}
+                  </div>
+                  <div className="p-2.5 md:p-3.5">
+                    <p className="text-muted-foreground text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em]">
+                      {product.category.name}
+                    </p>
+                    <h3 className="font-serif font-bold text-sm md:text-base leading-[1.15] tracking-[-0.03em] mt-1 line-clamp-1 group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between gap-2 mt-2">
+                      <span className="text-base md:text-lg font-black text-primary-hover">{formatPrice(getDisplayPrice(product))}</span>
+                      <span className="mini-add-btn inline-flex items-center">Add</span>
+                    </div>
+                    {hasDiscount && (
+                      <span className="text-[10px] text-muted-foreground line-through block">{formatPrice(product.mrpPrice!)}</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="text-center mt-8">
+            <Link
+              href={`/store/${store.slug}/menu`}
+              className="btn-premium btn-premium-secondary text-sm inline-flex items-center gap-2"
+            >
+              View Full Menu <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Custom Cakes CTA — Clean premium section */}
+      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-10 md:mt-20">
+        <div className="relative rounded-[20px] md:rounded-[28px] overflow-hidden bg-chocolate">
+          {/* Background image — full bleed on mobile, right half on desktop */}
+          <div className="absolute inset-0 md:left-[35%]">
+            <Image
+              src={(store as any).customCakeImage || "/images/hero/customised-cakes-in-delhi.webp"}
+              alt="Custom Cakes by Bliss Bakery"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 65vw"
+              quality={80}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-chocolate via-chocolate/70 via-30% to-transparent" />
+          </div>
+
+          {/* Content */}
+          <div className="relative z-10 p-6 pb-8 md:p-12 md:max-w-[50%]">
+            <p className="text-[var(--gold)] text-[10px] md:text-xs font-black tracking-[0.2em] uppercase">Custom Order</p>
+            <h2 className="text-[clamp(24px,4vw,42px)] font-serif font-bold text-white leading-[1.05] tracking-[-0.04em] mt-2">
+              Your vision, our craft
+            </h2>
+            <p className="text-white/70 text-sm md:text-base leading-[1.65] mt-3 max-w-[420px]">
+              Share a reference image and occasion — we'll create a fresh, handcrafted eggless cake that's uniquely yours.
+            </p>
+
+            {/* Steps — horizontal on desktop, vertical on mobile */}
+            <div className="flex flex-col md:flex-row gap-2 mt-5">
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+                <span className="text-white text-xs font-medium">Pick occasion & flavour</span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">2</span>
+                <span className="text-white text-xs font-medium">Share reference photo</span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2.5 border border-white/10">
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                <span className="text-white text-xs font-medium">Get fresh delivery</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mt-6">
+              <Link href={`/store/${store.slug}/custom-cakes`} className="btn-premium btn-premium-primary text-sm">
+                Design Your Cake
+              </Link>
+              <a href={`https://wa.me/91${store.phone}`} className="btn-premium btn-premium-secondary text-sm" target="_blank" rel="noopener noreferrer">
+                WhatsApp Us
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Promise — Premium numbered cards */}
+      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full">
+        <div className="flex items-end justify-between gap-6 mt-14 md:mt-20 mb-4 md:mb-6">
+          <div>
+            <p className="section-kicker">Why Choose Bliss</p>
+            <h2 className="text-[clamp(20px,3.5vw,38px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Premium, fresh, and reliable</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-[18px]">
+          <div className="promise-card">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">01</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Same-day delivery</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Order before 8 PM for fast delivery across Kuchaman City.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">02</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">100% eggless</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Every cake, pastry, brownie, and cookie is vegetarian and eggless.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">03</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Baked fresh daily</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Small-batch baking with soft sponge, rich cream, and premium ingredients.</p>
+          </div>
+          <div className="promise-card">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-blush text-primary-hover font-black text-base md:text-lg grid place-items-center">04</div>
+            <h3 className="font-serif font-bold text-base md:text-2xl leading-[1.05] tracking-[-0.04em] mt-3 md:mt-4">Custom designs</h3>
+            <p className="text-muted-foreground text-xs md:text-sm leading-[1.55] mt-1.5 md:mt-2.5">Theme cakes for birthdays, weddings, anniversaries, kids, and festivals.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews — Premium trust block */}
+      <section className="max-w-[1300px] mx-auto px-4 md:px-5 w-full mt-10 md:mt-20">
+        <div className="reviews-premium">
+          <p className="section-kicker">Customer Proof</p>
+          <h2 className="text-[clamp(22px,3.5vw,44px)] font-serif font-bold leading-[0.98] tracking-[-0.055em]">Loved for fresh taste and clean designs.</h2>
+          <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1fr_1fr] gap-3 md:gap-[18px] mt-4 md:mt-6">
+            <div className="p-5 md:p-7 rounded-[18px] md:rounded-[22px] bg-chocolate text-white">
+              <span className="text-[var(--gold)] font-black tracking-[0.1em] text-sm">★★★★★ RATING</span>
+              <strong className="block text-[58px] font-serif leading-[1] mt-2">4.9</strong>
+              <p className="text-white/60 text-sm mt-3 leading-[1.6]">Premium trust block for reviews, orders, and repeat customers.</p>
+            </div>
+            <div className="p-6 rounded-[22px] bg-surface-blush text-[#4c363c] leading-[1.65] font-semibold text-sm">
+              &ldquo;The cake felt fresh, soft, and beautifully finished. The ordering experience was simple and delivery was on time.&rdquo;
+            </div>
+            <div className="p-6 rounded-[22px] bg-surface-blush text-[#4c363c] leading-[1.65] font-semibold text-sm">
+              &ldquo;Perfect for birthday and anniversary orders. The premium product cards make choosing much easier.&rdquo;
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Store Info */}
+      <section className="py-6 mt-16 md:mt-20">
+        <div className="max-w-[1300px] mx-auto px-4 md:px-5">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground border border-border rounded-2xl py-5 px-4 bg-white/60">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              <span>{store.city}, {store.state}</span>
+            </div>
+            {todayHours && (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className={store.isOpen ? "text-success font-medium" : "text-destructive"}>
+                  {store.isOpen ? "Open" : "Closed"}
+                </span>
+                <span>· {todayHours.open} – {todayHours.close}</span>
+              </div>
+            )}
+            <a href={`tel:${store.phone}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Phone className="w-4 h-4 text-primary" />
+              <span>{store.phone}</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer — hidden on mobile (bottom nav is the navigation) */}
+      <div className="hidden md:block">
+        <SiteFooter storeSlug={store.slug} phone={store.phone || undefined} city={store.city || undefined} state={store.state || undefined} />
+      </div>
+    </div>
+  );
+}
