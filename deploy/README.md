@@ -36,10 +36,12 @@ git push origin v5
 Then on the server:
 
 ```bash
-bash /opt/blissbakery-v5/deploy/deploy.sh
+bash /opt/blissbakery-v5/deploy/redeploy.sh
 ```
 
-`deploy.sh` pulls `v5`, runs `npm ci`, `prisma generate`, builds, copies static assets into the standalone output, restarts PM2 and verifies. Takes ~90s.
+`redeploy.sh` pulls `v5`, runs `npm ci`, `prisma generate`, builds, copies static assets into the standalone output, restarts PM2 and verifies. Takes ~90s. It **preserves `.env`**.
+
+> Use `deploy.sh` only for a **first-time** install — it builds `.env` from `/tmp/.env.server`. It will not overwrite an existing `.env`, but `redeploy.sh` is the routine path.
 
 **Verify:**
 ```bash
@@ -68,7 +70,7 @@ sudo nano /opt/blissbakery-v5/.env && sudo chmod 600 /opt/blissbakery-v5/.env
 
 # 5. restore data, deploy, TLS, autostart
 bash /tmp/restore.sh /path/to/db-dump.sql.gz
-bash /tmp/deploy.sh
+bash /tmp/deploy.sh          # first install only; builds .env
 bash /tmp/tls-enable.sh
 bash /tmp/enable-autostart.sh
 bash /tmp/smoke.sh
@@ -182,6 +184,9 @@ sudo systemctl reboot     # app returns on its own
 | Symptom | Cause | Fix |
 |---|---|---|
 | `next start does not work with output: standalone` | PM2 saved the old command; `pm2 restart` reuses it | `pm2 delete` then start `.next/standalone/server.js` |
+| `.env` wiped after a deploy | ran `deploy.sh` instead of `redeploy.sh` | use `redeploy.sh` for updates |
+| `git push` looks like it hangs | slow through a corporate proxy; output is buffered by `Select-Object` | let it finish, or `git push --porcelain` without piping |
+| non-fast-forward rejection | remote moved ahead | `git fetch origin v5` then rebase/merge before pushing |
 | CSS missing / stale HTML after deploy | `next build` run while `next dev` shared `.next` | never build against a running dev server; clear `.next` |
 | Build fails on `postcss` | `npm ci --omit=dev` — Tailwind is a devDependency | use plain `npm ci` |
 | Tables not found after restore | Windows MySQL is case-insensitive, Linux isn't | `fix-table-case.sh` (restore.sh calls it) |

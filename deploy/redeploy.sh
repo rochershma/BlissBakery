@@ -24,8 +24,10 @@ npx prisma generate >/dev/null 2>&1
 npm run build 2>&1 | tail -4
 
 echo "==> copying static assets into standalone output"
-cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
-cp -r public .next/standalone/ 2>/dev/null || true
+# Remove first: `cp -r public dest/` nests into dest/public/public when dest exists.
+rm -rf .next/standalone/.next/static .next/standalone/public
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
 
 echo "==> restarting"
 pm2 restart blissbakery-v5 --update-env >/dev/null

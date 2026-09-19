@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Deploys the v5 branch to /opt/blissbakery-v5 and (re)starts it under PM2.
-# Expects /tmp/.env.server (non-DB secrets) to already be uploaded.
+# FIRST-TIME install of the v5 branch into /opt/blissbakery-v5.
+# For routine code updates use redeploy.sh instead — this one builds .env.
+# Expects /tmp/.env.server (non-DB secrets) when .env does not yet exist.
 set -euo pipefail
 
 APP_DIR=/opt/blissbakery-v5
@@ -30,20 +31,25 @@ echo "    at $(git -C "${APP_DIR}" rev-parse --short HEAD)"
 cd "${APP_DIR}"
 
 echo "==> .env"
-DB_PASS="$(sudo cat /etc/blissbakery-v5.dbpass)"
-cp /tmp/.env.server .env
-# DB credentials and signing key are generated on this host, never transported
-if [ ! -f /etc/blissbakery-v5.jwt ]; then
-  openssl rand -base64 32 | sudo tee /etc/blissbakery-v5.jwt >/dev/null
-  sudo chmod 600 /etc/blissbakery-v5.jwt
+if [ -f .env ]; then
+  # Never clobber a working environment on a re-run.
+  echo "    existing .env kept ($(grep -c '=' .env) variables)"
+else
+  DB_PASS="$(sudo cat /etc/blissbakery-v5.dbpass)"
+  cp /tmp/.env.server .env
+  # DB credentials and signing key are generated on this host, never transported
+  if [ ! -f /etc/blissbakery-v5.jwt ]; then
+    openssl rand -base64 32 | sudo tee /etc/blissbakery-v5.jwt >/dev/null
+    sudo chmod 600 /etc/blissbakery-v5.jwt
+  fi
+  {
+    echo "DATABASE_URL=\"mysql://${DB_USER}:${DB_PASS}@localhost:3306/${DB_NAME}\""
+    echo "JWT_SECRET=\"$(sudo cat /etc/blissbakery-v5.jwt)\""
+    echo "PORT=${PORT}"
+  } >> .env
+  chmod 600 .env
+  echo "    $(grep -c '=' .env) variables set"
 fi
-{
-  echo "DATABASE_URL=\"mysql://${DB_USER}:${DB_PASS}@localhost:3306/${DB_NAME}\""
-  echo "JWT_SECRET=\"$(sudo cat /etc/blissbakery-v5.jwt)\""
-  echo "PORT=${PORT}"
-} >> .env
-chmod 600 .env
-echo "    $(grep -c '=' .env) variables set"
 
 echo "==> npm ci"
 npm ci --no-audit --no-fund --silent
@@ -56,8 +62,10 @@ echo "    schema synced"
 echo "==> build"
 npm run build 2>&1 | tail -5
 
-# output:"standalone" means server.js is the entrypoint; it needs static assets beside it
+# output:"standalone" means server.js is the entrypoint; it needs static assets beside it.
+# Remove first: `cp -r public dest/` nests into dest/public/public when dest exists.
 echo "==> stage standalone assets"
+rm -rf "${APP_DIR}/.next/standalone/.next/static" "${APP_DIR}/.next/standalone/public"
 cp -r .next/static "${APP_DIR}/.next/standalone/.next/static"
 cp -r public "${APP_DIR}/.next/standalone/public"
 
