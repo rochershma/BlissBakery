@@ -1,7 +1,22 @@
 import { db } from "@/lib/db";
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { randomInt } from "crypto";
+
+/**
+ * Behind Nginx/Cloudflare the app always sees plain HTTP, so trust the proxy's
+ * forwarded scheme. Falls back to the configured app URL when there's no proxy.
+ */
+async function isHttpsRequest(): Promise<boolean> {
+  try {
+    const h = await headers();
+    const proto = h.get("x-forwarded-proto") ?? h.get("cf-visitor");
+    if (proto) return proto.includes("https");
+  } catch {
+    // no request context (e.g. build time) — fall through
+  }
+  return process.env.NEXT_PUBLIC_APP_URL?.startsWith("https") ?? false;
+}
 
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "dev-secret-do-not-use-in-prod") {
   if (process.env.NODE_ENV === "production" && !process.env.VERCEL) {
@@ -101,7 +116,7 @@ export async function setSessionCookie(token: string) {
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NEXT_PUBLIC_APP_URL?.startsWith("https") || false,
+    secure: await isHttpsRequest(),
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60, // 7 days
     path: "/",

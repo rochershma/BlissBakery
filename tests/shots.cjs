@@ -1,5 +1,5 @@
 const { chromium } = require("playwright");
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 const OUT = "q:/src/poc/bakes/blissbakery-v2/design/audit";
 
 // node tests/shots.cjs mobile home /   -> writes audit/m-home.png

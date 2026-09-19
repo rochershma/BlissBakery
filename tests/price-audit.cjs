@@ -4,7 +4,7 @@
 // the customer is shown one price and charged another.
 const { PrismaClient } = require("@prisma/client");
 const d = new PrismaClient();
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 
 const parse = (s, f) => { try { return typeof s === "string" ? JSON.parse(s) : (s ?? f); } catch { return f; } };
 

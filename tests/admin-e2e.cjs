@@ -2,7 +2,7 @@
 // Drives the real admin UI, then checks how fast and how faithfully each
 // change reaches the customer-facing pages. Cleans up after itself.
 const { chromium } = require("playwright");
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 const PHONE = "9602831559";
 const OTP = "999999";
 const STAMP = Date.now().toString().slice(-6);

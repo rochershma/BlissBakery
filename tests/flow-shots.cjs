@@ -1,7 +1,7 @@
 // Logs in, seeds the cart, then screenshots cart + checkout.
 // node tests/flow-shots.cjs mobile|desktop
 const { chromium } = require("playwright");
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 const OUT = "q:/src/poc/bakes/blissbakery-v2/design/audit";
 const PHONE = "9602831559";
 const OTP = "999999";

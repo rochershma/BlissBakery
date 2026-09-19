@@ -1,6 +1,6 @@
 // Measures server response, image payload and LCP for key routes.
 const { chromium } = require("playwright");
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 
 const ROUTES = ["/", "/store/kuchaman-city/menu", "/cakes/birthday"];
 

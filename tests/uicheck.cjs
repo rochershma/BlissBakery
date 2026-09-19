@@ -1,5 +1,5 @@
 const { chromium } = require("playwright");
-const BASE = "http://localhost:3005";
+const BASE = process.env.BASE || "http://localhost:3005";
 
 const ROUTES = [
   "/", "/search?q=cake", "/offers", "/about", "/contact",
