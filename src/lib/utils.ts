@@ -43,9 +43,15 @@ export function formatStoreAddress(store: {
   pincode?: string | null;
 } | null | undefined): string | null {
   if (!store) return null;
+  const address = store.address?.trim() || "";
+  // Some outlets already spell the city out in their street address.
+  const city =
+    store.city && !address.toLowerCase().includes(store.city.trim().toLowerCase())
+      ? store.city
+      : null;
   const line = [
-    store.address,
-    store.city,
+    address,
+    city,
     [store.state, store.pincode].filter(Boolean).join(" "),
   ].filter(Boolean).join(", ");
   return line || null;
