@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import Image from "next/image";
 import { db as prisma } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 import { fromPrice, type FlavourPrice } from "@/lib/pricing";
 import { firstImage, img } from "@/lib/img";
 import { parseJsonSafe } from "@/lib/utils";
@@ -20,6 +21,7 @@ export default async function HomePage() {
   noStore();
 
   const store = await prisma.store.findFirst({
+    where: { id: await getCustomerStoreId() },
     include: {
       categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },
       banners: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
@@ -68,7 +70,8 @@ export default async function HomePage() {
   const heroImage = bestsellers.map((b) => firstImage(b.images)).find(Boolean) ?? null;
 
   return (
-    <>      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
+    <>
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
 
       <h1 className="sr-only">
         Bliss Bakery — 100% vegetarian and eggless cakes in {store.city}

@@ -1,12 +1,13 @@
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
 import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 import { MapPin, Phone, Mail, Clock, MessageCircle } from "lucide-react";
 import { parseJsonSafe } from "@/lib/utils";
 
 export const revalidate = 3600; // ISR: re-generate every hour
 
 export default async function ContactPage() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getCustomerStoreId() } });
 
   const hours = parseJsonSafe<Record<string, { open: string; close: string }>>(
     store?.operatingHours || null, {}

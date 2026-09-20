@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/server-utils";
 import { getActiveStoreId } from "@/lib/active-store";
 import { NextResponse } from "next/server";
 
@@ -42,20 +43,29 @@ export async function GET() {
 
 // PUT delivery config
 export async function PUT(req: Request) {
+  // Middleware guards /api/admin, but authorisation should not depend on a
+  // single path matcher — re-check it where the write actually happens.
+  await requireAdmin();
+
   const data = await req.json();
   const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
   const updateData: Record<string, unknown> = {};
 
-  if (data.gstRate !== undefined) updateData.gstRate = Math.max(0, Number(data.gstRate) || 0);
+  if (data.gstRate !== undefined) updateData.gstRate = Math.min(28, Math.max(0, Number(data.gstRate) || 0));
   if (data.packagingCharge !== undefined) updateData.packagingCharge = Math.max(0, Number(data.packagingCharge) || 0);
   if (data.deliveryCharge !== undefined) updateData.deliveryCharge = Math.max(0, Number(data.deliveryCharge) || 0);
   if (data.deliveryRadius !== undefined) updateData.deliveryRadius = Math.max(0, Number(data.deliveryRadius) || 0);
   if (data.minDeliveryOrder !== undefined) updateData.minDeliveryOrder = Math.max(0, Number(data.minDeliveryOrder) || 0);
   if (data.deliveryTiers !== undefined) {
     if (!Array.isArray(data.deliveryTiers)) return NextResponse.json({ error: "deliveryTiers must be an array" }, { status: 400 });
-    updateData.deliveryTiers = JSON.stringify(data.deliveryTiers);
+    // A negative fee would pay the customer to order; a negative radius matches nothing.
+    const tiers = data.deliveryTiers.map((t: { maxKm?: unknown; fee?: unknown }) => ({
+      maxKm: Math.max(0, Number(t?.maxKm) || 0),
+      fee: Math.max(0, Number(t?.fee) || 0),
+    }));
+    updateData.deliveryTiers = JSON.stringify(tiers);
   }
 
   await db.store.update({ where: { id: store.id }, data: updateData });

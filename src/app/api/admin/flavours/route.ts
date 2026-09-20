@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/server-utils";
 import { getActiveStoreId } from "@/lib/active-store";
 import { NextResponse } from "next/server";
 
@@ -30,6 +31,10 @@ export async function GET() {
 
 // PUT — save default flavours, prices, and sizes
 export async function PUT(req: Request) {
+  // Middleware guards /api/admin, but authorisation should not depend on a
+  // single path matcher — re-check it where the write actually happens.
+  await requireAdmin();
+
   const body = await req.json();
   const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
@@ -38,7 +43,9 @@ export async function PUT(req: Request) {
   if (body.flavours !== undefined) updateData.defaultFlavours = JSON.stringify(body.flavours);
   if (body.flavourPrices !== undefined) updateData.defaultFlavourPrices = JSON.stringify(body.flavourPrices);
   if (body.customSizes !== undefined) updateData.defaultCustomSizes = JSON.stringify(body.customSizes);
-  if (body.defaultBase500gPrice !== undefined) updateData.defaultBase500gPrice = Number(body.defaultBase500gPrice) || 300;
+  if (body.defaultBase500gPrice !== undefined) {
+    updateData.defaultBase500gPrice = Math.max(1, Number(body.defaultBase500gPrice) || 300);
+  }
   
   await db.store.update({ where: { id: store.id }, data: updateData });
   

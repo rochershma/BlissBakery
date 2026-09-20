@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 import { Collection } from "@/components/v5/collection";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
@@ -18,7 +19,7 @@ export default async function OccasionPage({ params }: { params: Promise<{ occas
   const { occasion } = await params;
 
   const [store, occ] = await Promise.all([
-    db.store.findFirst(),
+    db.store.findFirst({ where: { id: await getCustomerStoreId() } }),
     db.occasion.findUnique({
       where: { slug: occasion },
       include: { recipients: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -9,6 +9,7 @@ import { SiteFooter } from "@/components/v5/site-footer";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { IconBag, IconCake } from "@/components/v5/icons";
+import { OrderActions } from "@/components/v5/order-actions";
 
 type OrderItem = { id: string; productName: string; variantName: string | null; flavour: string | null; quantity: number; totalPrice: number; cakeMessage: string | null; image?: string | null; slug?: string | null };
 type Order = { id: string; orderNumber: string; status: string; paymentStatus: string; grandTotal: number; createdAt: string; deliveryDate: string | null; deliverySlot: string | null; items: OrderItem[] };
@@ -24,18 +25,44 @@ export const dynamic = "force-dynamic";
 export default function OrdersPage() {
   const { user, loading, setShowLoginModal } = useAuth();
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [more, setMore] = useState<{ has: boolean; next: number }>({ has: false, next: 0 });
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [storeSlug, setStoreSlug] = useState("kuchaman-city");
 
   useEffect(() => {
     if (!loading && !user) setShowLoginModal(true);
   }, [loading, user, setShowLoginModal]);
 
-  useEffect(() => {
-    if (!user) return;
-    fetch("/api/orders")
+  const load = useCallback(
+    () => fetch("/api/orders")
       .then((r) => r.json())
-      .then((d) => setOrders(d?.orders ?? []))
-      .catch(() => setOrders([]));
-  }, [user]);
+      .then((d) => {
+        setOrders(d?.orders ?? []);
+        setMore({ has: Boolean(d?.hasMore), next: d?.nextOffset ?? 0 });
+      })
+      .catch(() => setOrders([])),
+    [],
+  );
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const d = await fetch(`/api/orders?offset=${more.next}`).then((r) => r.json());
+      setOrders((cur) => [...(cur ?? []), ...(d?.orders ?? [])]);
+      setMore({ has: Boolean(d?.hasMore), next: d?.nextOffset ?? more.next });
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => { if (user) load(); }, [user, load]);
+
+  useEffect(() => {
+    fetch("/api/stores")
+      .then((r) => r.json())
+      .then((d) => d?.stores?.[0]?.slug && setStoreSlug(d.stores[0].slug))
+      .catch(() => {});
+  }, []);
 
   return (
     <>
@@ -59,7 +86,7 @@ export default function OrdersPage() {
             <IconBag />
             <h3 className="t-h3">No orders yet</h3>
             <p className="t-small">When you order a cake it&apos;ll show up here.</p>
-            <Link className="btn btn--rose btn--sm" href="/store/kuchaman-city/menu">Browse cakes</Link>
+            <Link className="btn btn--rose btn--sm" href={`/store/${storeSlug}/menu`}>Browse cakes</Link>
           </div>
         ) : (
           orders.map((o) => (
@@ -109,14 +136,20 @@ export default function OrdersPage() {
                 </span>
                 <span style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
                   <Link className="btn btn--rose btn--sm" href={`/order/${o.id}`}>Track order</Link>
-                  {o.items[0]?.slug ? (
-                    <Link className="btn btn--out btn--sm" href={`/store/kuchaman-city/menu/${o.items[0].slug}`}>Reorder</Link>
-                  ) : null}
+                  <OrderActions orderId={o.id} status={o.status} onChanged={load} />
                 </span>
               </div>
             </div>
           ))
         )}
+
+        {more.has ? (
+          <div className="plp__more">
+            <button type="button" className="btn btn--out btn--sm" disabled={loadingMore} onClick={loadMore}>
+              {loadingMore ? "Loading…" : "Show older orders"}
+            </button>
+          </div>
+        ) : null}
       </AccountShell>
       <SiteFooter />
     </>

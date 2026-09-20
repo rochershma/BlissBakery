@@ -31,6 +31,8 @@ model Store {
   deliveryCharge Float?
   packagingCharge Float?
   gstRate        Float    @default(0)
+  /// comma-separated extra pincodes this outlet delivers to, beyond its own
+  servicePincodes String? @db.Text
   deliverySlots  String?  @db.Text
   addOnMaxQty    Int      @default(20)
   orderLeadHours Int      @default(4)

@@ -1,17 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 
-export async function GET() {
+const PAGE = 20;
+
+export async function GET(req: NextRequest) {
   try {
     const session = await getSession();
     if (!session) {
       return NextResponse.json({ success: false, orders: [] });
     }
 
+    // A regular customer builds up hundreds of orders; send a page at a time.
+    const skip = Math.max(0, parseInt(req.nextUrl.searchParams.get("offset") ?? "0", 10) || 0);
+
     const orders = await db.order.findMany({
       where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
+      skip,
+      take: PAGE + 1,
       include: {
         items: {
           include: {
@@ -23,9 +30,14 @@ export async function GET() {
       },
     });
 
+    const hasMore = orders.length > PAGE;
+    const pageRows = hasMore ? orders.slice(0, PAGE) : orders;
+
     return NextResponse.json({
       success: true,
-      orders: orders.map((o) => {
+      hasMore,
+      nextOffset: skip + pageRows.length,
+      orders: pageRows.map((o) => {
         const parseImages = (imgs: string | null) => {
           if (!imgs) return [];
           try { return JSON.parse(imgs); } catch { return []; }

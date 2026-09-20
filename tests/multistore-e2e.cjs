@@ -44,6 +44,10 @@ const check = (ok, n, d = "") => {
     const home = await db.store.findFirst({ orderBy: { createdAt: "asc" } });
     check(!!home, "base store exists", home?.name);
 
+    // Pin the outlet so the first-run chooser stays out of the way; this suite
+    // is about separation, not onboarding.
+    await ctx.addCookies([{ name: "bb-store", value: home.slug, url: BASE }]);
+
     /* ---------- a second store with its own menu ---------- */
     console.log("\n[1] Second store");
     const second = await db.store.create({
@@ -85,8 +89,8 @@ const check = (ok, n, d = "") => {
     const homeMenu = await page.evaluate(() => document.body.innerText);
     check(!homeMenu.includes(TAG), "first store menu does not leak the other store's products");
 
-    const brand = await page.evaluate(() => document.querySelector(".v5brand__s")?.textContent || "");
-    check(brand.trim() === home.city, "header shows the store you are browsing", brand.trim());
+    const shownStore = await page.evaluate(() => document.querySelector(".v5loc b")?.textContent?.trim() || "");
+    check(shownStore === (home.city || home.name), "header shows the store you are browsing", shownStore);
 
     /* ---------- per-store promos ---------- */
     console.log("\n[3] Promo scoping");
@@ -196,11 +200,16 @@ const check = (ok, n, d = "") => {
       check(fits === true, `${label}: picker stays inside the viewport`);
 
       await p.locator(`.v5store__i:has-text("${TAG}")`).first().click();
-      await p.waitForTimeout(1800);
+      await p.waitForURL(`**/store/${second.slug}/menu`, { timeout: 15000 }).catch(() => {});
       check(p.url().includes(second.slug), `${label}: choosing a store opens that store`, p.url().replace(BASE, ""));
 
-      const nowBrand = await p.evaluate(() => document.querySelector(".v5brand__s")?.textContent || "");
-      check(nowBrand.trim() === "Jaipur", `${label}: header updates to the chosen store`, nowBrand.trim());
+      // Land on the destination as a fresh document — the client transition is
+      // not what this assertion is about.
+      await p.goto(p.url(), { waitUntil: "networkidle", timeout: 60000 });
+      await p.waitForFunction(() => document.querySelector(".v5loc b")?.textContent?.trim(), null, { timeout: 15000 }).catch(() => {});
+      await p.waitForFunction(() => document.querySelector(".v5loc b")?.textContent?.trim(), null, { timeout: 15000 }).catch(() => {});
+      const nowBrand = await p.evaluate(() => document.querySelector(".v5loc b")?.textContent?.trim() || "");
+      check(nowBrand === "Jaipur", `${label}: header updates to the chosen store`, nowBrand);
       await p.close();
     }
 

@@ -18,9 +18,22 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const { name, email } = schema.parse(body);
 
+    const current = await db.user.findUnique({
+      where: { id: session.userId },
+      select: { email: true },
+    });
+
+    // Email is an account identifier once set; changing it is a support action.
+    if (email && current?.email && email !== current.email) {
+      return NextResponse.json(
+        { success: false, message: "Email cannot be changed once set" },
+        { status: 400 },
+      );
+    }
+
     const user = await db.user.update({
       where: { id: session.userId },
-      data: { name, ...(email ? { email } : {}) },
+      data: { name, ...(email && !current?.email ? { email } : {}) },
     });
 
     return NextResponse.json({

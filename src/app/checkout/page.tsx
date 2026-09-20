@@ -12,7 +12,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
 import { DEFAULT_SLOTS, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
-import { IconChevL, IconPlus, IconCake } from "@/components/v5/icons";
+import { IconChevL, IconPlus, IconCake, IconUser } from "@/components/v5/icons";
 
 type Address = { id: string; label: string | null; fullAddress: string; landmark: string | null; pincode: string };
 
@@ -41,7 +41,7 @@ export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addrId, setAddrId] = useState("");
   const [newAddr, setNewAddr] = useState(false);
-  const [form, setForm] = useState({ line1: "", line2: "", landmark: "", label: "Home" });
+  const [form, setForm] = useState({ line1: "", line2: "", landmark: "", label: "Home", pincode: "" });
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [slot, setSlot] = useState("");
@@ -49,6 +49,7 @@ export default function CheckoutPage() {
   const [addOns, setAddOns] = useState<AddOn[]>([]);
   const [picked, setPicked] = useState<Record<string, number>>({});
   const [charges, setCharges] = useState({ packaging: 10, delivery: 30, gstRate: 0, minOrder: 0 });
+  const [area, setArea] = useState({ city: "", pincodes: [] as string[] });
   const [slotCfg, setSlotCfg] = useState<{ slots: DeliverySlot[]; leadHours: number; maxQty: number }>({
     slots: DEFAULT_SLOTS,
     leadHours: 4,
@@ -81,10 +82,15 @@ export default function CheckoutPage() {
           leadHours: d.orderLeadHours ?? 4,
           maxQty: Math.max(1, d.addOnMaxQty ?? 20),
         });
+        const pincodes: string[] = Array.isArray(d.servicePincodes) && d.servicePincodes.length
+          ? d.servicePincodes
+          : [d.pincode].filter(Boolean);
+        setArea({ city: d.city ?? "", pincodes });
+        setForm((f) => ({ ...f, pincode: f.pincode || pincodes[0] || "" }));
       }
       if (Array.isArray(d?.addOns)) setAddOns(d.addOns);
-    }).catch(() => {});
-  }, []);
+    }).catch(() => toast("Couldn't load delivery charges — please refresh", "error"));
+  }, [toast]);
 
   useEffect(() => {
     if (!user) return;
@@ -171,7 +177,8 @@ export default function CheckoutPage() {
       if (orderType === "DELIVERY") {
         if (newAddr) {
           if (!form.line1.trim()) { toast("Enter your address", "error"); setPlacing(false); return; }
-          deliveryAddress = [form.line1, form.line2, form.landmark, "Kuchaman City 341508"]
+          const where = [area.city, form.pincode].filter(Boolean).join(" ");
+          deliveryAddress = [form.line1, form.line2, form.landmark, where]
             .filter(Boolean).join(", ");
           // persist for next time; failure here must not block the order
           fetch("/api/addresses", {
@@ -181,8 +188,8 @@ export default function CheckoutPage() {
               label: form.label,
               fullAddress: [form.line1, form.line2].filter(Boolean).join(", "),
               landmark: form.landmark || null,
-              pincode: "341508",
-              city: "Kuchaman City",
+              pincode: form.pincode,
+              city: area.city,
               state: "Rajasthan",
             }),
           }).catch(() => {});
@@ -234,7 +241,28 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!hydrated) return <div className="wrap" style={{ padding: 40 }}><div className="sk" style={{ height: 200 }} /></div>;
+  if (!hydrated || authLoading) return <div className="wrap" style={{ padding: 40 }}><div className="sk" style={{ height: 200 }} /></div>;
+
+  // Checkout needs an account for the order history and delivery updates, so ask
+  // up front rather than letting someone fill the whole form and fail at the end.
+  if (!user) {
+    return (
+      <>
+        <div className="wrap" style={{ padding: "40px 0" }}>
+          <div className="v5empty" style={{ maxWidth: 480, margin: "0 auto" }}>
+            <IconUser />
+            <h3 className="t-h3">Sign in to check out</h3>
+            <p className="t-small">We&apos;ll send order updates to your mobile. Your cart is saved.</p>
+            <button type="button" className="btn btn--rose btn--sm" onClick={() => setShowLoginModal(true)}>
+              Sign in to continue
+            </button>
+            <Link className="t-small" href="/cart" style={{ marginTop: 12, display: "inline-block" }}>Back to cart</Link>
+          </div>
+        </div>
+        <SiteFooter storeSlug={storeSlug} className="ftr--desktop" />
+      </>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -306,7 +334,13 @@ export default function CheckoutPage() {
                       <input className="input" placeholder="Flat / house no." value={form.line1} onChange={(e) => setForm({ ...form, line1: e.target.value })} />
                       <input className="input" placeholder="Street / area" value={form.line2} onChange={(e) => setForm({ ...form, line2: e.target.value })} />
                       <input className="input" placeholder="Landmark (optional)" value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} />
-                      <input className="input" value="Kuchaman City 341508" disabled />
+                      {area.pincodes.length > 1 ? (
+                      <select className="select" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} aria-label="Delivery pincode">
+                        {area.pincodes.map((p) => <option key={p} value={p}>{area.city} {p}</option>)}
+                      </select>
+                    ) : (
+                      <input className="input" value={`${area.city} ${form.pincode}`.trim()} disabled />
+                    )}
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
                       {["Home", "Work", "Other"].map((l) => (

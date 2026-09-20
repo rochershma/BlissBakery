@@ -7,6 +7,7 @@ import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import { img, firstImage } from "@/lib/img";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
+import { OrderActions } from "@/components/v5/order-actions";
 import { navLinks } from "@/lib/nav";
 import { IconChevL, IconCake } from "@/components/v5/icons";
 
@@ -153,6 +154,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               <b style={{ color: "var(--ink)" }}>Delivering to</b><br />{order.deliveryAddress}
             </p>
           ) : null}
+
+          <div className="order5__acts">
+            <OrderActions orderId={order.id} status={order.status} />
+          </div>
 
           <a className="btn btn--out btn--block" style={{ marginTop: 14 }} href={`https://wa.me/91${store.phone}?text=Hi, I need help with order ${order.orderNumber}`} target="_blank" rel="noopener noreferrer">
             Need help with this order?

@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   login: (phone: string, otp: string) => Promise<{ success: boolean; isNewUser?: boolean; message?: string }>;
   sendOtp: (phone: string) => Promise<{ success: boolean; devOtp?: string; message?: string }>;
-  updateProfile: (name: string, email?: string) => Promise<boolean>;
+  updateProfile: (name: string, email?: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
@@ -76,11 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email }),
     });
-    const data = await res.json();
-    if (data.success) {
-      setUser(data.user);
-    }
-    return data.success;
+    const data = await res.json().catch(() => null);
+    if (data?.success) setUser(data.user);
+    return { success: Boolean(data?.success), message: data?.message };
   };
 
   const logout = async () => {

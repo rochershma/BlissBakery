@@ -1,5 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 import Link from "next/link";
 import Image from "next/image";
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
@@ -19,7 +20,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const query = q?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50) || "";
 
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getCustomerStoreId() } });
   const storeSlug = store?.slug || "kuchaman-city";
   // Search only ever covers the store the customer is shopping in.
   const inStore = { category: { storeId: store?.id ?? "" } };

@@ -64,10 +64,8 @@ export function SiteHeaderV5({
           {logo ? (
             <Image className="v5brand__logo" src={img(logo, 110, 110)} alt="" width={42} height={42} unoptimized />
           ) : null}
-          <span>
-            <span className="v5brand__n">{storeName}</span>
-            <span className="v5brand__s">{storeCity}</span>
-          </span>
+          {/* The brand is the chain, not the outlet — the outlet lives in the store picker. */}
+          <span className="v5brand__n">Bliss Bakery</span>
         </Link>
 
         <form className="v5search" onSubmit={submit} role="search">

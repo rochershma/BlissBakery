@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -44,6 +44,8 @@ export function Collection({
   const [sel, setSel] = useState<Record<string, Set<string>>>({});
   const [sort, setSort] = useState("popular");
   const [shown, setShown] = useState(PAGE);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const showMore = () => setShown((s) => s + PAGE);
   const [open, setOpen] = useState<Record<string, boolean>>(
     () => Object.fromEntries(groups.map((g, i) => [g.key, i < 3])),
   );
@@ -94,6 +96,18 @@ export function Collection({
 
   const activeCount = Object.values(sel).reduce((n, s) => n + s.size, 0) + (activeTag ? 1 : 0);
   const clearAll = () => { setSel({}); setTag(""); setShown(PAGE); };
+
+  // Reveal the next page as the sentinel scrolls into view.
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || shown >= filtered.length) return;
+    const io = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting && showMore(),
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shown, filtered.length]);
 
   const rail = (
     <aside className="filters">
@@ -197,12 +211,17 @@ export function Collection({
                 {filtered.slice(0, shown).map((p, i) => <ProductCard key={p.href} p={p} eager={i < 6} />)}
               </div>
               {shown < filtered.length ? (
-                <div style={{ textAlign: "center", marginTop: 30 }}>
-                  <button type="button" className="btn btn--out btn--lg" onClick={() => setShown((s) => s + PAGE)}>
-                    Load more
+                <div className="plp__more" ref={sentinel}>
+                  {/* The sentinel loads the next page on scroll; the button is the
+                      keyboard and reduced-motion path to the same thing. */}
+                  <button type="button" className="btn btn--out btn--sm" onClick={showMore}>
+                    Show more cakes
                   </button>
+                  <span className="t-small">{shown} of {filtered.length}</span>
                 </div>
-              ) : null}
+              ) : (
+                <p className="plp__end t-small">That&apos;s all {filtered.length} cakes</p>
+              )}
             </>
           )}
         </div>

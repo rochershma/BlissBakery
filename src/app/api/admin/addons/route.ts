@@ -22,13 +22,18 @@ export async function POST(req: NextRequest) {
   const { name, price, category, image } = await req.json();
   if (!name?.trim() || !price) return NextResponse.json({ error: "Name and price required" }, { status: 400 });
 
+  const amount = Number(price);
+  if (!Number.isFinite(amount) || amount < 0) {
+    return NextResponse.json({ error: "Price must be zero or more" }, { status: 400 });
+  }
+
   const sanitizedName = name.trim().substring(0, 100);
   const maxOrder = await db.storeAddOn.aggregate({ where: { storeId: store.id }, _max: { sortOrder: true } });
 
   const addon = await db.storeAddOn.create({
     data: {
       name: sanitizedName,
-      price: parseFloat(price),
+      price: amount,
       category: category || "DECORATION",
       image: image || null,
       sortOrder: (maxOrder._max.sortOrder || 0) + 1,
@@ -51,7 +56,13 @@ export async function PATCH(req: NextRequest) {
   // Sanitize
   const data: Record<string, unknown> = {};
   if (updates.name !== undefined) data.name = String(updates.name).trim().substring(0, 100);
-  if (updates.price !== undefined) data.price = parseFloat(updates.price);
+  if (updates.price !== undefined) {
+    const amount = Number(updates.price);
+    if (!Number.isFinite(amount) || amount < 0) {
+      return NextResponse.json({ error: "Price must be zero or more" }, { status: 400 });
+    }
+    data.price = amount;
+  }
   if (updates.category !== undefined) data.category = updates.category;
   if (updates.image !== undefined) data.image = updates.image;
   if (updates.isActive !== undefined) data.isActive = Boolean(updates.isActive);

@@ -5,13 +5,17 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { listStores } from "@/lib/active-store";
+import { requireAdmin } from "@/lib/server-utils";
+import { readPromoForm } from "@/lib/promo-form";
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ error?: string }>;
 }
 
-export default async function EditPromoPage({ params }: Props) {
+export default async function EditPromoPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { error } = await searchParams;
   const [promo, stores] = await Promise.all([
     db.promoCode.findUnique({ where: { id } }),
     listStores(),
@@ -20,30 +24,22 @@ export default async function EditPromoPage({ params }: Props) {
 
   async function updatePromo(formData: FormData) {
     "use server";
-    const code = (formData.get("code") as string).toUpperCase().trim();
-    const discountType = formData.get("discountType") as string;
-    const discountValue = parseFloat(formData.get("discountValue") as string);
-    const minOrderValue = parseFloat(formData.get("minOrderValue") as string) || null;
-    const maxDiscount = parseFloat(formData.get("maxDiscount") as string) || null;
-    const validFrom = new Date(formData.get("validFrom") as string);
-    const validTo = new Date(formData.get("validTo") as string);
-    const usageLimit = parseInt(formData.get("usageLimit") as string) || undefined;
-    const perUserLimit = parseInt(formData.get("perUserLimit") as string) || undefined;
-    const occasionTag = (formData.get("occasionTag") as string) || null;
-    const isActive = formData.get("isActive") === "on";
-    // "" means the code works at every store.
-    const storeId = (formData.get("storeId") as string) || null;
+    await requireAdmin();
+    const data = readPromoForm(formData, `/admin/promos/${id}`);
 
-    await db.promoCode.update({
-      where: { id },
-      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive, storeId },
-    });
+    const clash = await db.promoCode.findUnique({ where: { code: data.code }, select: { id: true } });
+    if (clash && clash.id !== id) {
+      redirect(`/admin/promos/${id}?error=${encodeURIComponent(`${data.code} already exists`)}`);
+    }
+
+    await db.promoCode.update({ where: { id }, data });
     revalidatePath("/admin/promos");
     redirect("/admin/promos");
   }
 
   async function deletePromo() {
     "use server";
+    await requireAdmin();
     await db.promoCode.delete({ where: { id } });
     revalidatePath("/admin/promos");
     redirect("/admin/promos");
@@ -62,6 +58,9 @@ export default async function EditPromoPage({ params }: Props) {
       </div>
 
       <form action={updatePromo} className="max-w-2xl space-y-5">
+        {error ? (
+          <p className="rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm text-danger">{error}</p>
+        ) : null}
         <div className="bg-white rounded-2xl border border-border p-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

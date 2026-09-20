@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { parseSlots } from "@/lib/slots";
+import { getCustomerStoreId } from "@/lib/customer-store";
 
 export async function GET() {
   const store = await db.store.findFirst({
+    where: { id: await getCustomerStoreId() },
     select: {
       pincode: true,
       city: true,
@@ -12,6 +14,7 @@ export async function GET() {
       minDeliveryOrder: true,
       deliveryRadius: true,
       gstRate: true,
+      servicePincodes: true,
       logo: true,
       deliveryTiers: true,
       deliverySlots: true,
@@ -42,6 +45,9 @@ export async function GET() {
   return NextResponse.json({
     pincode: store.pincode || "341508",
     city: store.city || "Kuchaman City",
+    servicePincodes: [
+      ...new Set([store.pincode, ...(store.servicePincodes ?? "").split(",").map((p) => p.trim())].filter(Boolean)),
+    ],
     packagingCharge: store.packagingCharge ?? 15,
     deliveryCharge: store.deliveryCharge ?? 30,
     minDeliveryOrder: store.minDeliveryOrder ?? 200,

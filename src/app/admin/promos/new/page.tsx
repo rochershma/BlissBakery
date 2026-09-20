@@ -5,29 +5,26 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { listStores, getActiveStoreId } from "@/lib/active-store";
+import { requireAdmin } from "@/lib/server-utils";
+import { readPromoForm } from "@/lib/promo-form";
 
-export default async function NewPromoPage() {
+export default async function NewPromoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const [stores, activeStoreId] = await Promise.all([listStores(), getActiveStoreId()]);
 
   async function createPromo(formData: FormData) {
     "use server";
-    const code = (formData.get("code") as string).toUpperCase().replace(/\s/g, "");
-    const discountType = formData.get("discountType") as string;
-    const discountValue = parseFloat(formData.get("discountValue") as string);
-    const minOrderValue = parseFloat(formData.get("minOrderValue") as string) || null;
-    const maxDiscount = parseFloat(formData.get("maxDiscount") as string) || null;
-    const validFrom = new Date(formData.get("validFrom") as string);
-    const validTo = new Date(formData.get("validTo") as string);
-    const usageLimit = parseInt(formData.get("usageLimit") as string) || null;
-    const perUserLimit = parseInt(formData.get("perUserLimit") as string) || 1;
-    const occasionTag = formData.get("occasionTag") as string || null;
-    const isActive = formData.get("isActive") === "on";
-    // "" means the code works at every store.
-    const storeId = (formData.get("storeId") as string) || null;
+    await requireAdmin();
+    const data = readPromoForm(formData, "/admin/promos/new");
 
-    await db.promoCode.create({
-      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive, storeId },
-    });
+    const clash = await db.promoCode.findUnique({ where: { code: data.code }, select: { id: true } });
+    if (clash) redirect(`/admin/promos/new?error=${encodeURIComponent(`${data.code} already exists`)}`);
+
+    await db.promoCode.create({ data });
     revalidatePath("/admin/promos");
     redirect("/admin/promos");
   }
@@ -41,6 +38,9 @@ export default async function NewPromoPage() {
         <Link href="/admin/promos" className="p-1 rounded-full hover:bg-muted transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
         <h1 className="text-2xl font-bold text-foreground font-serif">New Promo Code</h1>
       </div>
+      {error ? (
+        <p className="mb-5 max-w-2xl rounded-lg border border-danger/30 bg-danger/5 px-4 py-2.5 text-sm text-danger">{error}</p>
+      ) : null}
       <form action={createPromo} className="max-w-2xl space-y-5">
         <div className="bg-white rounded-xl border border-border p-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

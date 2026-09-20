@@ -33,6 +33,12 @@ export default async function AdminSettingsPage() {
     const gstRate = gstEnabled ? Math.max(0, Math.min(28, parseFloat(formData.get("gstRate") as string) || 0)) : 0;
     const deliveryRadius = Math.max(0, parseFloat(formData.get("deliveryRadius") as string) || 10);
     const minDeliveryOrder = Math.max(0, parseFloat(formData.get("minDeliveryOrder") as string) || 0);
+    // Normalise to "110001, 110002" so the address API can match on it.
+    const servicePincodes = ((formData.get("servicePincodes") as string) || "")
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => /^\d{6}$/.test(p))
+      .join(", ");
     const addOnMaxQty = Math.min(99, Math.max(1, parseInt(formData.get("addOnMaxQty") as string, 10) || 20));
     const orderLeadHours = Math.min(72, Math.max(0, parseInt(formData.get("orderLeadHours") as string, 10) || 0));
     // Re-validate the slot rows the client serialised so bad input can never reach checkout.
@@ -59,7 +65,7 @@ export default async function AdminSettingsPage() {
         name, tagline, description, address, city, phone, email,
         fssaiLicense, gstNumber, deliveryCharge, packagingCharge, gstRate,
         deliveryRadius, minDeliveryOrder, staffWhatsApp: staffWhatsApp || null,
-        addOnMaxQty, orderLeadHours, deliverySlots,
+        addOnMaxQty, orderLeadHours, deliverySlots, servicePincodes,
         latitude, longitude,
         operatingHours: JSON.stringify(hours), isOpen,
         logo,
@@ -175,6 +181,11 @@ export default async function AdminSettingsPage() {
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Min Delivery Order (₹)</label>
               <input name="minDeliveryOrder" inputMode="decimal" defaultValue={store.minDeliveryOrder || 200} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+            </div>
+            <div className="md:col-span-3">
+              <label className="text-xs font-medium text-foreground block mb-1">Delivery Pincodes</label>
+              <input name="servicePincodes" inputMode="numeric" placeholder="341508, 341509" defaultValue={store.servicePincodes || ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <p className="text-[10px] text-muted-foreground mt-1">Comma separated, in addition to the store pincode ({store.pincode}). Customers cannot save a delivery address outside these.</p>
             </div>
             <div>
               <label className="text-xs font-medium text-foreground block mb-1">Staff WhatsApp No.</label>
