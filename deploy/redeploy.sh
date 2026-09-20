@@ -21,6 +21,13 @@ echo "==> installing + building"
 # Tailwind/PostCSS are devDependencies and are required by the build.
 npm ci --no-audit --no-fund --silent 2>&1 | tail -2
 npx prisma generate >/dev/null 2>&1
+
+echo "==> syncing database schema"
+# Back up first: a schema change is the one step that can lose data.
+bash deploy/backup.sh 2>&1 | tail -2
+# No --accept-data-loss: push aborts rather than dropping anything.
+npx prisma db push --skip-generate 2>&1 | tail -3
+
 npm run build 2>&1 | tail -4
 
 echo "==> copying static assets into standalone output"
