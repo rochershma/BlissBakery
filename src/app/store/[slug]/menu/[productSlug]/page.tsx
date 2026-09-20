@@ -71,7 +71,7 @@ export default async function ProductPage({
       ? { OR: themeTags.map((t) => ({ themeTags: { contains: `"${t}"` } })) }
       : { categoryId: product.categoryId };
 
-  const relRows = await loadProducts({ ...relWhere, NOT: { id: product.id } }, 14);
+  const relRows = await loadProducts(store.id, { ...relWhere, NOT: { id: product.id } }, 14);
   const related = toCards(relRows, menuHref);
   const nav = await navLinks(store.slug);
 
@@ -83,7 +83,7 @@ export default async function ProductPage({
 
   return (
     <>
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
 
       <div className="wrap" style={{ paddingTop: 18 }}>
         <p className="t-small v5crumbs">

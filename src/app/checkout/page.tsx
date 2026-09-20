@@ -94,11 +94,11 @@ export default function CheckoutPage() {
       if (list[0]) setAddrId(list[0].id);
       else setNewAddr(true);
     }).catch(() => setNewAddr(true));
-    fetch("/api/promo/list").then((r) => r.json()).then((d) => {
+    fetch(`/api/promo/list?store=${encodeURIComponent(storeSlug)}`).then((r) => r.json()).then((d) => {
       // only tagged offers are promoted as one-tap chips
       if (Array.isArray(d?.promos)) setOffers(d.promos.filter((p: { occasionTag: string | null }) => p.occasionTag).slice(0, 3));
     }).catch(() => {});
-  }, [user]);
+  }, [user, storeSlug]);
 
   const subtotal = items.reduce(
     (s, i) => s + (i.unitPrice + (i.addOns ?? []).reduce((a, x) => a + x.price, 0)) * i.quantity, 0);
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
       const res = await fetch("/api/promo/validate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, subtotal }),
+        body: JSON.stringify({ code, subtotal, storeSlug }),
       });
       const d = await res.json();
       if (!res.ok || !d.success) throw new Error(d?.message ?? "Invalid promo code");

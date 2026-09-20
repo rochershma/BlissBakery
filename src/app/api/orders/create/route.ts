@@ -98,7 +98,10 @@ export async function POST(req: NextRequest) {
     // Apply promo discount
     let discount = 0;
     if (data.promoCode) {
-      const promo = await db.promoCode.findUnique({ where: { code: data.promoCode } });
+      // A store-specific code must not be redeemable at another store.
+      const promo = await db.promoCode.findFirst({
+        where: { code: data.promoCode, OR: [{ storeId: null }, { storeId: store.id }] },
+      });
       if (promo && promo.isActive && new Date(promo.validTo) > new Date() && (!promo.validFrom || new Date(promo.validFrom) <= new Date())) {
         if (!promo.minOrderValue || itemTotal >= promo.minOrderValue) {
           if (promo.discountType === "PERCENTAGE") {

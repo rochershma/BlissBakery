@@ -68,7 +68,7 @@ export default async function HomePage() {
   const heroImage = bestsellers.map((b) => firstImage(b.images)).find(Boolean) ?? null;
 
   return (
-    <>      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+    <>      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
 
       <h1 className="sr-only">
         Bliss Bakery — 100% vegetarian and eggless cakes in {store.city}

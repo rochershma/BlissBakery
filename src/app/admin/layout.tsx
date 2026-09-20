@@ -1,7 +1,10 @@
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { getActiveStore, listStores, setActiveStore } from "@/lib/active-store";
+import { StoreSwitcher } from "@/components/admin/store-switcher";
 
 export const dynamic = "force-dynamic"; // Admin always SSR — never cached
 import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart } from "lucide-react";
@@ -35,6 +38,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
 
+  const [stores, activeStore] = await Promise.all([listStores(), getActiveStore()]);
+
+  async function selectStore(formData: FormData) {
+    "use server";
+    await setActiveStore(formData.get("storeId") as string);
+    // Every admin screen is scoped to the active store, so refresh all of them.
+    revalidatePath("/admin", "layout");
+  }
+
   return (
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar - Desktop */}
@@ -48,6 +60,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <h1 className="text-sm font-bold text-foreground font-serif">Bliss Bakery</h1>
               <p className="text-xs text-muted-foreground">Admin Panel</p>
             </div>
+          </div>
+          <div className="mt-3">
+            <StoreSwitcher stores={stores} active={activeStore} onSelect={selectStore} />
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1">
@@ -82,14 +97,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Mobile Header */}
       <div className="flex-1 flex flex-col">
         <header className="md:hidden sticky top-0 z-50 bg-white border-b border-border px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
               <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 relative">
                 <Image src="/uploads/branding/logo.png" alt="Bliss Bakery" fill className="object-cover scale-[1.42]" sizes="32px" />
               </div>
-              <span className="text-sm font-bold">Admin</span>
+              <StoreSwitcher stores={stores} active={activeStore} onSelect={selectStore} compact />
             </div>
-            <Link href="/" className="text-xs text-primary hover:underline flex items-center gap-1">
+            <Link href="/" className="text-xs text-primary hover:underline flex items-center gap-1 flex-shrink-0">
               <Store className="w-3 h-3" /> View Store
             </Link>
           </div>

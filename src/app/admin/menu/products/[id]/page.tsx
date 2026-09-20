@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -116,7 +117,7 @@ export default async function EditProductPage({ params }: Props) {
       let productSizes: { kg: number; name: string; serves: string }[] = [];
       try { productSizes = JSON.parse(customSizesJson || "[]"); } catch {}
       if (productSizes.length === 0) {
-        const store2 = await db.store.findFirst({ select: { defaultCustomSizes: true } });
+        const store2 = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined }, select: { defaultCustomSizes: true } });
         try { if (store2?.defaultCustomSizes) productSizes = JSON.parse(store2.defaultCustomSizes); } catch {}
         if (productSizes.length === 0) productSizes = [{ kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" }, { kg: 1, name: "1 Kg", serves: "Serves 8-10" }];
       }

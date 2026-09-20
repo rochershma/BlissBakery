@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -18,7 +19,7 @@ async function requireAdmin() {
 }
 
 export default async function AdminOccasionsPage() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return <p>No store found.</p>;
 
   const occasions = await db.occasion.findMany({
@@ -30,7 +31,7 @@ export default async function AdminOccasionsPage() {
   async function createOccasion(formData: FormData) {
     "use server";
     await requireAdmin();
-    const store = await db.store.findFirst();
+    const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
     if (!store) return;
     const name = formData.get("name") as string;
     const subtitle = formData.get("subtitle") as string;

@@ -1,9 +1,11 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { NextResponse } from "next/server";
 
 // GET delivery config
 export async function GET() {
   const store = await db.store.findFirst({
+    where: { id: await getActiveStoreId() ?? undefined },
     select: {
       gstRate: true,
       packagingCharge: true,
@@ -41,7 +43,7 @@ export async function GET() {
 // PUT delivery config
 export async function PUT(req: Request) {
   const data = await req.json();
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
 
   const updateData: Record<string, unknown> = {};

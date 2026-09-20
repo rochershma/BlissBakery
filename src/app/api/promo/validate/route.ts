@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { promoScope } from "@/lib/promo-scope";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,13 +10,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Login required" }, { status: 401 });
     }
 
-    const { code, subtotal } = await req.json();
+    const { code, subtotal, storeSlug } = await req.json();
     if (!code || typeof subtotal !== "number") {
       return NextResponse.json({ success: false, message: "Invalid request" }, { status: 400 });
     }
 
-    const promo = await db.promoCode.findUnique({
-      where: { code: code.toUpperCase() },
+    const promo = await db.promoCode.findFirst({
+      where: { code: code.toUpperCase(), ...(await promoScope(storeSlug)) },
     });
 
     if (!promo || !promo.isActive) {

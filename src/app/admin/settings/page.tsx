@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { SlotsEditor } from "@/components/admin/slots-editor";
 import { parseSlots } from "@/lib/slots";
 
 export default async function AdminSettingsPage() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return <p>Store not found</p>;
 
   async function updateSettings(formData: FormData) {

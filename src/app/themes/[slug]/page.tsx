@@ -30,7 +30,7 @@ export default async function ThemePage({ params }: { params: Promise<{ slug: st
   const tagSlugs = theme.tags.map((t) => t.slug);
 
   const rows = tagSlugs.length
-    ? await loadProducts({ OR: tagSlugs.map((s) => ({ themeTags: { contains: `"${s}"` } })) }, 800)
+    ? await loadProducts(store.id, { OR: tagSlugs.map((s) => ({ themeTags: { contains: `"${s}"` } })) }, 800)
     : [];
   const cards = toCards(rows, menuHref);
   const flavours = await storeFlavours();
@@ -46,7 +46,7 @@ export default async function ThemePage({ params }: { params: Promise<{ slug: st
 
   return (
     <>
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
       <Collection
         title={theme.name}
         subtitle={theme.subtitle ?? "Characters, colours and hobbies. Every design can be rebuilt in any flavour and size."}

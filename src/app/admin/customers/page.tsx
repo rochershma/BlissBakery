@@ -2,13 +2,17 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { Users, Phone, Calendar, ShoppingCart } from "lucide-react";
+import { requireActiveStore } from "@/lib/active-store";
 
 export default async function AdminCustomersPage() {
+  const store = await requireActiveStore();
+  // Accounts are shared across stores, so a "customer" of this store is
+  // someone who has actually ordered from it, counted per store.
   const customers = await db.user.findMany({
-    where: { role: "CUSTOMER" },
+    where: { role: "CUSTOMER", orders: { some: { storeId: store.id } } },
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { orders: true } },
+      _count: { select: { orders: { where: { storeId: store.id } } } },
     },
   });
 
@@ -17,7 +21,7 @@ export default async function AdminCustomersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground font-serif">Customers</h1>
-          <p className="text-sm text-muted-foreground">{customers.length} registered customers</p>
+          <p className="text-sm text-muted-foreground">{customers.length} who ordered from {store.name}</p>
         </div>
       </div>
 

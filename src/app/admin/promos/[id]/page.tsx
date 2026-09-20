@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { listStores } from "@/lib/active-store";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -11,7 +12,10 @@ interface Props {
 
 export default async function EditPromoPage({ params }: Props) {
   const { id } = await params;
-  const promo = await db.promoCode.findUnique({ where: { id } });
+  const [promo, stores] = await Promise.all([
+    db.promoCode.findUnique({ where: { id } }),
+    listStores(),
+  ]);
   if (!promo) return notFound();
 
   async function updatePromo(formData: FormData) {
@@ -27,10 +31,12 @@ export default async function EditPromoPage({ params }: Props) {
     const perUserLimit = parseInt(formData.get("perUserLimit") as string) || undefined;
     const occasionTag = (formData.get("occasionTag") as string) || null;
     const isActive = formData.get("isActive") === "on";
+    // "" means the code works at every store.
+    const storeId = (formData.get("storeId") as string) || null;
 
     await db.promoCode.update({
       where: { id },
-      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive },
+      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive, storeId },
     });
     revalidatePath("/admin/promos");
     redirect("/admin/promos");
@@ -66,6 +72,16 @@ export default async function EditPromoPage({ params }: Props) {
               <label className="text-sm font-medium text-foreground block mb-1">Occasion Tag</label>
               <input name="occasionTag" defaultValue={promo.occasionTag || ""} placeholder="e.g. Diwali, Birthday" className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-foreground block mb-1">Applies To</label>
+            <select name="storeId" defaultValue={promo.storeId ?? ""} className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+              <option value="">All stores</option>
+              {stores.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

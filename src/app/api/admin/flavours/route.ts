@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { NextResponse } from "next/server";
 
 const DEFAULT_SIZES = [
@@ -14,7 +15,7 @@ const DEFAULT_SIZES = [
 
 // GET default flavours, flavour prices, and custom sizes
 export async function GET() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ flavours: [], flavourPrices: [], customSizes: DEFAULT_SIZES });
   
   let flavours: string[] = [];
@@ -30,7 +31,7 @@ export async function GET() {
 // PUT — save default flavours, prices, and sizes
 export async function PUT(req: Request) {
   const body = await req.json();
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ error: "Store not found" }, { status: 404 });
   
   const updateData: Record<string, unknown> = {};

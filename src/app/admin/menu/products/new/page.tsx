@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -113,7 +114,7 @@ export default async function NewProductPage() {
       try { productSizes = JSON.parse(customSizesJson || "[]"); } catch {}
       if (productSizes.length === 0) {
         // Fallback to global sizes
-        const store2 = await db.store.findFirst({ select: { defaultCustomSizes: true } });
+        const store2 = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined }, select: { defaultCustomSizes: true } });
         try { if (store2?.defaultCustomSizes) productSizes = JSON.parse(store2.defaultCustomSizes); } catch {}
         if (productSizes.length === 0) {
           productSizes = [

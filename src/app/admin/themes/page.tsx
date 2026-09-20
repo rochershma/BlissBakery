@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Image from "next/image";
@@ -22,7 +23,7 @@ interface Props {
 
 export default async function AdminThemesPage({ searchParams }: Props) {
   const { edit: editId } = await searchParams;
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return <p>No store found.</p>;
 
   const themes = await db.theme.findMany({
@@ -35,7 +36,7 @@ export default async function AdminThemesPage({ searchParams }: Props) {
   async function createTheme(formData: FormData) {
     "use server";
     await requireAdmin();
-    const store = await db.store.findFirst();
+    const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
     if (!store) return;
     const name = formData.get("name") as string;
     const subtitle = formData.get("subtitle") as string;

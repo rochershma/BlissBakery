@@ -26,8 +26,15 @@ export async function GET(request: NextRequest) {
   // Also try full phrase on name
   orConds.push({ name: { contains: sanitized } });
 
+  // Suggestions must stay within the store the customer is shopping in.
+  const storeSlug = request.nextUrl.searchParams.get("store");
+  const store = storeSlug
+    ? await db.store.findUnique({ where: { slug: storeSlug }, select: { id: true } })
+    : await db.store.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } });
+  if (!store) return NextResponse.json({ results: [] });
+
   const candidates = await db.product.findMany({
-    where: { isAvailable: true, OR: orConds },
+    where: { isAvailable: true, category: { storeId: store.id }, OR: orConds },
     include: { category: true },
     take: 50,
     orderBy: [{ isBestseller: "desc" }, { name: "asc" }],

@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { AddOnManager } from "./addon-manager";
 
 export default async function AdminAddOnsPage() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return <p>No store found.</p>;
 
   const addOns = await db.storeAddOn.findMany({

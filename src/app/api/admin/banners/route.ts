@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { z } from "zod";
@@ -16,7 +17,7 @@ const bannerSchema = z.object({
 
 export async function GET() {
   // Public: return active banners for storefront
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ banners: [] });
 
   const banners = await db.banner.findMany({
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!user || (user.role !== "ADMIN" && user.role !== "STAFF"))
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return NextResponse.json({ error: "No store" }, { status: 400 });
 
   const body = await req.json();

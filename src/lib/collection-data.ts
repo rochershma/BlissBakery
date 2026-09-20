@@ -15,8 +15,16 @@ const SELECT = {
   variants: { select: { name: true, price: true, isAvailable: true } },
 } as const;
 
-export async function loadProducts(where: Record<string, unknown>, take = 400) {
-  return db.product.findMany({ where: { isAvailable: true, ...where }, select: SELECT, take });
+/**
+ * Products belong to a store through their category, so every listing must pass
+ * the store it is rendering — otherwise one store's menu shows another's cakes.
+ */
+export async function loadProducts(storeId: string, where: Record<string, unknown>, take = 400) {
+  return db.product.findMany({
+    where: { isAvailable: true, category: { storeId }, ...where },
+    select: SELECT,
+    take,
+  });
 }
 
 export function toCards(rows: Row[], menuHref: string) {

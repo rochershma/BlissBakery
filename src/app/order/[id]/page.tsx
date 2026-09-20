@@ -57,7 +57,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   return (
     <>
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
 
       <div className="wrap cart5__head">
         <Link href="/orders" className="v5ibtn cart5__back" aria-label="Back to orders"><IconChevL /></Link>

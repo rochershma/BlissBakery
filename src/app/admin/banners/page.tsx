@@ -1,11 +1,12 @@
 import { db } from "@/lib/db";
+import { getActiveStoreId } from "@/lib/active-store";
 import Link from "next/link";
 import Image from "next/image";
 import { ImageIcon, Plus } from "lucide-react";
 import { BannerManager } from "./banner-manager";
 
 export default async function AdminBannersPage() {
-  const store = await db.store.findFirst();
+  const store = await db.store.findFirst({ where: { id: await getActiveStoreId() ?? undefined } });
   if (!store) return <p>No store found.</p>;
 
   const banners = await db.banner.findMany({

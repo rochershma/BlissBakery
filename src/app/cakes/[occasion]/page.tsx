@@ -27,7 +27,7 @@ export default async function OccasionPage({ params }: { params: Promise<{ occas
   if (!store || !occ || !occ.isActive) notFound();
 
   const menuHref = `/store/${store.slug}/menu`;
-  const rows = await loadProducts({ occasions: { contains: `"${occ.slug}"` } }, 600);
+  const rows = await loadProducts(store.id, { occasions: { contains: `"${occ.slug}"` } }, 600);
   const cards = toCards(rows, menuHref);
   const flavours = await storeFlavours();
   const nav = await navLinks(store.slug);
@@ -42,7 +42,7 @@ export default async function OccasionPage({ params }: { params: Promise<{ occas
 
   return (
     <>
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
       <Collection
         title={occ.name}
         subtitle={occ.subtitle ?? `Made to order and decorated by hand. Pick a design — flavour and size come next.`}

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { Clock, Phone, MapPin, MessageCircle, Search, Download } from "lucide-react";
+import { requireActiveStore } from "@/lib/active-store";
 
 interface Props {
   searchParams: Promise<{ q?: string; status?: string }>;
@@ -9,9 +10,11 @@ interface Props {
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const { q: query, status: statusFilter } = await searchParams;
+  const store = await requireActiveStore();
 
   const orders = await db.order.findMany({
     where: {
+      storeId: store.id,
       ...(query ? {
         OR: [
           { orderNumber: { contains: query } },

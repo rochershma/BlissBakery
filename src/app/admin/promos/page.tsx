@@ -2,9 +2,13 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, Tag, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
+import { requireActiveStore } from "@/lib/active-store";
 
 export default async function AdminPromosPage() {
+  const store = await requireActiveStore();
+  // Chain-wide codes (storeId null) are usable here too, so show both.
   const promos = await db.promoCode.findMany({
+    where: { OR: [{ storeId: null }, { storeId: store.id }] },
     orderBy: { createdAt: "desc" },
   });
 
@@ -13,7 +17,7 @@ export default async function AdminPromosPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground font-serif">Promo Codes</h1>
-          <p className="text-sm text-muted-foreground">{promos.length} promo codes</p>
+          <p className="text-sm text-muted-foreground">{promos.length} usable at {store.name}</p>
         </div>
         <Link
           href="/admin/promos/new"
@@ -40,6 +44,7 @@ export default async function AdminPromosPage() {
                       <p className="text-xl font-bold">
                         {promo.discountType === "PERCENTAGE" ? `${promo.discountValue}% OFF` : `₹${promo.discountValue} OFF`}
                       </p>
+                      <p className="text-[11px] text-white/80">{promo.storeId ? store.name : "All stores"}</p>
                       {promo.minOrderValue && <p className="text-sm text-white/80">Min order: ₹{promo.minOrderValue}</p>}
                     </div>
                     <div className="flex items-center gap-2">

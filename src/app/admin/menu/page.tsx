@@ -3,9 +3,12 @@ import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import Link from "next/link";
 import { Plus, Edit, Eye, EyeOff } from "lucide-react";
 import { AdminMenuClient } from "./admin-menu-client";
+import { requireActiveStore } from "@/lib/active-store";
 
 export default async function AdminMenuPage() {
+  const store = await requireActiveStore();
   const categories = await db.category.findMany({
+    where: { storeId: store.id },
     orderBy: { sortOrder: "asc" },
     include: {
       products: {

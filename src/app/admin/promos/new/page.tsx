@@ -4,8 +4,11 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { listStores, getActiveStoreId } from "@/lib/active-store";
 
-export default function NewPromoPage() {
+export default async function NewPromoPage() {
+  const [stores, activeStoreId] = await Promise.all([listStores(), getActiveStoreId()]);
+
   async function createPromo(formData: FormData) {
     "use server";
     const code = (formData.get("code") as string).toUpperCase().replace(/\s/g, "");
@@ -19,9 +22,11 @@ export default function NewPromoPage() {
     const perUserLimit = parseInt(formData.get("perUserLimit") as string) || 1;
     const occasionTag = formData.get("occasionTag") as string || null;
     const isActive = formData.get("isActive") === "on";
+    // "" means the code works at every store.
+    const storeId = (formData.get("storeId") as string) || null;
 
     await db.promoCode.create({
-      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive },
+      data: { code, discountType, discountValue, minOrderValue, maxDiscount, validFrom, validTo, usageLimit, perUserLimit, occasionTag, isActive, storeId },
     });
     revalidatePath("/admin/promos");
     redirect("/admin/promos");
@@ -47,6 +52,15 @@ export default function NewPromoPage() {
               <label className="text-xs font-medium text-foreground block mb-1">Occasion Tag</label>
               <input name="occasionTag" placeholder="e.g. Diwali, Birthday" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
             </div>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-foreground block mb-1">Applies To</label>
+            <select name="storeId" defaultValue={activeStoreId ?? ""} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
+              <option value="">All stores</option>
+              {stores.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

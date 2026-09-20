@@ -27,7 +27,7 @@ export default async function MenuPage({
   const active = category ? store.categories.find((c) => c.slug === category) : null;
   const menuHref = `/store/${store.slug}/menu`;
 
-  const rows = await loadProducts(active ? { categoryId: active.id } : {}, 600);
+  const rows = await loadProducts(store.id, active ? { categoryId: active.id } : {}, 600);
   const cards = toCards(rows, menuHref);
   const flavours = await storeFlavours();
   const nav = await navLinks(store.slug);
@@ -47,7 +47,7 @@ export default async function MenuPage({
 
   return (
     <>
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+      <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />
       <Collection
         title={active ? active.name : "All cakes & bakes"}
         subtitle={

@@ -603,26 +603,56 @@ h4 { font-weight: 700; }
   border: 2px solid var(--paper); font-variant-numeric: tabular-nums; }
 .v5dot--nav { top: 4px; right: 22px; border-color: rgba(255,255,255,.98); }
 
-.v5loc { display: none; align-items: center; gap: 8px; padding: 6px 14px 6px 12px; border: 1.5px solid var(--line);
-  border-radius: var(--r-pill); background: var(--paper); cursor: pointer; text-align: left; font: inherit;
+/* Store picker — compact chip on phones, labelled pill from tablet up. */
+.v5store { position: relative; }
+.v5loc { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px;
+  border: 1.5px solid var(--line); border-radius: var(--r-pill); background: var(--paper);
+  cursor: pointer; text-align: left; font: inherit; color: inherit;
   transition: border-color var(--fast) var(--ease); }
-@media (min-width: 1024px) { .v5loc { display: flex; } }
 .v5loc:hover, .v5loc[aria-expanded="true"] { border-color: var(--rose-200); }
 .v5loc svg { width: 16px; height: 16px; stroke: var(--rose); flex: none; }
-.v5loc small { display: block; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-4); font-weight: 700; }
-.v5loc b { display: block; font-size: 13.5px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.v5loc__t { display: none; min-width: 0; }
+.v5loc small { display: block; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-4); font-weight: 700; }
+.v5loc b { display: block; font-size: 13.5px; line-height: 1.2; max-width: 130px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 768px) {
+  .v5loc { height: 42px; gap: 8px; padding: 0 12px; }
+  .v5loc__t { display: block; }
+}
 
-.v5store { position: relative; }
-.v5store__pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; width: 268px; padding: 6px;
-  background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--sh-3); }
-.v5store__h { display: block; padding: 8px 10px 6px; font-size: 10px; font-weight: 750; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--ink-4); }
-.v5store__i { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: var(--r-sm);
-  background: none; text-align: left; font: inherit; cursor: pointer; }
+.v5store__bg { position: fixed; inset: 0; z-index: 80; background: rgba(23, 18, 16, .45); }
+@media (min-width: 1024px) { .v5store__bg { background: none; } }
+
+.v5store__pop { position: fixed; left: 0; right: 0; bottom: 0; z-index: 81;
+  max-height: 72vh; display: flex; flex-direction: column;
+  background: var(--paper); border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--sh-3);
+  animation: aoin .22s var(--ease); }
+@media (min-width: 1024px) {
+  .v5store__pop { position: absolute; left: auto; right: 0; bottom: auto; top: calc(100% + 8px);
+    width: 300px; max-height: none; border-radius: var(--r-md); border: 1px solid var(--line);
+    box-shadow: var(--sh-2); }
+}
+.v5store__head { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.v5store__head b { font-size: 14.5px; font-weight: 750; }
+.v5store__head button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--paper); cursor: pointer; font-size: 12px; color: var(--ink-2); }
+@media (min-width: 1024px) { .v5store__head button { display: none; } }
+.v5store__list { overflow-y: auto; padding: 6px calc(6px + env(safe-area-inset-bottom)) 10px; }
+.v5store__msg { padding: 16px; font-size: 13px; color: var(--ink-3); }
+.v5store__i { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 10px;
+  border: 0; border-radius: var(--r-md); background: none; text-align: left; font: inherit; cursor: pointer; }
 .v5store__i:hover { background: var(--cream); }
 .v5store__i[aria-current="true"] { background: var(--rose-50); }
-.v5store__i b { display: block; font-size: 13.5px; font-weight: 650; }
-.v5store__i span { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+.v5store__ic { display: grid; place-items: center; width: 32px; height: 32px; flex: none;
+  border-radius: 50%; background: var(--cream); }
+.v5store__ic svg { width: 15px; height: 15px; stroke: var(--rose); }
+.v5store__tx { flex: 1; min-width: 0; }
+.v5store__tx b { display: block; font-size: 13.5px; font-weight: 650; line-height: 1.3; }
+.v5store__tx span { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v5store__i > svg { width: 17px; height: 17px; stroke: var(--rose); flex: none; }
 
 .v5menu { position: relative; }
 .v5menu__pop { position: absolute; right: 0; top: calc(100% + 8px); min-width: 210px; background: var(--paper);

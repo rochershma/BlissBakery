@@ -21,6 +21,8 @@ export default async function SearchPage({ searchParams }: Props) {
 
   const store = await db.store.findFirst();
   const storeSlug = store?.slug || "kuchaman-city";
+  // Search only ever covers the store the customer is shopping in.
+  const inStore = { category: { storeId: store?.id ?? "" } };
 
   let products: any[] = [];
   let totalCount = 0;
@@ -30,7 +32,7 @@ export default async function SearchPage({ searchParams }: Props) {
     const maxPrice = priceMatch ? parseInt(priceMatch[1], 10) : null;
 
     if (maxPrice) {
-      const where = { isAvailable: true, basePrice: { lte: maxPrice } };
+      const where = { isAvailable: true, ...inStore, basePrice: { lte: maxPrice } };
       [products, totalCount] = await Promise.all([
         db.product.findMany({
           where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
@@ -51,7 +53,7 @@ export default async function SearchPage({ searchParams }: Props) {
         );
       }
       orConditions.push({ name: { contains: query } }, { shortDesc: { contains: query } });
-      const where = { isAvailable: true, OR: orConditions };
+      const where = { isAvailable: true, ...inStore, OR: orConditions };
       
       // Fetch more candidates for scoring
       const candidates = await db.product.findMany({
@@ -82,11 +84,11 @@ export default async function SearchPage({ searchParams }: Props) {
   } else {
     [products, totalCount] = await Promise.all([
       db.product.findMany({
-        where: { isAvailable: true }, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
+        where: { isAvailable: true, ...inStore }, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
         orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
         take: INITIAL_BATCH,
       }),
-      db.product.count({ where: { isAvailable: true } }),
+      db.product.count({ where: { isAvailable: true, ...inStore } }),
     ]);
   }
 

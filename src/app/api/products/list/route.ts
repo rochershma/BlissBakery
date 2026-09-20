@@ -8,11 +8,19 @@ export async function GET(request: NextRequest) {
   const forWhom = sp.get("for");
   const tag = sp.get("tag");
   const query = sp.get("q")?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50);
+  const storeSlug = sp.get("store");
   const offset = Math.max(0, parseInt(sp.get("offset") || "0", 10));
   const limit = Math.min(24, Math.max(1, parseInt(sp.get("limit") || "12", 10)));
 
+  // Products belong to a store via their category; default to the first store
+  // so a caller can never be served another store's menu.
+  const store = storeSlug
+    ? await db.store.findUnique({ where: { slug: storeSlug }, select: { id: true } })
+    : await db.store.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } });
+  if (!store) return NextResponse.json({ items: [], total: 0 });
+
   // Build where clause
-  const where: any = { isAvailable: true };
+  const where: any = { isAvailable: true, category: { storeId: store.id } };
   if (occasion) {
     where.occasions = { contains: `"${occasion}"` };
     if (forWhom) where.forWhom = { contains: `"${forWhom}"` };

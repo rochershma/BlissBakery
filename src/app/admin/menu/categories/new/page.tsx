@@ -6,10 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { ImageField } from "@/components/admin/image-field";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
+import { requireActiveStore } from "@/lib/active-store";
 export default async function NewCategoryPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
-  const stores = await db.store.findMany();
-  const defaultStore = stores[0];
+  const defaultStore = await requireActiveStore();
 
   async function createCategory(formData: FormData) {
     "use server";

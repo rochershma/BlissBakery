@@ -2,18 +2,25 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { ShoppingCart, TrendingUp, Users, Package, ArrowRight, Clock } from "lucide-react";
+import { requireActiveStore } from "@/lib/active-store";
 
 export default async function AdminDashboard() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  const store = await requireActiveStore();
+  // Customers are shared accounts, so "customers" here means people who have
+  // actually ordered from this store.
+  const storeOrders = { storeId: store.id };
+
   const [todayOrders, totalOrders, totalCustomers, totalProducts, recentOrders] =
     await Promise.all([
-      db.order.count({ where: { createdAt: { gte: today } } }),
-      db.order.count(),
-      db.user.count({ where: { role: "CUSTOMER" } }),
-      db.product.count(),
+      db.order.count({ where: { ...storeOrders, createdAt: { gte: today } } }),
+      db.order.count({ where: storeOrders }),
+      db.order.findMany({ where: storeOrders, distinct: ["userId"], select: { userId: true } }).then((r) => r.length),
+      db.product.count({ where: { category: { storeId: store.id } } }),
       db.order.findMany({
+        where: storeOrders,
         take: 10,
         orderBy: { createdAt: "desc" },
         include: { user: true, items: true },
@@ -21,7 +28,7 @@ export default async function AdminDashboard() {
     ]);
 
   const todayRevenue = await db.order.aggregate({
-    where: { createdAt: { gte: today }, paymentStatus: "PAID" },
+    where: { ...storeOrders, createdAt: { gte: today }, paymentStatus: "PAID" },
     _sum: { grandTotal: true },
   });
 

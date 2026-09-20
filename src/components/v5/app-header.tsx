@@ -6,11 +6,11 @@ import { SiteFooter } from "./site-footer";
 /** Self-fetching header so any page can drop it in without wiring props. */
 export async function AppHeader() {
   const store = await db.store.findFirst({
-    select: { slug: true, logo: true, pincode: true },
+    select: { slug: true, name: true, city: true, logo: true, pincode: true },
   });
   if (!store) return <SiteHeaderV5 />;
   const nav = await navLinks(store.slug);
-  return <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />;
+  return <SiteHeaderV5 storeSlug={store.slug} storeName={store.name} storeCity={store.city} logo={store.logo} nav={nav} pincode={store.pincode} />;
 }
 
 export async function AppFooter() {
