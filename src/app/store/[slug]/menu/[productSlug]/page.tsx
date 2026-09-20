@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { parseJsonSafe } from "@/lib/utils";
+import { parseJsonSafe, formatStoreAddress } from "@/lib/utils";
 import { allImages } from "@/lib/img";
 import type { FlavourPrice } from "@/lib/pricing";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
@@ -118,7 +118,7 @@ export default async function ProductPage({
         </section>
       )}
 
-      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} />
+      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} address={formatStoreAddress(store)} />
     </>
   );
 }

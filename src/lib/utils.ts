@@ -35,3 +35,18 @@ export function parseJsonSafe<T>(json: string | null | undefined, fallback: T): 
     return fallback;
   }
 }
+
+export function formatStoreAddress(store: {
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+} | null | undefined): string | null {
+  if (!store) return null;
+  const line = [
+    store.address,
+    store.city,
+    [store.state, store.pincode].filter(Boolean).join(" "),
+  ].filter(Boolean).join(", ");
+  return line || null;
+}

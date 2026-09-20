@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
-import { formatPrice, parseJsonSafe } from "@/lib/utils";
+import { formatPrice, parseJsonSafe, formatStoreAddress } from "@/lib/utils";
 import { img, firstImage } from "@/lib/img";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
@@ -30,18 +30,20 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const session = await getSession();
   if (!session) redirect("/orders");
 
-  const [store, order] = await Promise.all([
-    db.store.findFirst(),
-    db.order.findUnique({
-      where: { id },
-      include: {
-        items: { include: { product: { select: { images: true, slug: true } } } },
-        statusHistory: { orderBy: { createdAt: "asc" } },
-      },
-    }),
-  ]);
-  if (!store || !order) notFound();
+  const order = await db.order.findUnique({
+    where: { id },
+    include: {
+      items: { include: { product: { select: { images: true, slug: true } } } },
+      statusHistory: { orderBy: { createdAt: "asc" } },
+    },
+  });
+  if (!order) notFound();
   if (order.userId !== session.userId && session.role !== "ADMIN" && session.role !== "STAFF") notFound();
+
+  // The tracker belongs to the outlet that took the order, not whichever
+  // outlet the customer happens to be browsing now.
+  const store = await db.store.findUnique({ where: { id: order.storeId } });
+  if (!store) notFound();
 
   const nav = await navLinks(store.slug);
   const cancelled = order.status === "CANCELLED";
@@ -165,7 +167,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </aside>
       </div>
 
-      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} className="ftr--desktop" />
+        <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} address={formatStoreAddress(store)} className="ftr--desktop" />
     </>
   );
 }

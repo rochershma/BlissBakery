@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { navLinks } from "@/lib/nav";
 import { getCustomerStoreId } from "@/lib/customer-store";
+import { formatStoreAddress } from "@/lib/utils";
 import { SiteHeaderV5 } from "./site-header";
 import { SiteFooter } from "./site-footer";
 
@@ -18,7 +19,14 @@ export async function AppHeader() {
 export async function AppFooter() {
   const store = await db.store.findFirst({
     where: { id: await getCustomerStoreId() },
-    select: { slug: true, phone: true, logo: true },
+    select: { slug: true, phone: true, logo: true, address: true, city: true, state: true, pincode: true },
   });
-  return <SiteFooter storeSlug={store?.slug} phone={store?.phone} logo={store?.logo} />;
+  return (
+    <SiteFooter
+      storeSlug={store?.slug}
+      phone={store?.phone}
+      logo={store?.logo}
+      address={formatStoreAddress(store)}
+    />
+  );
 }

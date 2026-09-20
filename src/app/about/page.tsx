@@ -1,8 +1,16 @@
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
 import { MapPin, Clock, Leaf, Heart, Award } from "lucide-react";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const store = await db.store.findFirst({
+    where: { id: await getCustomerStoreId() },
+    select: { city: true, state: true },
+  });
+  const where = [store?.city, store?.state].filter(Boolean).join(", ") || "Rajasthan";
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
@@ -27,7 +35,7 @@ export default function AboutPage() {
             <p>
               Bliss Bakery was born from a simple belief — that everyone deserves to enjoy
               delicious, fresh, and beautifully crafted baked goods, made without eggs and
-              100% vegetarian. Based in the heart of Kuchaman City, Rajasthan, we&apos;ve been
+              100% vegetarian. Based in the heart of {where}, we&apos;ve been
               serving our community with love, one cake at a time.
             </p>
             <p>
@@ -73,7 +81,7 @@ export default function AboutPage() {
         {/* CTA */}
         <div className="text-center bg-gradient-to-r from-primary/10 to-secondary rounded-2xl p-8">
           <h2 className="text-xl font-bold text-foreground font-serif mb-2">Ready to taste the bliss?</h2>
-          <p className="text-muted-foreground mb-4">Order online or visit us at our store in Kuchaman City</p>
+          <p className="text-muted-foreground mb-4">Order online or visit us at our store in {store?.city || "Rajasthan"}</p>
           <Link
             href="/"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary-hover transition-colors btn-press"

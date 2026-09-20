@@ -1,6 +1,15 @@
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
+import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const store = await db.store.findFirst({
+    where: { id: await getCustomerStoreId() },
+    select: { city: true, state: true },
+  });
+  const city = store?.city || "Rajasthan";
+  const where = [store?.city, store?.state].filter(Boolean).join(", ") || "Rajasthan";
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
@@ -11,7 +20,7 @@ export default function TermsPage() {
           <p>By using the Bliss Bakery website and services, you agree to the following terms and conditions.</p>
 
           <h2 className="text-lg font-bold text-foreground">1. General</h2>
-          <p>Bliss Bakery is a 100% vegetarian and eggless bakery based in Kuchaman City, Rajasthan. All products listed on our website are vegetarian and made without eggs.</p>
+          <p>Bliss Bakery is a 100% vegetarian and eggless bakery based in {where}. All products listed on our website are vegetarian and made without eggs.</p>
 
           <h2 className="text-lg font-bold text-foreground">2. Orders</h2>
           <ul className="list-disc pl-5 space-y-1">
@@ -30,7 +39,7 @@ export default function TermsPage() {
 
           <h2 className="text-lg font-bold text-foreground">4. Delivery &amp; Pickup</h2>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Delivery is available within Kuchaman City limits</li>
+            <li>Delivery is available within {city} limits</li>
             <li>Delivery charges may apply based on distance and order value</li>
             <li>Pickup orders can be collected from our store during operating hours</li>
             <li>Estimated delivery/pickup times are approximate and not guaranteed</li>

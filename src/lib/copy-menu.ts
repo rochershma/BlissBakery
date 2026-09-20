@@ -26,7 +26,6 @@ export async function copyMenu(fromStoreId: string, toStoreId: string) {
     }),
     db.category.findMany({ where: { storeId: toStoreId }, select: { name: true } }),
   ]);
-
   const existing = new Set(target.map((c) => c.name.toLowerCase()));
   let categories = 0;
   let products = 0;
@@ -101,4 +100,126 @@ export async function copyMenu(fromStoreId: string, toStoreId: string) {
   }
 
   return { categories, products };
+}
+
+/**
+ * The rest of an outlet's setup: storefront banners, occasion and theme rails,
+ * the add-on shelf and the store-level defaults used by the custom-cake builder.
+ * Without these a copied menu still renders a bare homepage.
+ *
+ * Each section is skipped when the target already has rows of that kind, and
+ * store defaults only fill in fields the target has left unset — so this never
+ * overwrites anything the new outlet has already decided for itself.
+ */
+export async function copyStoreSetup(fromStoreId: string, toStoreId: string) {
+  if (fromStoreId === toStoreId) return { banners: 0, addOns: 0, occasions: 0, themes: 0, defaults: false };
+
+  const [from, to] = await Promise.all([
+    db.store.findUnique({ where: { id: fromStoreId } }),
+    db.store.findUnique({ where: { id: toStoreId } }),
+  ]);
+  if (!from || !to) return { banners: 0, addOns: 0, occasions: 0, themes: 0, defaults: false };
+
+  const [banners, addOns, occasions, themes] = await Promise.all([
+    db.banner.count({ where: { storeId: toStoreId } }),
+    db.storeAddOn.count({ where: { storeId: toStoreId } }),
+    db.occasion.count({ where: { storeId: toStoreId } }),
+    db.theme.count({ where: { storeId: toStoreId } }),
+  ]);
+
+  const result = { banners: 0, addOns: 0, occasions: 0, themes: 0, defaults: false };
+
+  if (banners === 0) {
+    const src = await db.banner.findMany({ where: { storeId: fromStoreId }, orderBy: { sortOrder: "asc" } });
+    for (const b of src) {
+      await db.banner.create({
+        data: {
+          title: b.title, subtitle: b.subtitle, ctaText: b.ctaText, ctaLink: b.ctaLink,
+          mediaUrl: b.mediaUrl, mobileMediaUrl: b.mobileMediaUrl, mediaType: b.mediaType,
+          linkUrl: b.linkUrl, sortOrder: b.sortOrder, isActive: b.isActive, storeId: toStoreId,
+        },
+      });
+      result.banners++;
+    }
+  }
+
+  if (addOns === 0) {
+    const src = await db.storeAddOn.findMany({ where: { storeId: fromStoreId }, orderBy: { sortOrder: "asc" } });
+    for (const a of src) {
+      await db.storeAddOn.create({
+        data: {
+          name: a.name, price: a.price, image: a.image, category: a.category,
+          isActive: a.isActive, sortOrder: a.sortOrder, storeId: toStoreId,
+        },
+      });
+      result.addOns++;
+    }
+  }
+
+  if (occasions === 0) {
+    const src = await db.occasion.findMany({
+      where: { storeId: fromStoreId },
+      include: { recipients: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    for (const o of src) {
+      const slug = await freeSlug(o.slug, async (s) =>
+        Boolean(await db.occasion.findUnique({ where: { slug: s }, select: { id: true } })));
+      await db.occasion.create({
+        data: {
+          name: o.name, slug, subtitle: o.subtitle, image: o.image,
+          sortOrder: o.sortOrder, isActive: o.isActive, storeId: toStoreId,
+          recipients: {
+            create: o.recipients.map((r) => ({
+              name: r.name, slug: r.slug, image: r.image,
+              sortOrder: r.sortOrder, isActive: r.isActive,
+            })),
+          },
+        },
+      });
+      result.occasions++;
+    }
+  }
+
+  if (themes === 0) {
+    const src = await db.theme.findMany({
+      where: { storeId: fromStoreId },
+      include: { tags: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    for (const t of src) {
+      const slug = await freeSlug(t.slug, async (s) =>
+        Boolean(await db.theme.findUnique({ where: { slug: s }, select: { id: true } })));
+      await db.theme.create({
+        data: {
+          name: t.name, slug, subtitle: t.subtitle, image: t.image,
+          sortOrder: t.sortOrder, isActive: t.isActive, storeId: toStoreId,
+          tags: {
+            create: t.tags.map((g) => ({
+              name: g.name, slug: g.slug, image: g.image,
+              sortOrder: g.sortOrder, isActive: g.isActive,
+            })),
+          },
+        },
+      });
+      result.themes++;
+    }
+  }
+
+  const fill: Record<string, unknown> = {};
+  const keys = [
+    "deliveryRadius", "minDeliveryOrder", "deliveryCharge", "packagingCharge",
+    "servicePincodes", "deliverySlots", "deliveryTiers", "defaultFlavours",
+    "defaultFlavourPrices", "defaultCustomSizes", "defaultBase500gPrice",
+    "customCakeImage", "logo", "tagline", "operatingHours",
+  ] as const;
+  for (const k of keys) {
+    if (to[k] === null && from[k] !== null) fill[k] = from[k];
+  }
+  if (Object.keys(fill).length > 0) {
+    await db.store.update({ where: { id: toStoreId }, data: fill });
+    result.defaults = true;
+  }
+
+  return result;
 }

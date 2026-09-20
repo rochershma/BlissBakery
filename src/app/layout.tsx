@@ -30,12 +30,13 @@ export const metadata: Metadata = {
     template: "%s | Bliss Bakery",
   },
   description:
-    "Order fresh cakes, pastries, brownies & more from Bliss Bakery, Kuchaman City. 100% vegetarian & eggless. Pickup or delivery.",
+    "Order fresh cakes, pastries, brownies & more from Bliss Bakery in Kuchaman City and Kishangarh. 100% vegetarian & eggless. Pickup or delivery.",
   keywords: [
     "bakery",
     "eggless cakes",
     "vegetarian bakery",
     "Kuchaman City",
+    "Kishangarh",
     "custom cakes",
     "online order",
     "Bliss Bakery",

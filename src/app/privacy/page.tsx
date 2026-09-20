@@ -1,7 +1,17 @@
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
 import Link from "next/link";
+import { db } from "@/lib/db";
+import { getCustomerStoreId } from "@/lib/customer-store";
+import { formatStoreAddress } from "@/lib/utils";
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const store = await db.store.findFirst({
+    where: { id: await getCustomerStoreId() },
+    select: { phone: true, email: true, address: true, city: true, state: true, pincode: true },
+  });
+  const phone = store?.phone || "9602831559";
+  const email = store?.email || "hello@blissbakery.in";
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
@@ -49,9 +59,9 @@ export default function PrivacyPage() {
 
           <h2 className="text-lg font-bold text-foreground">6. Contact Us</h2>
           <p>For any privacy-related queries, contact us at:</p>
-          <p>Email: <a href="mailto:hello@blissbakery.in" className="text-primary">hello@blissbakery.in</a><br />
-          Phone: <a href="tel:9602831559" className="text-primary">+91 9602831559</a><br />
-          Address: Main Market, Kuchaman City, Rajasthan</p>
+          <p>Email: <a href={`mailto:${email}`} className="text-primary">{email}</a><br />
+          Phone: <a href={`tel:${phone}`} className="text-primary">+91 {phone}</a><br />
+          Address: {formatStoreAddress(store) || "Rajasthan, India"}</p>
         </div>
       </main>
       <AppFooter />

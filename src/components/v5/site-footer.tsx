@@ -6,11 +6,13 @@ export function SiteFooter({
   storeSlug = "kuchaman-city",
   phone = "9602831559",
   logo = "/uploads/branding/logo.png",
+  address,
   className = "",
 }: {
   storeSlug?: string;
   phone?: string;
   logo?: string | null;
+  address?: string | null;
   className?: string;
 }) {
   return (
@@ -25,8 +27,8 @@ export function SiteFooter({
               <h3>Bliss Bakery</h3>
             </div>
             <p>
-              100% vegetarian and eggless. Baked fresh every morning at Main Market,
-              Kuchaman City, Rajasthan 341508.
+              100% vegetarian and eggless. Baked fresh every morning
+              {address ? ` at ${address}` : ""}.
             </p>
             <p className="ftr__fssai">FSSAI Lic. 12345678901234</p>
           </div>

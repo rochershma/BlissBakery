@@ -6,7 +6,7 @@ import { AdminMenuClient } from "./admin-menu-client";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { requireActiveStore, listStores } from "@/lib/active-store";
 import { requireAdmin } from "@/lib/server-utils";
-import { copyMenu } from "@/lib/copy-menu";
+import { copyMenu, copyStoreSetup } from "@/lib/copy-menu";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -25,9 +25,18 @@ export default async function AdminMenuPage({
     const from = formData.get("fromStoreId") as string;
     const target = await requireActiveStore();
     const { categories, products } = await copyMenu(from, target.id);
+    // A menu on its own renders a bare homepage, so bring the rest across too.
+    const setup = await copyStoreSetup(from, target.id);
+    const extras = [
+      setup.banners ? `${setup.banners} banners` : "",
+      setup.addOns ? `${setup.addOns} add-ons` : "",
+      setup.occasions ? `${setup.occasions} occasions` : "",
+      setup.themes ? `${setup.themes} themes` : "",
+    ].filter(Boolean);
     revalidatePath("/admin/menu");
     revalidatePath("/", "layout");
-    redirect(`/admin/menu?copied=${categories} categories and ${products} products`);
+    const summary = [`${categories} categories`, `${products} products`, ...extras].join(", ");
+    redirect(`/admin/menu?copied=${summary}`);
   }
 
   const categories = await db.category.findMany({
@@ -102,7 +111,7 @@ export default async function AdminMenuPage({
         >
           <div className="flex-1 min-w-[220px]">
             <label className="text-xs font-medium text-foreground block mb-1">
-              {totalProducts === 0 ? `${store.name} has no menu yet` : "Copy a menu from another outlet"}
+              {totalProducts === 0 ? `${store.name} has no menu yet` : "Copy a setup from another outlet"}
             </label>
             <select name="fromStoreId" className="w-full px-3 py-2.5 border border-border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30">
               {otherStores.map((s) => (
@@ -112,7 +121,8 @@ export default async function AdminMenuPage({
           </div>
           <SubmitButton label="Copy menu" pendingLabel="Copying..." />
           <p className="w-full text-[10px] text-muted-foreground">
-            Products are copied, not shared — {store.name} can then set its own prices and hide items. Categories that already exist here are skipped.
+            Copies the menu plus banners, add-ons, occasions and themes — copied, not shared, so {store.name} can then
+            set its own prices and hide items. Anything this outlet already has is left alone.
           </p>
         </form>
       ) : null}

@@ -5,7 +5,7 @@ import { db as prisma } from "@/lib/db";
 import { getCustomerStoreId } from "@/lib/customer-store";
 import { fromPrice, type FlavourPrice } from "@/lib/pricing";
 import { firstImage, img } from "@/lib/img";
-import { parseJsonSafe } from "@/lib/utils";
+import { parseJsonSafe, formatStoreAddress } from "@/lib/utils";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { HeroSlider, type Slide } from "@/components/v5/hero-slider";
@@ -238,7 +238,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} />
+      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} address={formatStoreAddress(store)} />
     </>
   );
 }

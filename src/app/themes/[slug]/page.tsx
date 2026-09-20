@@ -5,6 +5,7 @@ import { Collection } from "@/components/v5/collection";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { loadProducts, toCards, buildGroups, storeFlavours } from "@/lib/collection-data";
+import { formatStoreAddress } from "@/lib/utils";
 import { navLinks } from "@/lib/nav";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +58,7 @@ export default async function ThemePage({ params }: { params: Promise<{ slug: st
         groups={groups}
         products={cards}
       />
-      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} />
+      <SiteFooter storeSlug={store.slug} phone={store.phone} logo={store.logo} address={formatStoreAddress(store)} />
     </>
   );
 }
