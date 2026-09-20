@@ -133,6 +133,16 @@ export default function CheckoutPage() {
     setSlot((cur) => (slotOptions.some((s) => s.label === cur) ? cur : slotOptions[0].label));
   }, [slotOptions]);
 
+  // Late in the day nothing can be prepared in time, so start the customer on
+  // the first date that still has a slot rather than on a dead end.
+  useEffect(() => {
+    if (slotOptions.length > 0) return;
+    const next = DAYS.find(
+      (d) => d.iso > date && slotsForDate(slotCfg.slots, d.iso, slotCfg.leadHours).length > 0,
+    );
+    if (next) setDate(next.iso);
+  }, [slotOptions, slotCfg, date]);
+
   const applyPromo = async (raw?: string) => {
     const code = (raw ?? promoInput).trim().toUpperCase();
     if (!code) return;
@@ -383,7 +393,7 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <p className="t-small" style={{ marginTop: 12 }}>
-                We can&apos;t deliver any earlier today — please pick another date.
+                Today&apos;s slots have closed — pick another date above.
               </p>
             )}
           </div>

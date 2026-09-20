@@ -94,12 +94,18 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
     check(slotChips.some((s) => s.includes("Morning") || s.includes("Evening")), "configured slots render on checkout", slotChips.join(" | ") || "none");
     check(!slotChips.some((s) => s.includes("Hidden")), "inactive slot is not offered");
 
-    // lead time must hide same-day slots that can no longer be prepared
+    // lead time must rule today out — and checkout should move the customer on
+    // to the first date that still works rather than stranding them
     await db.store.update({ where: { id: store.id }, data: { orderLeadHours: 24 } });
     await go("/checkout");
-    await page.waitForTimeout(1200);
-    const afterLead = await page.$$eval(".slots .chip", (n) => n.length);
-    check(afterLead === 0, "lead time hides same-day slots", `${afterLead} shown`);
+    await page.waitForTimeout(1500);
+    const picked = await page.evaluate(() => {
+      const on = document.querySelector('.dpick__d[aria-pressed="true"]');
+      const all = [...document.querySelectorAll(".dpick__d")];
+      return { index: on ? all.indexOf(on) : -1, slots: document.querySelectorAll(".slots .chip").length };
+    });
+    check(picked.index > 0, "lead time moves the customer off today", `day index ${picked.index}`);
+    check(picked.slots > 0, "and offers slots on that day instead", `${picked.slots} slots`);
     await db.store.update({ where: { id: store.id }, data: { orderLeadHours: 0 } });
 
     /* ---------- GST reaches the customer ---------- */

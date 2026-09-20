@@ -95,8 +95,8 @@ export default async function SearchPage({ searchParams }: Props) {
 
   // Explore ranges
   const [dbOccasions, dbThemes] = await Promise.all([
-    db.occasion.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
-    db.theme.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" }, take: 8 }),
+    db.occasion.findMany({ where: { isActive: true, storeId: store?.id }, orderBy: { sortOrder: "asc" }, take: 8 }),
+    db.theme.findMany({ where: { isActive: true, storeId: store?.id }, orderBy: { sortOrder: "asc" }, take: 8 }),
   ]);
 
   return (

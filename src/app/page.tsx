@@ -37,7 +37,7 @@ export default async function HomePage() {
       include: { tags: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } },
     }),
     prisma.product.findMany({
-      where: { isBestseller: true, isAvailable: true },
+      where: { isBestseller: true, isAvailable: true, category: { storeId: store.id } },
       include: { variants: true },
       take: 12,
     }),

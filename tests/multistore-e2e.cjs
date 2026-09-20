@@ -92,6 +92,22 @@ const check = (ok, n, d = "") => {
     const shownStore = await page.evaluate(() => document.querySelector(".v5loc b")?.textContent?.trim() || "");
     check(shownStore === (home.city || home.name), "header shows the store you are browsing", shownStore);
 
+    // the homepage, search and listings must all follow the chosen outlet
+    await page.context().addCookies([{ name: "bb-store", value: second.slug, url: BASE }]);
+    for (const route of ["/", "/search?q=cake"]) {
+      await go(route);
+      const txt = await page.evaluate(() => document.body.innerText);
+      check(!txt.includes("Blush Love Bloom"), `${route} shows no other outlet's cakes`,
+        txt.slice(0, 0));
+    }
+    const homeCards = await (async () => {
+      await go("/");
+      return page.$$eval(".card__n, .card h3", (n) => n.map((x) => x.textContent.trim()));
+    })();
+    check(homeCards.every((t) => !t.includes("Kiss")), "homepage bestsellers belong to the chosen outlet",
+      `${homeCards.length} cards`);
+    await page.context().addCookies([{ name: "bb-store", value: home.slug, url: BASE }]);
+
     /* ---------- per-store promos ---------- */
     console.log("\n[3] Promo scoping");
     const now = new Date();
