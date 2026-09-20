@@ -50,13 +50,13 @@ page.on("console", (m) => {
     cards: document.querySelectorAll(".card").length,
     hdr: !!document.querySelector(".v5hdr"),
     ftr: !!document.querySelector(".ftr"),
-    ticker: !!document.querySelector(".ticker"),
+    storePicker: !!document.querySelector(".v5loc"),
     font: getComputedStyle(document.querySelector("h2")).fontFamily,
     cta: getComputedStyle(document.querySelector(".btn--rose")).backgroundColor,
   }));
   check(home.hdr, "v5 header present");
   check(home.ftr, "footer present");
-  check(home.ticker, "ticker present");
+  check(home.storePicker, "store picker present");
   check(home.slides >= 1, "hero slider has slides", `${home.slides}`);
   check(home.tiles >= 6, "browse tiles render", `${home.tiles}`);
   check(home.cards >= 1, "bestsellers render", `${home.cards}`);
@@ -217,7 +217,7 @@ page.on("console", (m) => {
     return {
       steps: document.querySelectorAll(".steps5 > div").length,
       blocks: document.querySelectorAll(".opt-block").length,
-      addons: document.querySelectorAll(".up").length,
+      addons: document.querySelectorAll(".aocard").length,
       hasPayment: /\b(UPI|Netbanking|Cash on delivery|Pay now)\b/.test(form),
       cta: [...document.querySelectorAll("button")].some((b) => /place order/i.test(b.textContent)),
     };
@@ -230,7 +230,7 @@ page.on("console", (m) => {
   check(co.cta, "Place order CTA present");
 
   // add-on stepper
-  const addBtn = await page.$(".up__btn");
+  const addBtn = await page.$(".ao__add");
   if (addBtn) {
     const t0 = await page.evaluate(() => document.querySelector(".sline--tot b")?.textContent);
     await addBtn.click();

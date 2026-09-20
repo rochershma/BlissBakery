@@ -53,9 +53,15 @@ export async function DELETE(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { id } = await req.json();
+  // The UI sends ?id=…; older callers sent a JSON body. Accept both.
+  let id = req.nextUrl.searchParams.get("id");
+  if (!id) {
+    const body = await req.json().catch(() => null);
+    id = body?.id ?? null;
+  }
   if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-  await db.address.deleteMany({ where: { id, userId: session.userId } });
+  const { count } = await db.address.deleteMany({ where: { id, userId: session.userId } });
+  if (count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

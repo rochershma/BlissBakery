@@ -2,9 +2,8 @@
 // Drives the real admin UI, then checks how fast and how faithfully each
 // change reaches the customer-facing pages. Cleans up after itself.
 const { chromium } = require("playwright");
+const { adminContext } = require("./_session.cjs");
 const BASE = process.env.BASE || "http://localhost:3005";
-const PHONE = "9602831559";
-const OTP = "999999";
 const STAMP = Date.now().toString().slice(-6);
 
 const results = [];
@@ -14,8 +13,7 @@ const check = (c, n, d = "") => (c ? pass(n, d) : fail(n, d));
 
 (async () => {
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 950 } });
-  const page = await ctx.newPage();
+  const { ctx, page } = await adminContext(browser, BASE);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message.slice(0, 120)));
 
@@ -34,18 +32,6 @@ const check = (c, n, d = "") => (c ? pass(n, d) : fail(n, d));
 
   /* ---------- 1. ADMIN ACCESS ---------- */
   console.log("\n[1] Admin access");
-  await go("/");
-  await page.getByRole("button", { name: /sign in/i }).first().click();
-  await page.waitForTimeout(900);
-  await page.locator('input[type="tel"]').first().fill(PHONE);
-  await page.getByRole("button", { name: /send code/i }).first().click();
-  await page.waitForTimeout(2200);
-  const boxes = page.locator('input[maxlength="1"]');
-  for (let i = 0; i < 6; i++) await boxes.nth(i).fill(OTP[i]);
-  await page.waitForTimeout(400);
-  const v = page.getByRole("button", { name: /verify/i }).first();
-  if (await v.count()) await v.click();
-  await page.waitForTimeout(2500);
 
   let r = await go("/admin");
   check(r.status() === 200, "admin dashboard loads for admin user");

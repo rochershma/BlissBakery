@@ -31,6 +31,9 @@ model Store {
   deliveryCharge Float?
   packagingCharge Float?
   gstRate        Float    @default(0)
+  deliverySlots  String?  @db.Text
+  addOnMaxQty    Int      @default(20)
+  orderLeadHours Int      @default(4)
   defaultFlavours String?  @db.Text
   defaultFlavourPrices String? @db.Text
   defaultCustomSizes String? @db.Text

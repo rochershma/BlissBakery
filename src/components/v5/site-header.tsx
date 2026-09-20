@@ -14,6 +14,8 @@ import {
 
 export type NavLink = { label: string; href: string };
 
+type StoreOption = { id: string; name: string; slug: string; city: string | null; pincode: string | null };
+
 export function SiteHeaderV5({
   storeSlug = "kuchaman-city",
   logo,
@@ -31,14 +33,28 @@ export function SiteHeaderV5({
   const items = useCartStore((s) => s.items);
   const [hydrated, setHydrated] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
+  const [stores, setStores] = useState<StoreOption[]>([]);
   const [q, setQ] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const storeRef = useRef<HTMLDivElement>(null);
+
+  const activeStore = stores.find((s) => s.slug === storeSlug) ?? null;
 
   useEffect(() => setHydrated(true), []);
-  useEffect(() => setMenuOpen(false), [pathname]);
+  useEffect(() => { setMenuOpen(false); setStoreOpen(false); }, [pathname]);
+  useEffect(() => {
+    // Only fetched once the picker is opened — the header renders on every page.
+    if (!storeOpen || stores.length) return;
+    fetch("/api/stores")
+      .then((r) => r.json())
+      .then((d) => Array.isArray(d?.stores) && setStores(d.stores))
+      .catch(() => {});
+  }, [storeOpen, stores.length]);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+      if (storeRef.current && !storeRef.current.contains(e.target as Node)) setStoreOpen(false);
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -76,13 +92,46 @@ export function SiteHeaderV5({
         </form>
 
         <div className="v5hdr__acts">
-          <span className="v5loc">
-            <IconPin />
-            <span>
-              <small>Deliver to</small>
-              <b>{pincode}</b>
-            </span>
-          </span>
+          <div className="v5store" ref={storeRef}>
+            <button
+              type="button"
+              className="v5loc"
+              onClick={() => setStoreOpen((v) => !v)}
+              aria-expanded={storeOpen}
+              aria-label="Change store"
+            >
+              <IconPin />
+              <span>
+                <small>Deliver to</small>
+                <b>{activeStore ? `${activeStore.city || activeStore.name} ${activeStore.pincode}`.trim() : pincode}</b>
+              </span>
+              <IconChevD width={14} height={14} />
+            </button>
+            {storeOpen ? (
+              <div className="v5store__pop">
+                <span className="v5store__h">Choose a store</span>
+                {stores.length === 0 ? (
+                  <span className="v5store__i"><b>{pincode}</b><span>Loading stores…</span></span>
+                ) : (
+                  stores.map((s) => (
+                    <button
+                      type="button"
+                      key={s.id}
+                      className="v5store__i"
+                      aria-current={s.slug === storeSlug}
+                      onClick={() => {
+                        setStoreOpen(false);
+                        router.push(`/store/${s.slug}/menu`);
+                      }}
+                    >
+                      <b>{s.name}</b>
+                      <span>{[s.city, s.pincode].filter(Boolean).join(" · ")}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
 
           <div className="v5menu" ref={menuRef}>
             <button

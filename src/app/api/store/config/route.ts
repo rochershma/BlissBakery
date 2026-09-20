@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { parseSlots } from "@/lib/slots";
 
 export async function GET() {
   const store = await db.store.findFirst({
@@ -13,6 +14,9 @@ export async function GET() {
       gstRate: true,
       logo: true,
       deliveryTiers: true,
+      deliverySlots: true,
+      addOnMaxQty: true,
+      orderLeadHours: true,
       latitude: true,
       longitude: true,
     },
@@ -45,6 +49,9 @@ export async function GET() {
     gstRate: store.gstRate ?? 0,
     logo: store.logo || "/uploads/branding/logo.png",
     deliveryTiers,
+    deliverySlots: parseSlots(store.deliverySlots),
+    addOnMaxQty: Math.max(1, store.addOnMaxQty ?? 20),
+    orderLeadHours: Math.max(0, store.orderLeadHours ?? 4),
     storeLat: store.latitude ?? 27.1517,
     storeLng: store.longitude ?? 74.8560,
     addOnImages: Object.fromEntries(addOns.filter(a => a.image).map(a => [a.name, a.image])),

@@ -10,12 +10,11 @@ import { useToast } from "@/components/shared/toast";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
-import { IconChevL, IconPlus } from "@/components/v5/icons";
+import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
+import { DEFAULT_SLOTS, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
+import { IconChevL, IconPlus, IconCake } from "@/components/v5/icons";
 
 type Address = { id: string; label: string | null; fullAddress: string; landmark: string | null; pincode: string };
-type AddOn = { id: string; name: string; price: number; image: string | null; category: string };
-
-const SLOTS = ["10am-1pm", "1pm-4pm", "4pm-7pm", "7pm-10pm"];
 
 /** Next 7 delivery days, rendered as chips instead of a native date field. */
 const DAYS = Array.from({ length: 7 }, (_, n) => {
@@ -45,11 +44,16 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({ line1: "", line2: "", landmark: "", label: "Home" });
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [slot, setSlot] = useState(SLOTS[1]);
+  const [slot, setSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<AddOn[]>([]);
   const [picked, setPicked] = useState<Record<string, number>>({});
-  const [charges, setCharges] = useState({ packaging: 10, delivery: 30 });
+  const [charges, setCharges] = useState({ packaging: 10, delivery: 30, gstRate: 0, minOrder: 0 });
+  const [slotCfg, setSlotCfg] = useState<{ slots: DeliverySlot[]; leadHours: number; maxQty: number }>({
+    slots: DEFAULT_SLOTS,
+    leadHours: 4,
+    maxQty: 20,
+  });
   const [placing, setPlacing] = useState(false);
   const [promoInput, setPromoInput] = useState("");
   const [promo, setPromo] = useState<{ code: string; discount: number; basis: number } | null>(null);
@@ -65,7 +69,19 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     fetch("/api/store/config").then((r) => r.json()).then((d) => {
-      if (d) setCharges({ packaging: d.packagingCharge ?? 10, delivery: d.deliveryCharge ?? 30 });
+      if (d) {
+        setCharges({
+          packaging: d.packagingCharge ?? 10,
+          delivery: d.deliveryCharge ?? 30,
+          gstRate: d.gstRate ?? 0,
+          minOrder: d.minDeliveryOrder ?? 0,
+        });
+        setSlotCfg({
+          slots: parseSlots(d.deliverySlots),
+          leadHours: d.orderLeadHours ?? 4,
+          maxQty: Math.max(1, d.addOnMaxQty ?? 20),
+        });
+      }
       if (Array.isArray(d?.addOns)) setAddOns(d.addOns);
     }).catch(() => {});
   }, []);
@@ -94,7 +110,22 @@ export default function CheckoutPage() {
   // while the subtotal it was priced against still holds.
   const activePromo = promo && promo.basis === subtotal ? promo : null;
   const discount = activePromo?.discount ?? 0;
-  const total = Math.max(0, subtotal + addOnTotal + charges.packaging + delivery - discount);
+  // Mirrors the server's maths in /api/orders/create so the quoted total is what we charge.
+  const taxable = Math.max(0, subtotal + addOnTotal + charges.packaging + delivery - discount);
+  const gst = taxable * (charges.gstRate / 100);
+  const total = taxable + gst;
+  const shortBy = orderType === "DELIVERY" ? Math.max(0, charges.minOrder - subtotal) : 0;
+
+  // Slots are store-configured and same-day options disappear once prep time can't be met.
+  const slotOptions = useMemo(
+    () => slotsForDate(slotCfg.slots, date, slotCfg.leadHours),
+    [slotCfg, date],
+  );
+
+  useEffect(() => {
+    if (slotOptions.length === 0) { setSlot(""); return; }
+    setSlot((cur) => (slotOptions.some((s) => s.label === cur) ? cur : slotOptions[0].label));
+  }, [slotOptions]);
 
   const applyPromo = async (raw?: string) => {
     const code = (raw ?? promoInput).trim().toUpperCase();
@@ -120,11 +151,10 @@ export default function CheckoutPage() {
     }
   };
 
-  const bump = (id: string, d: 1 | -1) =>
+  const bump = (id: string, qty: number) =>
     setPicked((p) => {
-      const n = Math.max(0, (p[id] ?? 0) + d);
       const next = { ...p };
-      n ? (next[id] = n) : delete next[id];
+      qty > 0 ? (next[id] = qty) : delete next[id];
       return next;
     });
 
@@ -132,6 +162,8 @@ export default function CheckoutPage() {
     if (!user) { setShowLoginModal(true); return; }
     if (items.length === 0) { toast("Your cart is empty", "error"); return; }
     if (orderType === "DELIVERY" && !addrId && !newAddr) { toast("Choose a delivery address", "error"); return; }
+    if (shortBy > 0) { toast(`Add ${formatPrice(shortBy)} more to meet the ${formatPrice(charges.minOrder)} delivery minimum`, "error"); return; }
+    if (!slot) { toast("Pick a delivery slot", "error"); return; }
 
     setPlacing(true);
     try {
@@ -301,41 +333,34 @@ export default function CheckoutPage() {
                 </button>
               ))}
             </div>
-            <select className="select" style={{ marginTop: 12 }} value={slot} onChange={(e) => setSlot(e.target.value)}>
-              {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            {slotOptions.length > 0 ? (
+              <div className="slots">
+                {slotOptions.map((s) => (
+                  <button
+                    type="button"
+                    key={s.label}
+                    className="chip chip--sm"
+                    aria-pressed={slot === s.label}
+                    onClick={() => setSlot(s.label)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="t-small" style={{ marginTop: 12 }}>
+                We can&apos;t deliver any earlier today — please pick another date.
+              </p>
+            )}
           </div>
 
-          {addOns.length > 0 && (
-            <div className="opt-block">
-              <h4>Add to the box <span className="t-small">optional · same box, no extra delivery</span></h4>
-              <div className="ups">
-                {addOns.map((a) => {
-                  const q = picked[a.id] ?? 0;
-                  return (
-                    <div className={`up${q ? " is-on" : ""}`} key={a.id}>
-                      <div className="up__img">
-                        {a.image ? <Image src={img(a.image, 300, 300)} alt="" width={300} height={300} unoptimized loading="lazy" /> : <span className="tile__ph" />}
-                        {q ? (
-                          <span className="up__btn">
-                            <b onClick={() => bump(a.id, -1)} role="button" aria-label="Remove one">−</b>
-                            <span>{q}</span>
-                            <b onClick={() => bump(a.id, 1)} role="button" aria-label="Add one">+</b>
-                          </span>
-                        ) : (
-                          <button type="button" className="up__btn" onClick={() => bump(a.id, 1)}>ADD</button>
-                        )}
-                      </div>
-                      <div className="up__cap">
-                        <b>{a.name}</b>
-                        <em>{formatPrice(a.price)}</em>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <AddOnsPicker
+            addOns={addOns}
+            picked={picked}
+            maxQty={slotCfg.maxQty}
+            onChange={bump}
+            onLimit={(name) => toast(`Up to ${slotCfg.maxQty} ${name} per order`, "error")}
+          />
 
           <div className="opt-block">
             <h4>Anything we should know? <span className="t-small">optional</span></h4>
@@ -347,7 +372,12 @@ export default function CheckoutPage() {
           <h3 className="t-h3">Order summary</h3>
           {items.map((i) => (
             <div className="co5__item" key={`${i.productId}-${i.variantName}-${i.flavour}`}>
-              {i.image ? <Image src={img(i.image, 120, 120)} alt="" width={52} height={52} unoptimized /> : null}
+              {i.image ? (
+                <Image src={img(i.image, 120, 120)} alt="" width={52} height={52} unoptimized />
+              ) : (
+                // keep the 3-column grid intact when a product has no photo
+                <span className="order5__noimg" aria-hidden="true"><IconCake /></span>
+              )}
               <div style={{ minWidth: 0 }}>
                 <b>{i.name}</b>
                 <span className="t-small">{[i.variantName, i.flavour].filter(Boolean).join(" · ")}{i.quantity > 1 ? ` × ${i.quantity}` : ""}</span>
@@ -361,6 +391,9 @@ export default function CheckoutPage() {
           <div className="sline"><span>Delivery</span><b>{delivery ? formatPrice(delivery) : "Free"}</b></div>
           {discount > 0 ? (
             <div className="sline sline--save"><span>{activePromo?.code}</span><b>−{formatPrice(discount)}</b></div>
+          ) : null}
+          {charges.gstRate > 0 ? (
+            <div className="sline"><span>GST ({charges.gstRate}%)</span><b>{formatPrice(gst)}</b></div>
           ) : null}
 
           <div className="promo">
@@ -398,6 +431,9 @@ export default function CheckoutPage() {
           </div>
 
           <div className="sline sline--tot"><span>To pay</span><b>{formatPrice(total)}</b></div>
+          {shortBy > 0 ? (
+            <p className="co5__min">Add {formatPrice(shortBy)} more to meet the {formatPrice(charges.minOrder)} delivery minimum.</p>
+          ) : null}
           <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 16 }} disabled={placing} onClick={placeOrder}>
             {placing ? "Placing…" : "Place order"}
           </button>

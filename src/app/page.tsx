@@ -7,7 +7,6 @@ import { firstImage, img } from "@/lib/img";
 import { parseJsonSafe } from "@/lib/utils";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
-import { Ticker } from "@/components/v5/ticker";
 import { HeroSlider, type Slide } from "@/components/v5/hero-slider";
 import { Rail } from "@/components/v5/rail";
 import { Tile } from "@/components/v5/tile";
@@ -69,9 +68,7 @@ export default async function HomePage() {
   const heroImage = bestsellers.map((b) => firstImage(b.images)).find(Boolean) ?? null;
 
   return (
-    <>
-      <Ticker />
-      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
+    <>      <SiteHeaderV5 storeSlug={store.slug} logo={store.logo} nav={nav} pincode={store.pincode} />
 
       <h1 className="sr-only">
         Bliss Bakery — 100% vegetarian and eggless cakes in {store.city}

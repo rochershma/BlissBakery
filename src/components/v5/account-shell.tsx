@@ -7,7 +7,7 @@ import { IconBag, IconTruck, IconPin, IconUser, IconLogout } from "@/components/
 
 const NAV = [
   { href: "/orders", label: "Order history", Icon: IconBag },
-  { href: "/orders?track=1", label: "Track an order", Icon: IconTruck },
+  { href: "/track", label: "Track an order", Icon: IconTruck },
   { href: "/addresses", label: "Saved addresses", Icon: IconPin },
   { href: "/profile", label: "Profile", Icon: IconUser },
 ];
@@ -26,15 +26,11 @@ export function AccountShell({ children, active }: { children: React.ReactNode; 
             <span className="t-small">{user?.phone ? `+91 ${user.phone}` : "Not signed in"}</span>
           </div>
         </div>
-        {NAV.map(({ href, label, Icon }) => {
-          const base = href.split("?")[0];
-          const on = active === base && (href.includes("track") ? pathname.includes("track") : true);
-          return (
-            <Link key={href} href={href} className={on && !href.includes("track") ? "is-on" : ""}>
-              <Icon /> <span>{label}</span>
-            </Link>
-          );
-        })}
+        {NAV.map(({ href, label, Icon }) => (
+          <Link key={href} href={href} className={active === href ? "is-on" : ""}>
+            <Icon /> <span>{label}</span>
+          </Link>
+        ))}
         <button type="button" className="acct5__out" onClick={logout}>
           <IconLogout /> <span>Log out</span>
         </button>

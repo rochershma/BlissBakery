@@ -88,6 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch { /* ignore */ }
     setUser(null);
+    // Account pages are useless signed out, and a hard nav also clears any
+    // client caches holding the previous user's data.
+    window.location.assign("/");
   };
 
   return (

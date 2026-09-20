@@ -7,6 +7,8 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { parseJsonSafe } from "@/lib/utils";
 import { requireAdmin, sanitizeMax } from "@/lib/server-utils";
 import { ImageField } from "@/components/admin/image-field";
+import { SlotsEditor } from "@/components/admin/slots-editor";
+import { parseSlots } from "@/lib/slots";
 
 export default async function AdminSettingsPage() {
   const store = await db.store.findFirst();
@@ -30,6 +32,10 @@ export default async function AdminSettingsPage() {
     const gstRate = gstEnabled ? Math.max(0, Math.min(28, parseFloat(formData.get("gstRate") as string) || 0)) : 0;
     const deliveryRadius = Math.max(0, parseFloat(formData.get("deliveryRadius") as string) || 10);
     const minDeliveryOrder = Math.max(0, parseFloat(formData.get("minDeliveryOrder") as string) || 0);
+    const addOnMaxQty = Math.min(99, Math.max(1, parseInt(formData.get("addOnMaxQty") as string, 10) || 20));
+    const orderLeadHours = Math.min(72, Math.max(0, parseInt(formData.get("orderLeadHours") as string, 10) || 0));
+    // Re-validate the slot rows the client serialised so bad input can never reach checkout.
+    const deliverySlots = JSON.stringify(parseSlots(formData.get("deliverySlots")));
     const staffWhatsApp = formData.get("staffWhatsApp") as string;
     const latitude = parseFloat(formData.get("latitude") as string) || null;
     const longitude = parseFloat(formData.get("longitude") as string) || null;
@@ -52,6 +58,7 @@ export default async function AdminSettingsPage() {
         name, tagline, description, address, city, phone, email,
         fssaiLicense, gstNumber, deliveryCharge, packagingCharge, gstRate,
         deliveryRadius, minDeliveryOrder, staffWhatsApp: staffWhatsApp || null,
+        addOnMaxQty, orderLeadHours, deliverySlots,
         latitude, longitude,
         operatingHours: JSON.stringify(hours), isOpen,
         logo,
@@ -186,6 +193,24 @@ export default async function AdminSettingsPage() {
 
         {/* Operating Hours */}
         <OperatingHoursSection hours={parseJsonSafe(store.operatingHours, {})} />
+
+        <SlotsEditor slots={parseSlots(store.deliverySlots)} />
+
+        <div className="bg-white rounded-xl border border-border p-5 space-y-4">
+          <h2 className="label-premium text-foreground">Order Rules</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Preparation Lead Time (hours)</label>
+              <input name="orderLeadHours" inputMode="numeric" defaultValue={store.orderLeadHours ?? 4} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <p className="text-[10px] text-muted-foreground mt-1">Same-day slots starting sooner than this are hidden.</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-foreground block mb-1">Max Qty per Add-on</label>
+              <input name="addOnMaxQty" inputMode="numeric" defaultValue={store.addOnMaxQty ?? 20} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              <p className="text-[10px] text-muted-foreground mt-1">How many of a single add-on one order may contain.</p>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white rounded-xl border border-border p-5 space-y-4">
           <h2 className="label-premium text-foreground">Legal</h2>

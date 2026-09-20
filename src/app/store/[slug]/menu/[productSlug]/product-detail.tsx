@@ -48,6 +48,7 @@ export function ProductDetail({
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const setStoreSlug = useCartStore((s) => s.setStoreSlug);
+  const cartItems = useCartStore((s) => s.items);
   const { toast } = useToast();
 
   const isCustom = product.pricingStrategy === "CUSTOM";
@@ -105,8 +106,12 @@ export function ProductDetail({
     if (qty > 1) updateQuantity(product.id, qty, variant?.name);
     setAdded(true);
     toast(`${product.name} · ${[variant?.name, flavour].filter(Boolean).join(" · ")} added`, "success");
-    setTimeout(() => setAdded(false), 1800);
   };
+
+  // Changing the selection means they're configuring a different cake, so the
+  // "what next" buttons step aside and the Add button comes back.
+  const reselect = <T,>(set: (v: T) => void) => (v: T) => { setAdded(false); set(v); };
+  const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
 
   const acc = [
     {
@@ -176,7 +181,7 @@ export function ProductDetail({
                     role="radio"
                     aria-checked={v.id === variantId}
                     className="sizes__o"
-                    onClick={() => setVariantId(v.id)}
+                    onClick={() => reselect(setVariantId)(v.id)}
                   >
                     <b>{v.name}</b>
                     <em>{servesLabel(v.serves || servesFor(vkg))}</em>
@@ -195,7 +200,7 @@ export function ProductDetail({
             </h4>
             <div className="pdp5__flav">
               {product.flavours.map((f) => (
-                <button key={f} type="button" className="chip chip--sm" aria-checked={f === flavour} role="radio" onClick={() => setFlavour(f)}>
+                <button key={f} type="button" className="chip chip--sm" aria-checked={f === flavour} role="radio" onClick={() => reselect(setFlavour)(f)}>
                   {f}
                 </button>
               ))}
@@ -211,7 +216,7 @@ export function ProductDetail({
             className="input"
             maxLength={25}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => reselect(setMessage)(e.target.value)}
             placeholder="Name or message on the cake — e.g. Happy Birthday Aarav"
           />
         </div>
@@ -226,14 +231,27 @@ export function ProductDetail({
             </p>
           </div>
           <div className="pdp5__buy">
-            <div className="qty">
-              <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Decrease quantity">−</button>
-              <span>{qty}</span>
-              <button type="button" onClick={() => setQty((q) => Math.min(20, q + 1))} aria-label="Increase quantity">+</button>
-            </div>
-            <button type="button" className="btn btn--rose btn--lg pdp5__cta" onClick={onAdd}>
-              {added ? <><IconCheck /> Added</> : "Add to cart"}
-            </button>
+            {added ? (
+              <div className="pdp5__next">
+                <button type="button" className="btn btn--rose btn--lg" onClick={() => router.push("/cart")}>
+                  <IconCheck /> View cart{cartCount ? ` · ${cartCount}` : ""}
+                </button>
+                <button type="button" className="btn btn--out btn--lg" onClick={() => router.push(`/store/${storeSlug}/menu`)}>
+                  Continue shopping
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="qty">
+                  <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1} aria-label="Decrease quantity">−</button>
+                  <span>{qty}</span>
+                  <button type="button" onClick={() => setQty((q) => Math.min(20, q + 1))} aria-label="Increase quantity">+</button>
+                </div>
+                <button type="button" className="btn btn--rose btn--lg pdp5__cta" onClick={onAdd}>
+                  Add to cart
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -264,9 +282,20 @@ export function ProductDetail({
           </div>
           <b className="t-num pdp5__stickyprice">{formatPrice(total)}</b>
         </div>
-        <button type="button" className="btn btn--rose pdp5__stickycta" onClick={onAdd}>
-          {added ? "Added" : "Add to cart"}
-        </button>
+        {added ? (
+          <div className="pdp5__next pdp5__next--sticky">
+            <button type="button" className="btn btn--out" onClick={() => router.push(`/store/${storeSlug}/menu`)}>
+              Keep shopping
+            </button>
+            <button type="button" className="btn btn--rose" onClick={() => router.push("/cart")}>
+              View cart{cartCount ? ` · ${cartCount}` : ""}
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="btn btn--rose pdp5__stickycta" onClick={onAdd}>
+            Add to cart
+          </button>
+        )}
       </div>
     </div>
   );
