@@ -51,9 +51,20 @@ export function StorePicker({
     };
   }, [open]);
 
-  const choose = (slug: string) => {
+  const choose = async (slug: string) => {
     setOpen(false);
-    if (slug !== storeSlug) router.push(`/store/${slug}/menu`);
+    if (slug === storeSlug) return;
+
+    // Persist before navigating: pages outside /store/[slug] read the cookie,
+    // so without this the choice is lost on the next refresh.
+    await fetch("/api/stores/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    }).catch(() => {});
+
+    router.push(`/store/${slug}/menu`);
+    router.refresh();
   };
 
   return (

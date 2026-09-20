@@ -82,6 +82,39 @@ const check = (ok, n, d = "") => {
       await ctx2.close();
     }
 
+    /* ---------- 2b. the chosen outlet sticks ---------- */
+    console.log("\n[2b] Outlet choice persists");
+    {
+      const ctx2b = await browser.newContext({ ignoreHTTPSErrors: true });
+      const p = await ctx2b.newPage();
+      await p.goto(BASE + "/", { waitUntil: "networkidle", timeout: 60000 });
+      await p.waitForTimeout(1200);
+
+      // start on the default outlet, then switch with the header picker
+      const firstGate = await p.$(`.gate__i:has-text("${store.name}")`);
+      if (firstGate) { await firstGate.click(); await p.waitForTimeout(2000); }
+
+      await p.click(".v5loc");
+      await p.waitForTimeout(800);
+      await p.locator(`.v5store__i:has-text("${TAG}")`).first().click();
+      await p.waitForTimeout(2500);
+
+      // an outlet without its own upload still shows the chain mark
+      const logo = await p.evaluate(() => {
+        const el = document.querySelector(".v5brand__logo");
+        return el ? { src: el.getAttribute("src"), w: Math.round(el.getBoundingClientRect().width) } : null;
+      });
+      check(!!logo && logo.w > 0, "the logo still renders for an outlet with none of its own", JSON.stringify(logo));
+
+      // the reported bug: refreshing snapped back to the default outlet
+      await p.goto(BASE + "/", { waitUntil: "networkidle", timeout: 60000 });
+      await p.waitForTimeout(1500);
+      const afterRefresh = await p.evaluate(() => document.querySelector(".v5loc b")?.textContent?.trim());
+      check(afterRefresh === "Ajmer", "the picked outlet survives a refresh of the home page", afterRefresh);
+      check(!(await p.$(".gate")), "and the chooser does not reappear");
+      await ctx2b.close();
+    }
+
     /* ---------- 3. iOS input sizing ---------- */
     console.log("\n[3] iOS input sizing");
     {
@@ -263,41 +296,23 @@ const check = (ok, n, d = "") => {
       check(re.body?.items?.[0]?.quantity === 2, "reorder keeps the original quantity", `qty ${re.body?.items?.[0]?.quantity}`);
       check(re.body?.items?.[0]?.unitPrice === product.variants[0].price, "reorder uses today's price");
 
-      const cancelled = await api(`/api/orders/${pending.id}/cancel`, {
+      // Cancelling is a store decision, not a customer one.
+      const cancelGone = await api(`/api/orders/${pending.id}/cancel`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
       });
-      check(cancelled.status === 200, "a pending order can be cancelled", `HTTP ${cancelled.status}`);
-      const afterCancel = await db.order.findUnique({ where: { id: pending.id }, include: { statusHistory: true } });
-      check(afterCancel.status === "CANCELLED", "the order really is cancelled", afterCancel.status);
-      check(afterCancel.statusHistory.some((h) => h.status === "CANCELLED"), "cancellation is recorded in history");
-
-      const tooLate = await api(`/api/orders/${preparing.id}/cancel`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
-      });
-      check(tooLate.status === 409, "an order already being prepared cannot be cancelled", `HTTP ${tooLate.status}`);
-
-      // another customer's order must be invisible
-      const other = await db.user.findFirst({ where: { id: { not: me.body.user.id } } });
-      if (other) {
-        const theirs = await db.order.create({
-          data: {
-            orderNumber: `${TAG}-OTHER`, userId: other.id, storeId: store.id,
-            orderType: "PICKUP", itemTotal: 100, tax: 0, grandTotal: 100, status: "PENDING",
-          },
-        });
-        const stolen = await api(`/api/orders/${theirs.id}/cancel`, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
-        });
-        check(stolen.status === 404, "you cannot cancel someone else's order", `HTTP ${stolen.status}`);
-        await db.order.delete({ where: { id: theirs.id } });
-      }
+      check(cancelGone.status === 404 || cancelGone.status === 405,
+        "customers have no cancel endpoint", `HTTP ${cancelGone.status}`);
+      const stillPending = await db.order.findUnique({ where: { id: pending.id } });
+      check(stillPending.status === "PENDING", "the order was untouched", stillPending.status);
 
       await go("/orders");
       await page.waitForTimeout(1200);
       const labels = await page.$$eval(".order5__ft button, .order5__ft a", (n) => n.map((x) => x.textContent.trim()));
-      check(labels.some((t) => /reorder/i.test(t)), "order history offers Reorder", labels.join(" | "));
+      check(labels.some((t) => /reorder/i.test(t)), "order history offers Reorder");
+      check(!labels.some((t) => /cancel/i.test(t)), "order history offers no Cancel");
 
       await db.order.deleteMany({ where: { orderNumber: { startsWith: TAG } } });
+      void preparing;
     }
 
     /* ---------- 10. console ---------- */

@@ -156,11 +156,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           ) : null}
 
           <div className="order5__acts">
-            <OrderActions orderId={order.id} status={order.status} />
+            <OrderActions orderId={order.id} />
           </div>
 
           <a className="btn btn--out btn--block" style={{ marginTop: 14 }} href={`https://wa.me/91${store.phone}?text=Hi, I need help with order ${order.orderNumber}`} target="_blank" rel="noopener noreferrer">
-            Need help with this order?
+            Need to change something? Message us
           </a>
         </aside>
       </div>

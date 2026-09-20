@@ -136,7 +136,7 @@ export default function OrdersPage() {
                 </span>
                 <span style={{ display: "flex", gap: 9, flexWrap: "wrap" }}>
                   <Link className="btn btn--rose btn--sm" href={`/order/${o.id}`}>Track order</Link>
-                  <OrderActions orderId={o.id} status={o.status} onChanged={load} />
+                  <OrderActions orderId={o.id} />
                 </span>
               </div>
             </div>

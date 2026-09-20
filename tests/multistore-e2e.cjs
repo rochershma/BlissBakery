@@ -140,8 +140,15 @@ const check = (ok, n, d = "") => {
     const switched = await page.evaluate(() => document.querySelector('button[aria-label="Switch store"]')?.textContent || "");
     check(switched.includes(TAG), "store switcher shows the selected store", switched.trim());
 
+    // the copy-menu form names other outlets by design, so read around it
+    const adminMenuText = () => page.evaluate(() => {
+      const form = document.querySelector('form:has(select[name="fromStoreId"])');
+      const all = document.body.innerText;
+      return form ? all.replace(form.innerText, "") : all;
+    });
+
     await go("/admin/menu");
-    const menuTxt = await page.evaluate(() => document.body.innerText);
+    const menuTxt = await adminMenuText();
     check(menuTxt.includes(`${TAG} Jaipur Cakes`.slice(0, 14)), "admin menu shows the selected store's categories");
 
     await go("/admin/orders");
@@ -161,7 +168,7 @@ const check = (ok, n, d = "") => {
     // now switch back and prove nothing from the other store is visible
     await pickStore(home.name);
     await go("/admin/menu");
-    const homeMenuAdmin = await page.evaluate(() => document.body.innerText);
+    const homeMenuAdmin = await adminMenuText();
     check(!homeMenuAdmin.includes(`${TAG} Jaipur Cakes`.slice(0, 14)), "switching back hides the other store's menu");
 
     await go("/admin/orders");
@@ -176,8 +183,89 @@ const check = (ok, n, d = "") => {
     const homePack = await page.inputValue('input[name="packagingCharge"]');
     check(Number(homePack) !== 25, "settings follow the switch back", `packaging ${homePack}`);
 
+    /* ---------- admin authoring lands in the selected store ---------- */
+    console.log("\n[5] Authoring through the admin UI");
+    await pickStore(second.name);
+
+    // category, created the way an admin actually creates one
+    await go("/admin/menu/categories/new");
+    await page.fill('input[name="name"]', `${TAG} UI Cat`);
+    await page.getByRole("button", { name: /add category/i }).first().click();
+    await page.waitForTimeout(2500);
+
+    const uiCat = await db.category.findFirst({ where: { name: `${TAG} UI Cat` } });
+    check(uiCat?.storeId === second.id, "a category created in the UI belongs to the selected store",
+      uiCat ? (uiCat.storeId === second.id ? second.name : "wrong store") : "not created");
+
+    if (uiCat) {
+      await go("/admin/menu/products/new");
+      await page.fill('input[name="name"]', `${TAG} UI Cake`);
+      await page.selectOption('select[name="categoryId"]', uiCat.id).catch(() => {});
+      await page.fill('input[name="basePrice"]', "777").catch(() => {});
+      await page.getByRole("button", { name: /add product/i }).first().click();
+      await page.waitForTimeout(3000);
+
+      const uiProduct = await db.product.findFirst({
+        where: { name: `${TAG} UI Cake` },
+        include: { category: true },
+      });
+      check(uiProduct?.category?.storeId === second.id, "a product created in the UI belongs to the selected store",
+        uiProduct ? uiProduct.category.name : "not created");
+
+      if (uiProduct) {
+        // and the customer sees it on that outlet only
+        const onSecond = await go(`/store/${second.slug}/menu/${uiProduct.slug}`);
+        check(onSecond.status() === 200, "the new product is live on its own outlet");
+
+        const homeText = await (async () => {
+          await go(`/store/${home.slug}/menu`);
+          return page.evaluate(() => document.body.innerText);
+        })();
+        check(!homeText.includes(`${TAG} UI Cake`), "it does not appear on the other outlet");
+
+        const catOnHome = await db.category.findFirst({ where: { name: `${TAG} UI Cat`, storeId: home.id } });
+        check(!catOnHome, "the category was not created against the other outlet");
+
+        await db.product.delete({ where: { id: uiProduct.id } });
+      }
+      await db.category.delete({ where: { id: uiCat.id } }).catch(() => {});
+    }
+
+    /* ---------- copying a menu to a new outlet ---------- */
+    console.log("\n[6] Copy menu between outlets");
+    await pickStore(second.name);
+    await go("/admin/menu");
+
+    const beforeCopy = await db.category.count({ where: { storeId: second.id } });
+    const copyForm = await page.$('select[name="fromStoreId"]');
+    check(!!copyForm, "admin offers to copy a menu from another outlet");
+
+    if (copyForm) {
+      await page.selectOption('select[name="fromStoreId"]', { label: `Copy from ${home.name}` });
+      await page.getByRole("button", { name: /copy menu/i }).first().click();
+      await page.waitForTimeout(6000);
+
+      const afterCopy = await db.category.count({ where: { storeId: second.id } });
+      check(afterCopy > beforeCopy, "the menu was copied into this outlet", `${beforeCopy} -> ${afterCopy} categories`);
+
+      const copiedProducts = await db.product.count({ where: { category: { storeId: second.id } } });
+      check(copiedProducts > 0, "copied categories brought their products", `${copiedProducts} products`);
+
+      // running it again must not duplicate
+      await go("/admin/menu");
+      await page.selectOption('select[name="fromStoreId"]', { label: `Copy from ${home.name}` });
+      await page.getByRole("button", { name: /copy menu/i }).first().click();
+      await page.waitForTimeout(6000);
+      const afterSecondCopy = await db.category.count({ where: { storeId: second.id } });
+      check(afterSecondCopy === afterCopy, "copying twice does not duplicate the menu", `${afterCopy} -> ${afterSecondCopy}`);
+
+      // Drop the copied catalogue again; the later sections render this outlet's
+      // menu and a few hundred cakes makes the dev server crawl.
+      await db.category.deleteMany({ where: { storeId: second.id, id: { not: cat.id } } });
+    }
+
     /* ---------- picker on phone and desktop ---------- */
-    console.log("\n[5] Storefront picker");
+    console.log("\n[7] Storefront picker");
     for (const [label, size] of [["desktop", { width: 1440, height: 950 }], ["mobile", { width: 390, height: 844 }]]) {
       const p = await ctx.newPage();
       await p.setViewportSize(size);
@@ -200,20 +288,24 @@ const check = (ok, n, d = "") => {
       check(fits === true, `${label}: picker stays inside the viewport`);
 
       await p.locator(`.v5store__i:has-text("${TAG}")`).first().click();
-      await p.waitForURL(`**/store/${second.slug}/menu`, { timeout: 15000 }).catch(() => {});
-      check(p.url().includes(second.slug), `${label}: choosing a store opens that store`, p.url().replace(BASE, ""));
+      await p.waitForURL(`**/store/${second.slug}/menu`, { timeout: 20000 }).catch(() => {});
 
-      // Land on the destination as a fresh document — the client transition is
-      // not what this assertion is about.
-      await p.goto(p.url(), { waitUntil: "networkidle", timeout: 60000 });
-      await p.waitForFunction(() => document.querySelector(".v5loc b")?.textContent?.trim(), null, { timeout: 15000 }).catch(() => {});
-      await p.waitForFunction(() => document.querySelector(".v5loc b")?.textContent?.trim(), null, { timeout: 15000 }).catch(() => {});
+      // The contract is "this outlet is now active", not a particular URL —
+      // the choice is a cookie that every page reads.
+      await p.waitForFunction(
+        () => document.querySelector(".v5loc b")?.textContent?.trim() === "Jaipur",
+        null,
+        { timeout: 20000 },
+      ).catch(() => {});
       const nowBrand = await p.evaluate(() => document.querySelector(".v5loc b")?.textContent?.trim() || "");
       check(nowBrand === "Jaipur", `${label}: header updates to the chosen store`, nowBrand);
+
+      const cfg = await p.evaluate(async () => (await fetch("/api/store/config")).json());
+      check(cfg?.city === "Jaipur", `${label}: the whole site follows the chosen outlet`, cfg?.city);
       await p.close();
     }
 
-    console.log("\n[6] Console");
+    console.log("\n[8] Console");
     check(errors.length === 0, "zero console errors", errors.slice(0, 2).join(" ; "));
   } finally {
     for (const id of made.orderIds) await db.order.delete({ where: { id } }).catch(() => {});
@@ -221,9 +313,12 @@ const check = (ok, n, d = "") => {
     if (made.productId) await db.product.delete({ where: { id: made.productId } }).catch(() => {});
     if (made.categoryId) await db.category.delete({ where: { id: made.categoryId } }).catch(() => {});
     if (made.storeId) {
+      // cascade clears anything copied into the temporary outlet
       await db.order.deleteMany({ where: { storeId: made.storeId } });
       await db.store.delete({ where: { id: made.storeId } }).catch(() => {});
     }
+    await db.category.deleteMany({ where: { name: { startsWith: TAG } } });
+    await db.product.deleteMany({ where: { name: { startsWith: TAG } } });
     await browser.close();
     await db.$disconnect();
   }

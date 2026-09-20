@@ -4,30 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { useToast } from "@/components/shared/toast";
-import { useConfirm } from "@/components/shared/confirm-dialog";
 
-/** Statuses a customer may still call off themselves. */
-const CANCELLABLE = ["PENDING", "CONFIRMED"];
-
-export function OrderActions({
-  orderId,
-  status,
-  onChanged,
-}: {
-  orderId: string;
-  status: string;
-  onChanged?: () => void;
-}) {
+/**
+ * Reorder is the only self-service action on a past order. Cancelling is
+ * deliberately not offered — once an order is placed the kitchen may already be
+ * working on it, so changes go through the store.
+ */
+export function OrderActions({ orderId }: { orderId: string }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { confirm } = useConfirm();
   const addItem = useCartStore((s) => s.addItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
   const setStoreSlug = useCartStore((s) => s.setStoreSlug);
-  const [busy, setBusy] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const reorder = async () => {
-    setBusy("reorder");
+    setBusy(true);
     try {
       const res = await fetch(`/api/orders/${orderId}/reorder`);
       const data = await res.json();
@@ -54,48 +46,13 @@ export function OrderActions({
     } catch (e) {
       toast(e instanceof Error ? e.message : "Could not reorder", "error");
     } finally {
-      setBusy("");
-    }
-  };
-
-  const cancel = async () => {
-    const ok = await confirm({
-      title: "Cancel this order?",
-      message: "We'll stop preparing it right away. This cannot be undone.",
-      confirmLabel: "Cancel order",
-      cancelLabel: "Keep it",
-      destructive: true,
-    });
-    if (!ok) return;
-
-    setBusy("cancel");
-    try {
-      const res = await fetch(`/api/orders/${orderId}/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason: "" }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error ?? "Could not cancel");
-      toast("Order cancelled");
-      onChanged ? onChanged() : router.refresh();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Could not cancel", "error");
-    } finally {
-      setBusy("");
+      setBusy(false);
     }
   };
 
   return (
-    <>
-      <button type="button" className="btn btn--out btn--sm" disabled={!!busy} onClick={reorder}>
-        {busy === "reorder" ? "Adding…" : "Reorder"}
-      </button>
-      {CANCELLABLE.includes(status) ? (
-        <button type="button" className="btn btn--ghost btn--sm order5__cancel" disabled={!!busy} onClick={cancel}>
-          {busy === "cancel" ? "Cancelling…" : "Cancel order"}
-        </button>
-      ) : null}
-    </>
+    <button type="button" className="btn btn--out btn--sm" disabled={busy} onClick={reorder}>
+      {busy ? "Adding…" : "Reorder"}
+    </button>
   );
 }

@@ -61,10 +61,8 @@ export function SiteHeaderV5({
     <header className="v5hdr">
       <div className="wrap v5hdr__main">
         <Link className="v5brand" href="/">
-          {logo ? (
-            <Image className="v5brand__logo" src={img(logo, 110, 110)} alt="" width={42} height={42} unoptimized />
-          ) : null}
-          {/* The brand is the chain, not the outlet — the outlet lives in the store picker. */}
+          {/* The mark belongs to the chain, so outlets without their own still show it. */}
+          <Image className="v5brand__logo" src={img(logo || "/uploads/branding/logo.png", 110, 110)} alt="" width={42} height={42} unoptimized />
           <span className="v5brand__n">Bliss Bakery</span>
         </Link>
 
