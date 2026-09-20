@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
 import { customPrice, parseWeightKg, DEFAULT_BASE_500G, type FlavourPrice } from "@/lib/pricing";
+import { checkDelivery } from "@/lib/deliverability";
 import { z } from "zod";
 
 const sanitize = (s: string | undefined | null) => s?.replace(/<[^>]*>/g, "").trim() || null;
@@ -25,8 +26,7 @@ const schema = z.object({
   })).min(1, "At least one item is required"),
   specialInstructions: z.string().max(500).optional(),
   promoCode: z.string().max(20).optional(),
-  deliveryAddress: z.string().max(500).optional(),
-  deliveryFee: z.number().min(0).max(500).optional(),
+  addressId: z.string().optional(),
   deliveryDate: z.string().optional(),
   deliverySlot: z.string().max(30).optional(),
 });
@@ -45,17 +45,29 @@ export async function POST(req: NextRequest) {
     if (!store) {
       return NextResponse.json({ success: false, message: "Store not found" }, { status: 404 });
     }
+    if (!store.isOpen) {
+      return NextResponse.json({ success: false, message: `${store.name} isn't taking orders right now` }, { status: 400 });
+    }
 
     // Calculate totals — SERVER-SIDE price lookup (never trust client prices)
     let itemTotal = 0;
     const verifiedItems = [];
+    // The shelf is per-outlet, so load it once rather than per item.
+    const storeAddOns = await db.storeAddOn.findMany({ where: { storeId: store.id, isActive: true } });
     for (const item of data.items) {
       const product = await db.product.findUnique({
         where: { id: item.productId },
-        include: { variants: true, addOns: true },
+        include: { variants: true, addOns: true, category: { select: { storeId: true } } },
       });
       if (!product || !product.isAvailable) {
         return NextResponse.json({ success: false, message: `Product "${item.name}" is not available` }, { status: 400 });
+      }
+      // Each outlet has its own copy of the menu; an order must not mix them.
+      if (product.category.storeId !== store.id) {
+        return NextResponse.json(
+          { success: false, message: `"${product.name}" isn't sold at ${store.name}. Empty your basket and pick it again.` },
+          { status: 400 },
+        );
       }
       // Determine correct price from DB
       let serverPrice = product.basePrice;
@@ -77,7 +89,6 @@ export async function POST(req: NextRequest) {
         return { name: clientAddon.name, price: dbAddon ? dbAddon.price : 0 };
       });
       // Also check store-level add-ons
-      const storeAddOns = await db.storeAddOn.findMany({ where: { storeId: store.id, isActive: true } });
       const allVerifiedAddOns = verifiedAddOns.map(a => {
         if (a.price === 0) {
           const storeAddon = storeAddOns.find(sa => sa.name === a.name);
@@ -91,9 +102,44 @@ export async function POST(req: NextRequest) {
     }
 
     const packagingCharge = store.packagingCharge ?? 15;
-    // Use client-provided delivery fee (from distance calculation), fall back to store default
-    const deliveryCharge = data.orderType === "DELIVERY" ? (data.deliveryFee ?? store.deliveryCharge ?? 30) : 0;
     const gstRate = store.gstRate ?? 0;
+
+    // Delivery: the address, the reachability and the fee are all decided here.
+    // The browser only says which saved address it means.
+    let deliveryCharge = 0;
+    let deliveryAddress: string | null = null;
+
+    if (data.orderType === "DELIVERY") {
+      if (!data.addressId) {
+        return NextResponse.json({ success: false, message: "Choose a delivery address" }, { status: 400 });
+      }
+      const address = await db.address.findFirst({
+        where: { id: data.addressId, userId: session.userId },
+      });
+      if (!address) {
+        return NextResponse.json({ success: false, message: "That address is no longer saved" }, { status: 400 });
+      }
+
+      const verdict = checkDelivery(store, address);
+      if (!verdict.deliverable) {
+        return NextResponse.json({ success: false, message: verdict.reason ?? "We can't deliver there" }, { status: 400 });
+      }
+      deliveryCharge = verdict.fee;
+
+      const minOrder = store.minDeliveryOrder ?? 0;
+      if (minOrder > 0 && itemTotal < minOrder) {
+        return NextResponse.json(
+          { success: false, message: `Delivery orders start at ₹${minOrder}. Add ₹${Math.ceil(minOrder - itemTotal)} more.` },
+          { status: 400 },
+        );
+      }
+
+      // Snapshot the text: the customer may edit or delete this address later,
+      // but the order must keep saying where it actually went.
+      deliveryAddress = [address.houseNo, address.fullAddress, address.landmark, address.city, address.pincode]
+        .filter(Boolean)
+        .join(", ");
+    }
 
     // Apply promo discount
     let discount = 0;
@@ -125,7 +171,7 @@ export async function POST(req: NextRequest) {
         userId: session.userId,
         storeId: store.id,
         orderType: data.orderType,
-        deliveryAddress: sanitize(data.deliveryAddress),
+        deliveryAddress,
         deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
         deliverySlot: data.deliverySlot || null,
         specialInstructions: sanitize(data.specialInstructions),

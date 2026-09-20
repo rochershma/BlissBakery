@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { formatStoreAddress } from "@/lib/utils";
 
 const PAGE = 20;
 
@@ -20,6 +21,7 @@ export async function GET(req: NextRequest) {
       skip,
       take: PAGE + 1,
       include: {
+        store: { select: { name: true, phone: true, address: true, city: true, state: true, pincode: true } },
         items: {
           include: {
             product: {
@@ -56,6 +58,11 @@ export async function GET(req: NextRequest) {
           grandTotal: o.grandTotal,
           specialInstructions: o.specialInstructions,
           deliveryAddress: o.deliveryAddress,
+          deliverySlot: o.deliverySlot,
+          deliveryDate: o.deliveryDate ? o.deliveryDate.toISOString() : null,
+          storeName: o.store?.name ?? null,
+          storeAddress: formatStoreAddress(o.store),
+          storePhone: o.store?.phone ?? null,
           promoCode: o.promoCode,
           createdAt: o.createdAt.toISOString(),
           items: o.items.map((i) => ({

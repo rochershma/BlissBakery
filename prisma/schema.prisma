@@ -167,6 +167,9 @@ model User {
 model Address {
   id          String   @id @default(cuid())
   label       String?
+  /// flat / house / building, typed by the customer
+  houseNo     String?
+  /// the area as Google returned it, or as typed when Places was unavailable
   fullAddress String   @db.Text
   landmark    String?
   city        String?
@@ -174,6 +177,8 @@ model Address {
   pincode     String
   latitude    Float?
   longitude   Float?
+  /// Google place id, so a saved address can be re-resolved later
+  placeId     String?
   isDefault   Boolean  @default(false)
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -11,10 +11,11 @@ import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
+import { AddressForm, type SavedAddress } from "@/components/v5/address-form";
 import { DEFAULT_SLOTS, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
-import { IconChevL, IconPlus, IconCake, IconUser } from "@/components/v5/icons";
+import { IconChevL, IconPlus, IconCake, IconUser, IconPin } from "@/components/v5/icons";
 
-type Address = { id: string; label: string | null; fullAddress: string; landmark: string | null; pincode: string };
+type Verdict = { deliverable: boolean; fee: number; distanceKm: number | null; reason: string | null };
 
 /** Next 7 delivery days, rendered as chips instead of a native date field. */
 const DAYS = Array.from({ length: 7 }, (_, n) => {
@@ -35,13 +36,13 @@ export default function CheckoutPage() {
 
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
-  const storeSlug = useCartStore((s) => s.storeSlug) ?? "kuchaman-city";
+  const cartSlug = useCartStore((s) => s.storeSlug);
 
   const [hydrated, setHydrated] = useState(false);
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [addrId, setAddrId] = useState("");
+  const [checks, setChecks] = useState<Record<string, Verdict>>({});
   const [newAddr, setNewAddr] = useState(false);
-  const [form, setForm] = useState({ line1: "", line2: "", landmark: "", label: "Home", pincode: "" });
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [slot, setSlot] = useState("");
@@ -50,6 +51,11 @@ export default function CheckoutPage() {
   const [picked, setPicked] = useState<Record<string, number>>({});
   const [charges, setCharges] = useState({ packaging: 10, delivery: 30, gstRate: 0, minOrder: 0 });
   const [area, setArea] = useState({ city: "", pincodes: [] as string[] });
+  const [outlet, setOutlet] = useState({ name: "", slug: "", address: "", phone: "" });
+  // The outlet the server resolved from the cookie is the one that bakes this
+  // order — the cart only remembers where the basket was filled.
+  const storeSlug = outlet.slug || cartSlug || "";
+  const staleBasket = Boolean(outlet.slug && cartSlug && cartSlug !== outlet.slug && items.length > 0);
   const [slotCfg, setSlotCfg] = useState<{ slots: DeliverySlot[]; leadHours: number; maxQty: number }>({
     slots: DEFAULT_SLOTS,
     leadHours: 4,
@@ -86,7 +92,7 @@ export default function CheckoutPage() {
           ? d.servicePincodes
           : [d.pincode].filter(Boolean);
         setArea({ city: d.city ?? "", pincodes });
-        setForm((f) => ({ ...f, pincode: f.pincode || pincodes[0] || "" }));
+        setOutlet({ name: d.name ?? "", slug: d.slug ?? "", address: d.address ?? "", phone: d.phone ?? "" });
       }
       if (Array.isArray(d?.addOns)) setAddOns(d.addOns);
     }).catch(() => toast("Couldn't load delivery charges — please refresh", "error"));
@@ -95,10 +101,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!user) return;
     fetch("/api/addresses").then((r) => r.json()).then((d) => {
-      const list: Address[] = d?.addresses ?? [];
+      const list: SavedAddress[] = d?.addresses ?? [];
       setAddresses(list);
-      if (list[0]) setAddrId(list[0].id);
-      else setNewAddr(true);
+      if (list.length === 0) setNewAddr(true);
     }).catch(() => setNewAddr(true));
     fetch(`/api/promo/list?store=${encodeURIComponent(storeSlug)}`).then((r) => r.json()).then((d) => {
       // only tagged offers are promoted as one-tap chips
@@ -111,7 +116,33 @@ export default function CheckoutPage() {
   const addOnTotal = useMemo(
     () => Object.entries(picked).reduce((s, [id, q]) => s + (addOns.find((a) => a.id === id)?.price ?? 0) * q, 0),
     [picked, addOns]);
-  const delivery = orderType === "PICKUP" ? 0 : charges.delivery;
+  // Whether this outlet reaches each saved address, and what it charges. Asked
+  // again on every render of the list because the answer changes with the outlet.
+  useEffect(() => {
+    if (addresses.length === 0) return;
+    let live = true;
+    Promise.all(
+      addresses.map((a) =>
+        fetch(`/api/delivery/check?addressId=${a.id}`)
+          .then((r) => r.json())
+          .then((v) => [a.id, v as Verdict] as const)
+          .catch(() => [a.id, { deliverable: false, fee: 0, distanceKm: null, reason: "Couldn't check this address" }] as const),
+      ),
+    ).then((pairs) => { if (live) setChecks(Object.fromEntries(pairs)); });
+    return () => { live = false; };
+  }, [addresses]);
+
+  // Never leave an unreachable address selected — that order would be rejected.
+  useEffect(() => {
+    if (Object.keys(checks).length === 0) return;
+    const stillGood = addrId && checks[addrId]?.deliverable;
+    if (stillGood) return;
+    const first = addresses.find((a) => checks[a.id]?.deliverable);
+    setAddrId(first?.id ?? "");
+  }, [checks, addresses, addrId]);
+
+  const verdict = addrId ? checks[addrId] : null;
+  const delivery = orderType === "PICKUP" ? 0 : verdict?.fee ?? charges.delivery;
   // A cart edit can invalidate a minimum-order promo, so it only counts
   // while the subtotal it was priced against still holds.
   const activePromo = promo && promo.basis === subtotal ? promo : null;
@@ -177,39 +208,13 @@ export default function CheckoutPage() {
   const placeOrder = async () => {
     if (!user) { setShowLoginModal(true); return; }
     if (items.length === 0) { toast("Your cart is empty", "error"); return; }
-    if (orderType === "DELIVERY" && !addrId && !newAddr) { toast("Choose a delivery address", "error"); return; }
+    if (orderType === "DELIVERY" && !addrId) { toast("Choose a delivery address", "error"); return; }
+    if (orderType === "DELIVERY" && verdict && !verdict.deliverable) { toast(verdict.reason ?? "We can't deliver there", "error"); return; }
     if (shortBy > 0) { toast(`Add ${formatPrice(shortBy)} more to meet the ${formatPrice(charges.minOrder)} delivery minimum`, "error"); return; }
     if (!slot) { toast("Pick a delivery slot", "error"); return; }
 
     setPlacing(true);
     try {
-      let deliveryAddress = "";
-      if (orderType === "DELIVERY") {
-        if (newAddr) {
-          if (!form.line1.trim()) { toast("Enter your address", "error"); setPlacing(false); return; }
-          const where = [area.city, form.pincode].filter(Boolean).join(" ");
-          deliveryAddress = [form.line1, form.line2, form.landmark, where]
-            .filter(Boolean).join(", ");
-          // persist for next time; failure here must not block the order
-          fetch("/api/addresses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              label: form.label,
-              fullAddress: [form.line1, form.line2].filter(Boolean).join(", "),
-              landmark: form.landmark || null,
-              pincode: form.pincode,
-              city: area.city,
-              state: "Rajasthan",
-            }),
-          }).catch(() => {});
-        } else {
-          const a = addresses.find((x) => x.id === addrId);
-          if (!a) { toast("Choose a delivery address", "error"); setPlacing(false); return; }
-          deliveryAddress = [a.fullAddress, a.landmark, a.pincode].filter(Boolean).join(", ");
-        }
-      }
-
       // checkout add-ons ride along on the first line item
       const extras = Object.entries(picked).flatMap(([id, q]) => {
         const a = addOns.find((x) => x.id === id);
@@ -222,8 +227,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           storeSlug,
           orderType,
-          deliveryAddress: deliveryAddress || undefined,
-          deliveryFee: delivery,
+          addressId: orderType === "DELIVERY" ? addrId : undefined,
           deliveryDate: date,
           deliverySlot: slot,
           promoCode: activePromo?.code,
@@ -241,7 +245,7 @@ export default function CheckoutPage() {
         }),
       });
       const d = await res.json();
-      if (!res.ok) throw new Error(d?.error ?? "Could not place the order");
+      if (!res.ok) throw new Error(d?.message ?? d?.error ?? "Could not place the order");
       clearCart();
       const id = d.order?.id ?? d.orderId ?? d.id ?? "";
       router.push(id ? `/order/${id}` : "/orders");
@@ -307,6 +311,16 @@ export default function CheckoutPage() {
 
       <div className="wrap co5">
         <div>
+          {staleBasket ? (
+            <div className="co5__stale">
+              <b>Your basket was filled at a different outlet.</b>
+              <p>You&apos;re now ordering from {outlet.name}, which bakes its own menu. Start a fresh basket to continue.</p>
+              <button type="button" className="btn btn--rose btn--sm" onClick={() => { clearCart(); router.push("/"); }}>
+                Empty basket &amp; browse {outlet.name}
+              </button>
+            </div>
+          ) : null}
+
           <div className="opt-block">
             <h4>Deliver or pick up?</h4>
             <div style={{ display: "flex", gap: 8 }}>
@@ -315,24 +329,42 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {orderType === "DELIVERY" && (
+          {orderType === "DELIVERY" ? (
             <div className="opt-block">
               <h4>Delivery address</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {addresses.map((a) => (
-                  <button type="button" key={a.id} className={`addr5${addrId === a.id && !newAddr ? " is-on" : ""}`}
-                    onClick={() => { setAddrId(a.id); setNewAddr(false); }}>
-                    <input type="radio" readOnly checked={addrId === a.id && !newAddr} tabIndex={-1} />
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                        <span className="addr5__tag">{a.label || "Address"}</span>
-                        {addrId === a.id && !newAddr ? <span className="badge badge--save">Delivering here</span> : null}
+                {addresses.map((a) => {
+                  const check = checks[a.id];
+                  const blocked = check ? !check.deliverable : false;
+                  return (
+                    <button
+                      type="button"
+                      key={a.id}
+                      className={`addr5${addrId === a.id && !newAddr ? " is-on" : ""}${blocked ? " is-off" : ""}`}
+                      disabled={blocked}
+                      onClick={() => { setAddrId(a.id); setNewAddr(false); }}
+                    >
+                      <input type="radio" readOnly checked={addrId === a.id && !newAddr} tabIndex={-1} />
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                          <span className="addr5__tag">{a.label || "Address"}</span>
+                          {addrId === a.id && !newAddr ? <span className="badge badge--save">Delivering here</span> : null}
+                        </span>
+                        <b style={{ fontSize: 14.5, display: "block", lineHeight: 1.35 }}>
+                          {[a.houseNo, a.fullAddress].filter(Boolean).join(", ")}
+                        </b>
+                        <span className="t-small">{a.landmark ? `${a.landmark} · ` : ""}{a.pincode}</span>
+                        {check ? (
+                          <span className={`addr5__chk${blocked ? " is-bad" : ""}`}>
+                            {blocked
+                              ? check.reason
+                              : `${check.distanceKm != null ? `${check.distanceKm.toFixed(1)} km · ` : ""}${check.fee > 0 ? `${formatPrice(check.fee)} delivery` : "Free delivery"}`}
+                          </span>
+                        ) : null}
                       </span>
-                      <b style={{ fontSize: 14.5, display: "block", lineHeight: 1.35 }}>{a.fullAddress}</b>
-                      <span className="t-small">{a.landmark ? `${a.landmark} · ` : ""}{a.pincode}</span>
-                    </span>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
 
                 {!newAddr ? (
                   <button type="button" className="addr5 addr5__new" onClick={() => setNewAddr(true)}>
@@ -340,28 +372,30 @@ export default function CheckoutPage() {
                   </button>
                 ) : (
                   <div style={{ borderTop: addresses.length ? "1px dashed var(--line-2)" : "none", paddingTop: addresses.length ? 14 : 0 }}>
-                    <div className="co5__grid">
-                      <input className="input" placeholder="Flat / house no." value={form.line1} onChange={(e) => setForm({ ...form, line1: e.target.value })} />
-                      <input className="input" placeholder="Street / area" value={form.line2} onChange={(e) => setForm({ ...form, line2: e.target.value })} />
-                      <input className="input" placeholder="Landmark (optional)" value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} />
-                      {area.pincodes.length > 1 ? (
-                      <select className="select" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} aria-label="Delivery pincode">
-                        {area.pincodes.map((p) => <option key={p} value={p}>{area.city} {p}</option>)}
-                      </select>
-                    ) : (
-                      <input className="input" value={`${area.city} ${form.pincode}`.trim()} disabled />
-                    )}
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                      {["Home", "Work", "Other"].map((l) => (
-                        <button type="button" key={l} className="chip chip--sm" aria-pressed={form.label === l} onClick={() => setForm({ ...form, label: l })}>{l}</button>
-                      ))}
-                    </div>
-                    {addresses.length > 0 ? (
-                      <button type="button" className="btn btn--out btn--sm" style={{ marginTop: 12 }} onClick={() => setNewAddr(false)}>Cancel</button>
-                    ) : null}
+                    <AddressForm
+                      fallbackCity={area.city}
+                      fallbackPincodes={area.pincodes}
+                      onCancel={() => setNewAddr(false)}
+                      onSaved={(saved) => {
+                        setAddresses((list) => [saved, ...list]);
+                        setAddrId(saved.id);
+                        setNewAddr(false);
+                      }}
+                    />
                   </div>
                 )}
+              </div>
+            </div>
+          ) : (
+            <div className="opt-block">
+              <h4>Pick up from</h4>
+              <div className="co5__pickup">
+                <IconPin />
+                <span>
+                  <b>{outlet.name || area.city}</b>
+                  {outlet.address ? <small>{outlet.address}</small> : null}
+                  {outlet.phone ? <a href={`tel:+91${outlet.phone}`}>+91 {outlet.phone}</a> : null}
+                </span>
               </div>
             </div>
           )}

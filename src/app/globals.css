@@ -693,6 +693,58 @@ h4 { font-weight: 700; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v5store__i > svg { width: 17px; height: 17px; stroke: var(--rose); flex: none; }
 
+/* Confirmation shown before a switch empties the basket. */
+.v5swap { position: fixed; z-index: 82; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(400px, calc(100vw - 32px)); padding: 20px; background: var(--paper);
+  border-radius: var(--r-lg); box-shadow: var(--sh-3); animation: aoin .2s var(--ease); }
+.v5swap h3 { font-family: var(--font-serif); font-size: 19px; font-weight: 700; }
+.v5swap p { margin-top: 8px; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.v5swap__acts { display: flex; gap: 10px; margin-top: 18px; }
+.v5swap__acts .btn { flex: 1; justify-content: center; }
+
+/* Address capture: search first, then the flat number. */
+.addrf__lbl { display: block; font-size: 12.5px; font-weight: 650; margin-bottom: 6px; }
+.addrf__search { position: relative; }
+.addrf__search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; stroke: var(--ink-3); pointer-events: none; }
+.addrf__search .input { padding-left: 36px; }
+.addrf__gps { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 8px 12px;
+  border: 1px dashed var(--rose); border-radius: var(--r-sm); background: var(--rose-50);
+  color: var(--rose); font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
+.addrf__gps svg { width: 14px; height: 14px; stroke: currentColor; }
+.addrf__gps:disabled { opacity: .6; cursor: default; }
+.addrf__hint { margin-top: 10px; color: var(--ink-3); }
+.addrf__list { list-style: none; margin-top: 10px; border: 1px solid var(--line); border-radius: var(--r-md);
+  overflow: hidden; }
+.addrf__list li + li { border-top: 1px solid var(--line); }
+.addrf__list button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px;
+  border: 0; background: var(--paper); text-align: left; font: inherit; cursor: pointer; }
+.addrf__list button:hover { background: var(--cream); }
+.addrf__list svg { width: 15px; height: 15px; stroke: var(--rose); flex: none; }
+.addrf__list span { flex: 1; min-width: 0; }
+.addrf__list b { display: block; font-size: 13.5px; font-weight: 650; }
+.addrf__list small { display: block; font-size: 11.5px; color: var(--ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.addrf__list em { font-style: normal; font-size: 11px; color: var(--ink-3); flex: none; }
+.addrf__manual { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px;
+  padding-top: 12px; border-top: 1px dashed var(--line-2); }
+.addrf__manualLink { display: inline-block; margin-top: 12px; border: 0; background: none; padding: 0;
+  font: inherit; font-size: 12.5px; font-weight: 650; color: var(--rose); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; }
+.addrf__manual p { width: 100%; margin: 0; }
+.addrf__manual .input, .addrf__manual .select { flex: 1; min-width: 150px; }
+.addrf__picked { display: flex; align-items: flex-start; gap: 10px; padding: 12px;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--cream); }
+.addrf__picked svg { width: 16px; height: 16px; stroke: var(--rose); flex: none; margin-top: 2px; }
+.addrf__picked span { flex: 1; min-width: 0; }
+.addrf__picked b { display: block; font-size: 13.5px; font-weight: 650; line-height: 1.4; }
+.addrf__picked small { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+.addrf__picked > button { border: 0; background: none; font: inherit; font-size: 12px; font-weight: 650;
+  color: var(--rose); cursor: pointer; flex: none; }
+.addrf__verdict { margin-top: 10px; font-size: 12.5px; font-weight: 600; color: var(--ok, #1f7a4d); }
+.addrf__verdict.is-bad { color: var(--err, #b3261e); }
+.addrf__err { margin-top: 10px; font-size: 12.5px; color: var(--err, #b3261e); }
+
 .v5menu { position: relative; }
 .v5menu__pop { position: absolute; right: 0; top: calc(100% + 8px); min-width: 210px; background: var(--paper);
   border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: var(--sh-3); padding: 6px; z-index: 60;
@@ -895,6 +947,9 @@ h4 { font-weight: 700; }
   background: var(--paper); align-items: flex-start; text-align: left; width: 100%; }
 .addr5:hover { border-color: var(--rose-300); }
 .addr5.is-on { border-color: var(--rose); background: var(--rose-50); }
+.addr5.is-off { opacity: .55; cursor: not-allowed; }
+.addr5__chk { display: block; margin-top: 5px; font-size: 11.5px; font-weight: 600; color: var(--ok, #1f7a4d); }
+.addr5__chk.is-bad { color: var(--err, #b3261e); }
 .addr5 input { width: 18px; height: 18px; accent-color: var(--rose); margin-top: 2px; flex: none; }
 .addr5__tag { display: inline-flex; align-items: center; height: 21px; padding: 0 9px; border-radius: var(--r-pill);
   background: var(--cream); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
@@ -951,6 +1006,21 @@ h4 { font-weight: 700; }
 .order5__row .t-small { font-size: 12.5px; display: block; }
 .order5__ft { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px;
   border-top: 1px solid var(--line); background: var(--bone); flex-wrap: wrap; }
+.order5__where { display: flex; gap: 9px; padding: 11px 16px; border-top: 1px dashed var(--line-2);
+  font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.order5__where svg { width: 15px; height: 15px; stroke: var(--rose); flex: none; margin-top: 2px; }
+.order5__where em { display: block; font-style: normal; font-weight: 650; color: var(--ink); }
+
+.co5__pickup { display: flex; gap: 10px; padding: 14px; border: 1px solid var(--line);
+  border-radius: var(--r-md); background: var(--cream); }
+.co5__pickup svg { width: 16px; height: 16px; stroke: var(--rose); flex: none; margin-top: 2px; }
+.co5__pickup b { display: block; font-size: 14px; font-weight: 700; }
+.co5__pickup small { display: block; font-size: 12.5px; color: var(--ink-2); margin-top: 3px; line-height: 1.45; }
+.co5__pickup a { display: inline-block; margin-top: 6px; font-size: 12.5px; font-weight: 650; color: var(--rose); }
+.co5__stale { padding: 16px; margin-bottom: 16px; border: 1.5px solid var(--rose); border-radius: var(--r-md);
+  background: var(--rose-50); }
+.co5__stale b { display: block; font-size: 14px; }
+.co5__stale p { margin: 6px 0 12px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 
 .addr5__grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
 @media (min-width: 700px) { .addr5__grid { grid-template-columns: 1fr 1fr; } }

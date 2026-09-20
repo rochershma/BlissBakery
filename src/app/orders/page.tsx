@@ -8,11 +8,11 @@ import { AccountShell } from "@/components/v5/account-shell";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
-import { IconBag, IconCake } from "@/components/v5/icons";
+import { IconBag, IconCake, IconPin } from "@/components/v5/icons";
 import { OrderActions } from "@/components/v5/order-actions";
 
 type OrderItem = { id: string; productName: string; variantName: string | null; flavour: string | null; quantity: number; totalPrice: number; cakeMessage: string | null; image?: string | null; slug?: string | null };
-type Order = { id: string; orderNumber: string; status: string; paymentStatus: string; grandTotal: number; createdAt: string; deliveryDate: string | null; deliverySlot: string | null; items: OrderItem[] };
+type Order = { id: string; orderNumber: string; status: string; orderType: string; paymentStatus: string; grandTotal: number; createdAt: string; deliveryDate: string | null; deliverySlot: string | null; deliveryAddress: string | null; storeName: string | null; storeAddress: string | null; items: OrderItem[] };
 
 const LABEL: Record<string, string> = {
   PENDING: "Order placed", CONFIRMED: "Confirmed", PREPARING: "Preparing",
@@ -124,6 +124,21 @@ export default function OrdersPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="order5__where">
+                <IconPin />
+                {o.orderType === "PICKUP" ? (
+                  <span>
+                    <em>Pick up from</em>
+                    {[o.storeName, o.storeAddress].filter(Boolean).join(" · ")}
+                  </span>
+                ) : (
+                  <span>
+                    <em>Delivering to</em>
+                    {o.deliveryAddress || "Address not recorded"}
+                  </span>
+                )}
               </div>
 
               <div className="order5__ft">

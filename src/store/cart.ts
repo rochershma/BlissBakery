@@ -122,15 +122,13 @@ export const useCartStore = create<CartState>()(
 
       setStoreSlug: (slug) => {
         const current = get().storeSlug;
+        // A basket cannot move between outlets — they have separate menus and
+        // prices. The UI asks first; this is the backstop.
         if (current && current !== slug && get().items.length > 0) {
-          // Different store with items — warn user (handled in UI)
-          if (typeof window !== "undefined" && !window.confirm("Switching stores will clear your cart. Continue?")) {
-            return;
-          }
           set({ items: [], storeSlug: slug, specialInstructions: "" });
-        } else {
-          set({ storeSlug: slug });
+          return;
         }
+        set({ storeSlug: slug });
       },
 
       setOrderType: (type) => set({ orderType: type }),

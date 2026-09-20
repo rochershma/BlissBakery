@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getCustomerStoreId } from "@/lib/customer-store";
+import { checkDelivery } from "@/lib/deliverability";
 
 const sanitize = (s: string | undefined) => s?.replace(/<[^>]*>/g, "").trim() || null;
 
 type AddressInput = {
   label?: string;
+  houseNo?: string;
   fullAddress?: string;
   landmark?: string;
   city?: string;
@@ -14,11 +16,12 @@ type AddressInput = {
   pincode?: string;
   latitude?: unknown;
   longitude?: unknown;
+  placeId?: string;
 };
 
 /**
- * Validates the shared address fields and, for delivery, that the pincode is one
- * the chosen outlet actually serves — the UI warns, but the API is what decides.
+ * Validates the shared address fields and, for delivery, that the chosen outlet
+ * actually reaches it — the UI warns, but the API is what decides.
  */
 async function validate(body: AddressInput) {
   const { fullAddress, pincode } = body;
@@ -30,35 +33,35 @@ async function validate(body: AddressInput) {
     return { error: "Enter a valid 6-digit pincode" };
   }
 
+  const latitude = typeof body.latitude === "number" ? body.latitude : null;
+  const longitude = typeof body.longitude === "number" ? body.longitude : null;
+
   const store = await db.store.findFirst({
     where: { id: await getCustomerStoreId() },
-    select: { pincode: true, city: true, servicePincodes: true },
+    select: {
+      name: true, city: true, pincode: true, servicePincodes: true,
+      latitude: true, longitude: true, deliveryRadius: true,
+      deliveryCharge: true, deliveryTiers: true,
+    },
   });
 
   if (store) {
-    const extra = (store.servicePincodes ?? "")
-      .split(",")
-      .map((p) => p.trim())
-      .filter(Boolean);
-    const served = new Set([store.pincode, ...extra].filter(Boolean));
-
-    if (served.size > 0 && !served.has(pincode.trim())) {
-      return {
-        error: `We don't deliver to ${pincode.trim()} yet. ${store.city ?? "This outlet"} serves ${[...served].join(", ")}.`,
-      };
-    }
+    const verdict = checkDelivery(store, { pincode: pincode.trim(), latitude, longitude });
+    if (!verdict.deliverable) return { error: verdict.reason ?? "We don't deliver there yet" };
   }
 
   return {
     data: {
       label: sanitize(body.label) || "Home",
+      houseNo: sanitize(body.houseNo),
       fullAddress: sanitize(body.fullAddress)!,
       landmark: sanitize(body.landmark),
       city: sanitize(body.city),
       state: sanitize(body.state),
       pincode: pincode.trim(),
-      latitude: typeof body.latitude === "number" ? body.latitude : null,
-      longitude: typeof body.longitude === "number" ? body.longitude : null,
+      latitude,
+      longitude,
+      placeId: sanitize(body.placeId),
     },
   };
 }

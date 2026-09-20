@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useCartStore } from "@/store/cart";
+import { useToast } from "@/components/shared/toast";
 import { IconPin, IconChevD, IconCheck } from "./icons";
 
 type StoreOption = {
@@ -27,8 +29,14 @@ export function StorePicker({
   pincode: string;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState<StoreOption[] | null>(null);
+  const [confirming, setConfirming] = useState<StoreOption | null>(null);
+  const items = useCartStore((s) => s.items);
+  const clearCart = useCartStore((s) => s.clearCart);
+  const setCartStore = useCartStore((s) => s.setStoreSlug);
 
   useEffect(() => {
     if (!open || stores) return;
@@ -51,20 +59,31 @@ export function StorePicker({
     };
   }, [open]);
 
-  const choose = async (slug: string) => {
-    setOpen(false);
-    if (slug === storeSlug) return;
-
+  const switchTo = async (store: StoreOption) => {
     // Persist before navigating: pages outside /store/[slug] read the cookie,
     // so without this the choice is lost on the next refresh.
     await fetch("/api/stores/select", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
+      body: JSON.stringify({ slug: store.slug }),
     }).catch(() => {});
 
-    router.push(`/store/${slug}/menu`);
+    clearCart();
+    setCartStore(store.slug);
+
+    // Stay on the same kind of page where there is an equivalent, otherwise go
+    // home — a product or category from the old outlet won't exist here.
+    router.push(pathname.startsWith("/store/") ? `/store/${store.slug}/menu` : "/");
     router.refresh();
+    toast(`Now ordering from ${store.name}`);
+  };
+
+  const choose = (store: StoreOption) => {
+    setOpen(false);
+    if (store.slug === storeSlug) return;
+    // Prices and the menu itself differ per outlet, so a basket cannot move.
+    if (items.length > 0) { setConfirming(store); return; }
+    void switchTo(store);
   };
 
   return (
@@ -108,7 +127,7 @@ export function StorePicker({
                       key={s.id}
                       className="v5store__i"
                       aria-current={current}
-                      onClick={() => choose(s.slug)}
+                      onClick={() => choose(s)}
                     >
                       <span className="v5store__ic"><IconPin /></span>
                       <span className="v5store__tx">
@@ -120,6 +139,32 @@ export function StorePicker({
                   );
                 })
               )}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {confirming ? (
+        <>
+          <div className="v5store__bg" onClick={() => setConfirming(null)} />
+          <div className="v5swap" role="alertdialog" aria-labelledby="v5swap-t">
+            <h3 id="v5swap-t">Switch to {confirming.name}?</h3>
+            <p>
+              Your basket has {items.reduce((n, i) => n + i.quantity, 0)} item
+              {items.reduce((n, i) => n + i.quantity, 0) === 1 ? "" : "s"} from {storeCity}. Each outlet bakes
+              its own menu at its own prices, so we&apos;ll empty the basket before you carry on.
+            </p>
+            <div className="v5swap__acts">
+              <button type="button" className="btn btn--out btn--sm" onClick={() => setConfirming(null)}>
+                Stay at {storeCity}
+              </button>
+              <button
+                type="button"
+                className="btn btn--rose btn--sm"
+                onClick={() => { const s = confirming; setConfirming(null); void switchTo(s); }}
+              >
+                Switch &amp; clear basket
+              </button>
             </div>
           </div>
         </>

@@ -151,11 +151,25 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           {order.discount ? <div className="sline" style={{ color: "var(--green)" }}><span>Discount</span><b style={{ color: "var(--green)" }}>−{formatPrice(order.discount)}</b></div> : null}
           <div className="sline sline--tot"><span>{order.paymentStatus === "PAID" ? "Paid" : "To pay"}</span><b>{formatPrice(order.grandTotal)}</b></div>
 
-          {order.deliveryAddress ? (
-            <p className="t-small" style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
-              <b style={{ color: "var(--ink)" }}>Delivering to</b><br />{order.deliveryAddress}
+          <p className="t-small" style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
+            {order.orderType === "PICKUP" ? (
+              <>
+                <b style={{ color: "var(--ink)" }}>Pick up from</b><br />
+                {store.name}<br />{formatStoreAddress(store)}
+              </>
+            ) : (
+              <>
+                <b style={{ color: "var(--ink)" }}>Delivering to</b><br />
+                {order.deliveryAddress || "Address not recorded"}
+              </>
+            )}
+          </p>
+
+          {order.orderType === "PICKUP" ? null : (
+            <p className="t-small" style={{ marginTop: 10 }}>
+              <b style={{ color: "var(--ink)" }}>Baked at</b><br />{store.name}
             </p>
-          ) : null}
+          )}
 
           <div className="order5__acts">
             <OrderActions orderId={order.id} />

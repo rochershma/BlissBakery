@@ -123,15 +123,26 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
     });
     check(/GST \(5%\)/.test(quoted.gstLine), "GST line shown when enabled", quoted.gstLine.trim());
 
-    // the quoted total must equal what /api/orders/create would charge
+    // the quoted total must equal what /api/orders/create would charge.
+    // The server now resolves the address itself, so hand it a saved one.
+    const testUser = await db.user.findFirst({ where: { phone: "9602831559" } });
+    const testAddress = await db.address.create({
+      data: {
+        userId: testUser.id,
+        label: "Config suite",
+        houseNo: "1",
+        fullAddress: "Test address for config suite",
+        city: "Kuchaman City",
+        pincode: "341508",
+      },
+    });
     const placed = await api("/api/orders/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         storeSlug: "kuchaman-city",
         orderType: "DELIVERY",
-        deliveryAddress: "Test address for config suite, Kuchaman City 341508",
-        deliveryFee: (await api("/api/store/config")).body.deliveryCharge,
+        addressId: testAddress.id,
         items: [{
           productId: product.id,
           name: product.name,
@@ -143,8 +154,9 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
     });
     const charged = placed.body?.order?.grandTotal ?? placed.body?.grandTotal;
     check(Math.abs(money(quoted.total) - Number(charged)) < 1, "quoted total matches server charge",
-      `quoted ${money(quoted.total)} vs charged ${charged}`);
+      `quoted ${money(quoted.total)} vs charged ${charged} (${placed.body?.message ?? ""})`);
     if (placed.body?.order?.id) await db.order.delete({ where: { id: placed.body.order.id } });
+    await db.address.delete({ where: { id: testAddress.id } }).catch(() => {});
 
     await db.store.update({ where: { id: store.id }, data: { gstRate: 0 } });
     await go("/checkout");

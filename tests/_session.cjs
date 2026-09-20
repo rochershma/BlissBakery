@@ -57,9 +57,20 @@ async function otpLogin(page, base) {
  */
 async function adminContext(browser, base, options = {}) {
   const opts = { viewport: { width: 1440, height: 950 }, ignoreHTTPSErrors: true, ...options };
+  const store = options.storeSlug ?? "kuchaman-city";
+
+  // A real customer always has an outlet chosen — the gate makes sure of it.
+  // Without this the gate blocks every page as soon as a second outlet exists,
+  // which makes suites pass or fail depending on what the last run left behind.
+  const pickStore = async (ctx) => {
+    if (!store) return;
+    const { hostname } = new URL(base);
+    await ctx.addCookies([{ name: "bb-store", value: store, domain: hostname, path: "/" }]);
+  };
 
   if (fs.existsSync(STATE)) {
     const ctx = await browser.newContext({ ...opts, storageState: STATE });
+    await pickStore(ctx);
     const page = await ctx.newPage();
     await page.goto(base + "/", { waitUntil: "domcontentloaded", timeout: 60000 });
     if ((await roleOf(page)) === "ADMIN") return { ctx, page, reused: true };
@@ -68,6 +79,7 @@ async function adminContext(browser, base, options = {}) {
   }
 
   const ctx = await browser.newContext(opts);
+  await pickStore(ctx);
   const page = await ctx.newPage();
   await otpLogin(page, base);
 
