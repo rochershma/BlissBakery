@@ -158,11 +158,10 @@ export function ProductDetail({
         <div className="pdp5__badges">
           {product.isBestseller ? <span className="badge badge--rose">Bestseller</span> : null}
           {product.isNew && !product.isBestseller ? <span className="badge badge--soft">New</span> : null}
-          <span className="veg" aria-label="Pure veg" />
-          <span className="t-small">100% eggless</span>
+          <span className="stamp"><span className="veg" aria-hidden="true" />Eggless</span>
         </div>
 
-        <h1 className="d2">{product.name}</h1>
+        <h1 className="t-h1">{product.name}</h1>
         {product.shortDesc ? <p className="t-body pdp5__desc">{product.shortDesc}</p> : null}
 
         {product.variants.length > 0 && (

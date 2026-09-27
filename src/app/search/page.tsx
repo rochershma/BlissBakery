@@ -103,48 +103,28 @@ export default async function SearchPage({ searchParams }: Props) {
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
 
-      <main className="flex-1 max-w-[1300px] mx-auto w-full px-4 md:px-5 py-6">
-        {/* Header */}
-        <div className="flex items-end justify-between gap-4 mb-6">
+      <main className="flex-1 w-full wrap" style={{ paddingTop: 24, paddingBottom: 32 }}>
+        <div className="sec-head sec-head--rule">
           <div>
             {query ? (
               <>
-                <p className="text-xs text-muted-foreground">Showing results for</p>
-                <h1 className="text-xl md:text-2xl font-serif font-bold text-foreground mt-1">&ldquo;{query}&rdquo;</h1>
+                <p className="t-micro">Results for</p>
+                <h1 className="t-h1" style={{ marginTop: 6 }}>&ldquo;{query}&rdquo;</h1>
               </>
             ) : (
-              <>
-                <h1 className="text-xl md:text-2xl font-serif font-bold text-foreground">All Products</h1>
-                <p className="text-xs text-muted-foreground mt-1">Browse our full collection</p>
-              </>
+              <h1 className="t-h1">Every cake we bake</h1>
             )}
           </div>
-          {/* Compact search */}
-          <form action="/search" method="GET" className="hidden md:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-              <input type="text" name="q" defaultValue={query}
-                placeholder="Refine search..."
-                className="w-[220px] pl-9 pr-3 py-2 rounded-xl border border-border bg-white text-xs focus:outline-none focus:ring-1 focus:ring-primary/20 focus:border-primary transition-colors" />
-            </div>
+          <form action="/search" method="GET" className="srch">
+            <Search aria-hidden="true" />
+            <input type="text" name="q" defaultValue={query} className="input" placeholder="Refine your search" />
           </form>
         </div>
 
-        {/* Mobile search */}
-        <form action="/search" method="GET" className="md:hidden mb-5">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input type="text" name="q" defaultValue={query}
-              placeholder="Search cakes, pastries..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-1 focus:ring-primary/20" />
-          </div>
-        </form>
-
-        {/* Results */}
         {products.length === 0 && query ? (
-          <div className="text-center py-16">
-            <h2 className="text-lg font-bold text-foreground font-serif mb-2">No results found</h2>
-            <p className="text-sm text-muted-foreground">Try a different search term</p>
+          <div className="v5empty">
+            <h2 className="t-h2">Nothing matched &ldquo;{query}&rdquo;</h2>
+            <p className="t-small">Try a shorter word — &ldquo;unicorn&rdquo; rather than &ldquo;unicorn theme cake&rdquo;.</p>
           </div>
         ) : (
           <InfiniteProductGrid

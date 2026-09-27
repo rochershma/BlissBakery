@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Fraunces, Archivo } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { LoginModal } from "@/components/auth/login-modal";
@@ -13,15 +13,19 @@ import { MobileSearchOverlayWrapper } from "@/components/shared/mobile-search-wr
 import { StoreGate } from "@/components/v5/store-gate";
 import { getCustomerStoreSlug } from "@/lib/customer-store";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+// Fraunces carries the printed, hand-cut voice; the soft/wonk axes are what
+// stop a headline reading as a stock serif. Archivo is the workhorse.
+const display = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  axes: ["SOFT", "WONK", "opsz"],
+  display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const text = Archivo({
+  variable: "--font-text",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -76,7 +80,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${inter.variable} h-full antialiased`}
+        className={`${display.variable} ${text.variable} h-full antialiased`}
       // Browser extensions inject attributes on <html> before hydration.
       suppressHydrationWarning
     >

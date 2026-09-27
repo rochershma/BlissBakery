@@ -9,8 +9,6 @@ import { parseJsonSafe, formatStoreAddress } from "@/lib/utils";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { HeroSlider, type Slide } from "@/components/v5/hero-slider";
-import { Rail } from "@/components/v5/rail";
-import { Tile } from "@/components/v5/tile";
 import { ProductCard } from "@/components/v5/product-card";
 import { IconLeaf, IconTruck, IconClock } from "@/components/v5/icons";
 import { navLinks } from "@/lib/nav";
@@ -23,7 +21,13 @@ export default async function HomePage() {
   const store = await prisma.store.findFirst({
     where: { id: await getCustomerStoreId() },
     include: {
-      categories: { where: { isVisible: true }, orderBy: { sortOrder: "asc" } },
+      // An empty category is a dead end for the customer, so it stays off the
+      // storefront until it is stocked.
+      categories: {
+        where: { isVisible: true, products: { some: { isAvailable: true } } },
+        orderBy: { sortOrder: "asc" },
+        include: { _count: { select: { products: true } } },
+      },
       banners: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
     },
   });
@@ -98,82 +102,44 @@ export default async function HomePage() {
         </section>
       )}
 
-      {store.categories.length > 0 && (
+      {/* An occasion is the first thing a customer actually knows, so it leads —
+          set as a printed index rather than another image rail. */}
+      {occasions.length > 0 && (
         <section className="sec">
           <div className="wrap">
-            <div className="sec-head">
-              <div>
-                <span className="kicker">Start here</span>
-                <h2 className="d2" style={{ marginTop: 8 }}>Shop by category</h2>
-              </div>
-              <Link className="btn btn--out btn--sm" href={menuHref}>View full menu</Link>
+            <div className="sec-head sec-head--rule">
+              <h2 className="t-h1">What are we baking for?</h2>
+              <Link className="sec-head__more" href={menuHref}>All cakes</Link>
             </div>
-            <Rail variant="tiles" itemWidth={196}>
-              {store.categories.map((c, i) => (
-                <Tile
-                  key={c.id}
-                  eager={i < 4}
-                  data={{
-                    name: c.name,
-                    href: `${menuHref}?category=${c.slug}`,
-                    image: c.image,
-                    glyph: c.slug === "beverages" ? "cup" : "cake",
-                  }}
-                />
+            <ul className="occ">
+              {occasions.map((o) => (
+                <li key={o.id}>
+                  <Link href={`/cakes/${o.slug}`}>
+                    <span className="occ__img">
+                      {o.image ? (
+                        <Image src={img(o.image, 200, 200)} alt="" width={200} height={200} unoptimized />
+                      ) : null}
+                    </span>
+                    <span className="occ__n">{o.name}</span>
+                  </Link>
+                </li>
               ))}
-            </Rail>
+            </ul>
           </div>
         </section>
       )}
 
-      {occasions.length > 0 && (
+      {/* The shop-now moment: the biggest photographs on the page, and the
+          first two run double width so the grid is not a wall of equal squares. */}
+      {bestsellers.length > 0 && (
         <section className="sec sec--cream">
           <div className="wrap">
-            <div className="sec-head">
-              <div>
-                <span className="kicker">Made to order</span>
-                <h2 className="d2" style={{ marginTop: 8 }}>Shop by occasion</h2>
-              </div>
+            <div className="sec-head sec-head--rule">
+              <h2 className="t-h1">This week&apos;s most ordered</h2>
+              <Link className="sec-head__more" href={menuHref}>See all {store.categories.reduce((n, c) => n + c._count.products, 0)}</Link>
             </div>
-            <Rail variant="tiles" itemWidth={196}>
-              {occasions.map((o) => (
-                <Tile key={o.id} data={{ name: o.name, href: `/cakes/${o.slug}`, image: o.image }} />
-              ))}
-            </Rail>
-          </div>
-        </section>
-      )}
-
-      {themeTiles.length > 0 && (
-        <section className="sec">
-          <div className="wrap">
-            <div className="sec-head">
-              <div>
-                <span className="kicker">Made to order</span>
-                <h2 className="d2" style={{ marginTop: 8 }}>Shop by theme</h2>
-              </div>
-            </div>
-            <Rail variant="tiles" itemWidth={196}>
-              {themeTiles.map((t, i) => (
-                <Tile key={`${t.href}-${i}`} data={t} />
-              ))}
-            </Rail>
-          </div>
-        </section>
-      )}
-
-      {bestsellers.length > 0 && (
-        <section className="sec sec--rose">
-          <div className="wrap">
-            <div className="sec-head">
-              <div>
-                <span className="kicker">Most ordered</span>
-                <h2 className="d2" style={{ marginTop: 8 }}>Bestsellers</h2>
-              </div>
-              <Link className="btn btn--rose btn--sm" href={menuHref}>See all</Link>
-            </div>
-            <Rail itemWidth={212}>
-              {bestsellers.map((p) => {
+            <div className="best">
+              {bestsellers.slice(0, 10).map((p) => {
                 const flavourPrices = parseJsonSafe<FlavourPrice[]>(p.flavourPrices, []);
                 const price = fromPrice(
                   {
@@ -200,10 +166,34 @@ export default async function HomePage() {
                   />
                 );
               })}
-            </Rail>
+            </div>
           </div>
         </section>
       )}
+
+      {/* Theme cakes are two-thirds of the catalogue, so they get a dense
+          mosaic of their own rather than a third identical rail. */}
+      {themeTiles.length > 0 && (
+        <section className="sec">
+          <div className="wrap">
+            <div className="sec-head sec-head--rule">
+              <h2 className="t-h1">Theme cakes</h2>
+              <Link className="sec-head__more" href="/themes">Every theme</Link>
+            </div>
+          </div>
+          <div className="mosaic">
+            {themeTiles.slice(0, 12).map((t, i) => (
+              <Link className="mosaic__i" key={`${t.href}-${i}`} href={t.href}>
+                {t.image ? (
+                  <Image src={img(t.image, 320, 320)} alt="" width={320} height={320} unoptimized loading="lazy" />
+                ) : null}
+                <span>{t.name}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
 
       <section className="sec">
         <div className="wrap">
@@ -235,6 +225,51 @@ export default async function HomePage() {
               ) : null}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Six live categories, all of them cakes — a typographic index tells the
+          truth about that better than twelve photographic tiles would. */}
+      {store.categories.length > 0 && (
+        <section className="sec">
+          <div className="wrap">
+            <div className="sec-head sec-head--rule">
+              <h2 className="t-h2">The counter</h2>
+            </div>
+            <ul className="idx">
+              {store.categories.map((c) => (
+                <li key={c.id}>
+                  <Link href={`${menuHref}?category=${c.slug}`}>
+                    <span>{c.name}</span>
+                    <i className="t-num">{c._count.products}</i>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <section className="sec sec--cream">
+        <div className="wrap">
+          <dl className="facts">
+            <div>
+              <dt>Every single cake</dt>
+              <dd>Eggless and pure vegetarian. No exceptions, no separate counter.</dd>
+            </div>
+            <div>
+              <dt>Ordering today</dt>
+              <dd>Same-day slots close {store.orderLeadHours} hours before delivery. Custom cakes need 48 hours.</dd>
+            </div>
+            <div>
+              <dt>Where we bake</dt>
+              <dd>{formatStoreAddress(store)}</dd>
+            </div>
+            <div>
+              <dt>Talk to us</dt>
+              <dd><a href={`tel:+91${store.phone}`}>+91 {store.phone}</a></dd>
+            </div>
+          </dl>
         </div>
       </section>
 

@@ -46,7 +46,7 @@ page.on("console", (m) => {
   const home = await page.evaluate(() => ({
     slides: document.querySelectorAll(".v5-slide").length,
     sections: [...document.querySelectorAll("h2")].map((h) => h.textContent.trim()),
-    tiles: document.querySelectorAll(".tile").length,
+    tiles: document.querySelectorAll(".occ a, .mosaic__i, .idx a").length,
     cards: document.querySelectorAll(".card").length,
     hdr: !!document.querySelector(".v5hdr"),
     ftr: !!document.querySelector(".ftr"),
@@ -58,11 +58,12 @@ page.on("console", (m) => {
   check(home.ftr, "footer present");
   check(home.storePicker, "store picker present");
   check(home.slides >= 1, "hero slider has slides", `${home.slides}`);
-  check(home.tiles >= 6, "browse tiles render", `${home.tiles}`);
+  check(home.tiles >= 6, "browse affordances render", `${home.tiles}`);
   check(home.cards >= 1, "bestsellers render", `${home.cards}`);
-  check(/Jakarta/.test(home.font), "display font is Plus Jakarta Sans");
+  check(/Fraunces/.test(home.font), "section headings use the display face", home.font);
   check(home.cta === "rgb(175, 63, 99)", "CTA uses v5 rose", home.cta);
-  check(["Shop by category", "Shop by occasion", "Shop by theme"].every((s) => home.sections.includes(s)), "all browse sections present");
+  check(["What are we baking for?", "This week's most ordered", "Theme cakes"].every((s) => home.sections.includes(s)),
+    "all browse sections present", home.sections.join(" | "));
   check((await broken()) === 0, "no broken images on home");
 
   /* ---------------- 2. COLLECTIONS ---------------- */
