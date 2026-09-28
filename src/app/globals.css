@@ -9,56 +9,50 @@
    ============================================================ */
 
 :root {
-  /* Brown-black, not neutral black — it sits on paper, not on a screen. */
-  --ink:    #1b1512;
-  --ink-2:  #514741;
-  --ink-3:  #7d716a;
+  --ink:    #1a1614;
+  --ink-2:  #453c38;
+  --ink-3:  #6f635d;
   --ink-4:  #a2968f;
 
-  /* The ground is warm paper. White is reserved for surfaces lifted off it. */
-  --paper:  #faf6f0;
-  --bone:   #ffffff;
-  --cream:  #f2eade;
-  --cream-2:#e8ddcc;
-  --line:   #e3d9cb;
-  --line-2: #cfc2b0;
+  --paper:  #ffffff;
+  --bone:   #fdfbf9;
+  --cream:  #f7f1ec;
+  --cream-2:#efe5db;
+  --line:   #eae1d8;
+  --line-2: #d9cdc2;
 
-  --rose-50:  #f7e9ed;
-  --rose-100: #f2dae1;
-  --rose-200: #e7bccb;
-  --rose-300: #d698ad;
+  --rose-50:  #fdf2f5;
+  --rose-100: #fae1e9;
+  --rose-200: #f2c4d2;
+  --rose-300: #e09fb4;
   --rose-500: #c47590;   /* brand tint */
-  --rose:     #af3f63;   /* the one action colour — 5.6:1 on paper */
-  --rose-dk:  #8e3050;
+  --rose:     #af3f63;   /* CTA — 5.63:1 on white, WCAG AA */
+  --rose-dk:  #92304f;
   --rose-dker:#78243e;
 
-  --choc:   #241814;
-  --choc-2: #3a2620;
+  --choc:   #27191d;
+  --choc-2: #3a2428;
 
-  /* Semantic only: brass marks the eggless stamp and "from" prices. */
-  --brass:    #9a6b23;
   --green:    #1f7a4d;
   --green-bg: #eaf5ef;
-  --gold:     #9a6b23;
-  --danger:   #a32318;
+  --gold:     #b2823a;
+  --danger:   #b3261e;
 
-  /* Radius follows hierarchy: photographs are square, toggles are pills. */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 18px;
-  --r-xl: 24px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
   --r-pill: 999px;
 
-  /* Three levels. If it does not float, it does not get one. */
-  --sh-1: 0 1px 2px rgba(27,21,18,.06);
-  --sh-2: 0 12px 28px -12px rgba(27,21,18,.25);
-  --sh-3: 0 18px 44px -18px rgba(27,21,18,.34);
-  --sh-rose: 0 1px 2px rgba(27,21,18,.10);
+  --sh-1: 0 1px 2px rgba(26,22,20,.05);
+  --sh-2: 0 2px 8px rgba(26,22,20,.05), 0 12px 30px -16px rgba(26,22,20,.2);
+  --sh-3: 0 8px 20px rgba(26,22,20,.07), 0 32px 60px -28px rgba(26,22,20,.3);
+  --sh-rose: 0 8px 20px -8px rgba(175,63,99,.45);
 
   --ease: cubic-bezier(.32,.72,0,1);
   --fast: 150ms;
   --base: 260ms;
-  --maxw: 1240px;
+  --maxw: 1300px;
 
   /* legacy aliases so existing components keep working */
   --background: var(--paper);
@@ -73,7 +67,7 @@
   --accent-foreground: #ffffff;
   --muted: var(--cream);
   --muted-foreground: var(--ink-3);
-  --card: var(--bone);
+  --card: var(--paper);
   --card-foreground: var(--ink);
   --border: var(--line);
   --ring: var(--rose);
@@ -108,7 +102,7 @@
   --color-accent-foreground: #ffffff;
   --color-muted: var(--cream);
   --color-muted-foreground: var(--ink-3);
-  --color-card: var(--bone);
+  --color-card: var(--paper);
   --color-card-foreground: var(--ink);
   --color-border: var(--line);
   --color-ring: var(--rose);
@@ -128,12 +122,10 @@
   --color-cream: var(--cream);
   --color-ink: var(--ink);
   --color-ink-3: var(--ink-3);
-  /* Legacy aliases. Archivo is the workhorse, so it answers to both names;
-     the display face is applied explicitly where it belongs. */
-  --font-sans: var(--font-text);
-  --font-serif: var(--font-display);
-  --font-jakarta: var(--font-text);
-  --font-inter: var(--font-text);
+  /* font-serif now resolves to the display face everywhere */
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-jakarta);
+  --font-display: var(--font-jakarta);
 }
 
 * { border-color: var(--line); }
@@ -142,7 +134,7 @@
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-text), "Archivo", system-ui, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -155,14 +147,14 @@ body {
 img, video, canvas, svg { max-width: 100%; }
 
 h1,h2,h3,h4,h5 {
-  font-family: var(--font-text), "Archivo", system-ui, sans-serif;
-  letter-spacing: -.018em;
+  font-family: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  letter-spacing: -.028em;
   line-height: 1.18;
 }
-h1 { font-weight: 700; }
-h2 { font-weight: 700; }
-h3 { font-weight: 600; }
-h4 { font-weight: 600; }
+h1 { font-weight: 800; }
+h2 { font-weight: 800; }
+h3 { font-weight: 700; }
+h4 { font-weight: 700; }
 
 ::selection { background: var(--rose-100); color: var(--ink); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -175,26 +167,17 @@ h4 { font-weight: 600; }
   button:not(.no-min-touch), [role="button"]:not(.no-min-touch) { min-height: 44px; }
 }
 
-/* ---------- TYPE SCALE ----------
-   Seven steps. Hierarchy comes from the jumps between them, so nothing sits
-   in between. Display steps are the serif; everything else is Archivo. */
-.d1, .d2, .t-h1, .t-h2 {
-  font-family: var(--font-display), Georgia, serif;
-  font-variation-settings: "SOFT" 28, "WONK" 1;
-  font-weight: 600;
-}
-.d1 { letter-spacing: -.022em; line-height: 1.02; font-size: clamp(36px,4.6vw,60px); }
-.d2 { letter-spacing: -.018em; line-height: 1.08; font-size: clamp(28px,3.1vw,40px); }
-.t-h1 { letter-spacing: -.018em; line-height: 1.12; font-size: clamp(28px,3.1vw,40px); }
-.t-h2 { letter-spacing: -.014em; line-height: 1.2;  font-size: clamp(22px,2.1vw,28px); }
-.t-h3 { font-family: var(--font-text); font-weight: 600; letter-spacing: -.012em; line-height: 1.3; font-size: 19px; }
+/* ---------- TYPE SCALE ---------- */
+.d1 { font-family: var(--font-jakarta); font-weight: 800; letter-spacing: -.035em; line-height: 1.02; font-size: clamp(30px,4.4vw,58px); }
+.d2 { font-family: var(--font-jakarta); font-weight: 800; letter-spacing: -.03em;  line-height: 1.08; font-size: clamp(24px,3vw,38px); }
+.t-h1 { font-family: var(--font-jakarta); font-weight: 800; letter-spacing: -.028em; line-height: 1.15; font-size: 28px; }
+.t-h2 { font-family: var(--font-jakarta); font-weight: 700; letter-spacing: -.024em; line-height: 1.2;  font-size: 22px; }
+.t-h3 { font-family: var(--font-jakarta); font-weight: 700; letter-spacing: -.02em;  line-height: 1.28; font-size: 17px; }
 .t-body  { font-size: 16px; line-height: 1.62; color: var(--ink-2); }
-.t-small { font-size: 14px; line-height: 1.55; color: var(--ink-3); }
-.t-micro, .kicker { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
-.t-micro { color: var(--ink-3); }
-.kicker  { color: var(--ink-3); }
+.t-small { font-size: 13.5px; line-height: 1.55; color: var(--ink-3); }
+.t-micro { font-size: 11px; letter-spacing: .11em; text-transform: uppercase; font-weight: 700; color: var(--ink-3); }
 .t-num   { font-variant-numeric: tabular-nums; }
-@media (max-width: 767px) { .t-h3 { font-size: 17px; } }
+.kicker  { font-size: 11.5px; letter-spacing: .15em; text-transform: uppercase; font-weight: 700; color: var(--rose); }
 
 /* ---------- LAYOUT ---------- */
 /* width:100% stops a wide child from stretching the body flex line. */
@@ -204,135 +187,55 @@ h4 { font-weight: 600; }
 @media (min-width: 768px) { .sec { padding: 44px 0; } }
 @media (max-width: 767px) {
   .sec { padding: 24px 0; }
-  .card__body { padding: 8px 0 0; gap: 2px; }
-  .card__name { font-size: 13px; }
-  .card__sub { font-size: 12px; }
-  .card__foot { padding-top: 6px; }
-  .card__price b { font-size: 15px; }
-  .card__add { font-size: 13px; }
+  .card__body { padding: 8px 9px 10px; gap: 3px; }
+  .card__name { font-size: 12.5px; }
+  .card__sub { font-size: 10.5px; }
+  .card__foot { padding-top: 7px; }
+  .card__price b { font-size: 14px; }
+  .card__add { height: 29px; padding: 0 11px; font-size: 11.5px; }
 }
 .sec--cream { background: var(--cream); }
 .sec--rose  { background: var(--rose-50); }
 .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 @media (min-width: 768px) { .sec-head { margin-bottom: 20px; } }
-/* A rule under the headline divides the page the way a printed page does —
-   no box required. */
-.sec-head--rule { align-items: baseline; padding-bottom: 12px; border-bottom: 1px solid var(--rule-2, var(--line-2));
-  margin-bottom: 24px; flex-wrap: wrap; }
-.sec-head--rule > :first-child { min-width: 0; flex: 1 1 auto; }
-.sec-head__more { flex: none; font-size: 14px; font-weight: 600; color: var(--rose); white-space: nowrap;
-  padding: 11px 0; margin: -11px 0 -11px auto; }
-.sec-head__more:hover { text-decoration: underline; text-underline-offset: 3px; }
 
-/* Occasion index: text-led, photographs kept small and round so they read as
-   markers beside the name rather than as another wall of tiles. */
-.occ { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px 24px; }
-@media (min-width: 620px) { .occ { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 900px) { .occ { grid-template-columns: repeat(4, 1fr); } }
-.occ a { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
-.occ a:hover .occ__n { color: var(--rose); }
-.occ__img { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; background: var(--cream-2); flex: none; }
-.occ__img img { width: 100%; height: 100%; object-fit: cover; }
-.occ__n { font-size: 15px; font-weight: 500; line-height: 1.3; transition: color var(--fast) var(--ease); }
-
-/* Bestsellers: the two leading cakes run double-width so the grid has a
-   focal point instead of being a wall of equal squares. */
-.best { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 12px; }
-@media (min-width: 620px) { .best { grid-template-columns: repeat(3, 1fr); gap: 28px 20px; } }
-@media (min-width: 1000px) { .best { grid-template-columns: repeat(5, 1fr); } }
-@media (min-width: 1000px) {
-  .best > :nth-child(1), .best > :nth-child(2) { grid-column: span 2; }
-  .best > :nth-child(1) .card__name, .best > :nth-child(2) .card__name { font-size: 17px; -webkit-line-clamp: 1; min-height: 0; }
-  .best > :nth-child(1) .card__price b, .best > :nth-child(2) .card__price b { font-size: 19px; }
-}
-
-/* Theme mosaic: full-bleed and edge-to-edge, a different density from
-   anything else on the page. */
-.mosaic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
-@media (min-width: 620px) { .mosaic { grid-template-columns: repeat(4, 1fr); } }
-@media (min-width: 1000px) { .mosaic { grid-template-columns: repeat(6, 1fr); } }
-.mosaic__i { position: relative; aspect-ratio: 1; overflow: hidden; background: var(--cream-2); display: block; }
-.mosaic__i img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
-.mosaic__i:hover img { transform: scale(1.04); }
-.mosaic__i span { position: absolute; inset: auto 0 0 0; padding: 7px 9px 8px; color: var(--paper);
-  font-size: 12px; font-weight: 600; line-height: 1.25;
-  background: rgba(27,21,18,.74); }
-
-/* The counter: a printed index with quantities, like a price list. */
-.idx { list-style: none; display: grid; grid-template-columns: 1fr; gap: 0; max-width: 620px; }
-@media (min-width: 720px) { .idx { grid-template-columns: 1fr 1fr; column-gap: 48px; max-width: none; } }
-.idx a { display: flex; align-items: baseline; gap: 10px; padding: 13px 0; border-bottom: 1px solid var(--line);
-  font-size: 16px; }
-.idx a:hover span { color: var(--rose); }
-.idx a span { transition: color var(--fast) var(--ease); }
-.idx a::after { content: ""; flex: 1; border-bottom: 1px dotted var(--line-2); transform: translateY(-4px); }
-.idx a i { font-style: normal; font-size: 14px; color: var(--ink-3); }
-
-/* Facts, not marketing. Four statements, set as a definition list. */
-.facts { display: grid; grid-template-columns: 1fr; gap: 24px; }
-@media (min-width: 620px) { .facts { grid-template-columns: repeat(2, 1fr); gap: 32px 48px; } }
-@media (min-width: 1000px) { .facts { grid-template-columns: repeat(4, 1fr); } }
-.facts dt { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
-  color: var(--ink-3); padding-bottom: 8px; border-bottom: 1px solid var(--line-2); margin-bottom: 10px; }
-.facts dd { font-size: 15px; line-height: 1.55; color: var(--ink-2); }
-.facts dd a { color: var(--rose); font-weight: 600; display: inline-block; padding: 6px 0; }
-/* Search refine field — the icon sits inside the field, not on a floating pill. */
-.srch { position: relative; flex: none; width: 100%; max-width: 260px; }
-.srch svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-  width: 16px; height: 16px; stroke: var(--ink-3); fill: none; stroke-width: 2; pointer-events: none; }
-.srch .input { height: 42px; padding-left: 36px; font-size: 16px; }
-@media (max-width: 619px) { .srch { max-width: none; } }
-/* Breadcrumbs are navigation, so they need a tappable line on a phone. */
-.v5crumbs a { display: inline-block; padding: 7px 0; }
-@media (min-width: 768px) { .v5crumbs a { padding: 0; } }
-
-/* ---------- BUTTONS ----------
-   A modest radius: enough to read as pressable, not a lozenge. Pills are
-   reserved for things that genuinely toggle. */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 48px; padding: 0 24px;
-  border-radius: var(--r-sm); font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer;
-  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease); }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn--rose { background: var(--rose); color: #fff; }
+/* ---------- BUTTONS ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; height: 50px; padding: 0 26px;
+  border-radius: var(--r-pill); font-size: 15px; font-weight: 650; white-space: nowrap; cursor: pointer;
+  transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), transform var(--fast) var(--ease); }
+.btn:active { transform: scale(.975); }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.btn--rose { background: var(--rose); color: #fff; box-shadow: var(--sh-rose); }
 .btn--rose:hover:not(:disabled) { background: var(--rose-dk); }
 .btn--rose:active:not(:disabled) { background: var(--rose-dker); }
-.btn--out { background: transparent; color: var(--ink); border: 1px solid var(--line-2); }
+.btn--out { background: var(--paper); color: var(--ink); border: 1.5px solid var(--line-2); }
 .btn--out:hover:not(:disabled) { border-color: var(--ink); }
-.btn--rose-out { background: transparent; color: var(--rose); border: 1px solid var(--rose-200); }
+.btn--rose-out { background: var(--paper); color: var(--rose); border: 1.5px solid var(--rose-200); }
 .btn--rose-out:hover:not(:disabled) { border-color: var(--rose); background: var(--rose-50); }
-.btn--light { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.34); }
-.btn--light:hover { background: rgba(255,255,255,.24); }
-.btn--ghost { background: transparent; color: var(--rose); padding: 0 8px; height: auto; font-weight: 600; }
-.btn--sm { height: 38px; padding: 0 16px; font-size: 14px; }
-.btn--lg { height: 54px; padding: 0 30px; font-size: 16px; }
+.btn--light { background: rgba(255,255,255,.16); color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
+.btn--light:hover { background: rgba(255,255,255,.26); }
+.btn--ghost { background: transparent; color: var(--rose); padding: 0 8px; height: auto; font-weight: 700; }
+.btn--sm { height: 40px; padding: 0 18px; font-size: 13.5px; }
+.btn--lg { height: 56px; padding: 0 32px; font-size: 16px; }
 .btn--block { width: 100%; }
 
-/* ---------- MARKS ----------
-   The eggless stamp is the one element allowed to be a pill: it is a stamp. */
+/* ---------- MARKS ---------- */
 .veg { width: 15px; height: 15px; border: 1.6px solid var(--green); border-radius: 3px; display: inline-grid; place-items: center; flex: none; }
 .veg::after { content: ""; width: 6.5px; height: 6.5px; border-radius: 50%; background: var(--green); }
-.stamp { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px;
-  border: 1px solid var(--green); border-radius: var(--r-pill); color: var(--green);
-  font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-  background: transparent; white-space: nowrap; }
-.stamp .veg { width: 13px; height: 13px; border-width: 1.4px; }
-.stamp .veg::after { width: 5.5px; height: 5.5px; }
-/* Printed labels, not lozenges. */
-.badge { display: inline-flex; align-items: center; gap: 5px; height: 21px; padding: 0 7px; border-radius: 2px;
-  font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: var(--r-pill);
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
 .badge--rose  { background: var(--rose); color: #fff; }
-.badge--soft  { background: var(--cream-2); color: var(--ink-2); }
-.badge--save  { background: var(--green-bg); color: var(--green); letter-spacing: .04em; }
-.badge--glass { background: rgba(250,246,240,.94); color: var(--ink); }
+.badge--soft  { background: var(--rose-100); color: var(--rose-dk); }
+.badge--save  { background: var(--green-bg); color: var(--green); letter-spacing: .02em; }
+.badge--glass { background: rgba(255,255,255,.94); color: var(--ink); }
 
-/* Chips stay pills — they are toggles, which is what a pill should mean. */
-.chip { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px; border: 1px solid var(--line-2);
-  border-radius: var(--r-pill); background: transparent; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer;
+.chip { display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 17px; border: 1.5px solid var(--line-2);
+  border-radius: var(--r-pill); background: var(--paper); font-size: 14px; font-weight: 550; white-space: nowrap; cursor: pointer;
   transition: all var(--fast) var(--ease); }
-.chip:hover { border-color: var(--rose-300); }
+.chip:hover { border-color: var(--rose-300); background: var(--rose-50); }
 .chip[aria-pressed="true"], .chip[aria-checked="true"], .chip.is-on {
-  background: var(--ink); border-color: var(--ink); color: var(--paper); font-weight: 600; }
-.chip--sm { height: 32px; padding: 0 13px; font-size: 14px; }
+  background: var(--rose); border-color: var(--rose); color: #fff; font-weight: 650; }
+.chip--sm { height: 34px; padding: 0 14px; font-size: 13px; }
 
 /* ---------- TICKER ---------- */
 .ticker { background: var(--choc); color: #e6d7da; overflow: hidden; height: 36px; display: flex; align-items: center; }
@@ -348,15 +251,17 @@ h4 { font-weight: 600; }
 @media (max-width: 380px)  { .ticker span:nth-child(n+2) { display: none; } }
 
 /* ---------- TILE ---------- */
-.tile { display: block; border-radius: 0; overflow: visible; background: transparent; border: 0; }
-.tile__img { aspect-ratio: 1; background: var(--cream); position: relative; overflow: hidden; border-radius: 2px; }
-.tile__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
-.tile:hover .tile__img img { transform: scale(1.02); }
-.tile__cap { padding: 9px 0 0; }
-.tile__cap b { display: block; font-family: var(--font-text); font-weight: 600; font-size: 14px; letter-spacing: -.008em; line-height: 1.3; }
-@media (min-width: 768px) { .tile__cap b { font-size: 15px; } }
-.tile__ph { width: 100%; height: 100%; display: grid; place-items: center; background: var(--cream-2); }
-.tile__ph svg { width: 38px; height: 38px; stroke: var(--ink-4); fill: none; stroke-width: 1.3; }
+.tile { display: block; border-radius: var(--r-lg); overflow: hidden; background: var(--paper); border: 1px solid var(--line);
+  transition: border-color var(--base) var(--ease), box-shadow var(--base) var(--ease), transform var(--base) var(--ease); }
+.tile:hover { border-color: var(--rose-300); box-shadow: var(--sh-2); transform: translateY(-3px); }
+.tile__img { aspect-ratio: 1; background: var(--cream); position: relative; overflow: hidden; }
+.tile__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 700ms var(--ease); }
+.tile:hover .tile__img img { transform: scale(1.06); }
+.tile__cap { padding: 10px 12px 12px; }
+.tile__cap b { display: block; font-family: var(--font-jakarta); font-weight: 700; font-size: 13.5px; letter-spacing: -.022em; line-height: 1.3; }
+@media (min-width: 768px) { .tile__cap { padding: 11px 13px 13px; } .tile__cap b { font-size: 14.5px; } }
+.tile__ph { width: 100%; height: 100%; display: grid; place-items: center; background: linear-gradient(150deg, var(--rose-50), var(--cream-2)); }
+.tile__ph svg { width: 38px; height: 38px; stroke: var(--rose-500); fill: none; stroke-width: 1.3; }
 
 /* ---------- RAIL ---------- */
 .rail { position: relative; }
@@ -378,9 +283,9 @@ h4 { font-weight: 600; }
   }
   .rail--tiles .tile { border: 0; background: none; border-radius: 0; }
   .rail--tiles .tile:hover { box-shadow: none; transform: none; }
-  .rail--tiles .tile__img { border-radius: 2px; border: 0; }
+  .rail--tiles .tile__img { border-radius: var(--r-md); border: 1px solid var(--line); }
   .rail--tiles .tile__cap { padding: 7px 1px 0; text-align: center; }
-  .rail--tiles .tile__cap b { font-size: 12px; line-height: 1.25; letter-spacing: 0;
+  .rail--tiles .tile__cap b { font-size: 10.5px; line-height: 1.25; letter-spacing: -.01em;
     overflow-wrap: anywhere; min-height: 2.5em; }
   .rail--tiles .tile__ph svg { width: 26px; height: 26px; }
   .rail--cards .rail__track { --rail-col: 154px; gap: 10px; }
@@ -398,38 +303,35 @@ h4 { font-weight: 600; }
 .rail__nav--r { right: -20px; }
 .rail__nav[hidden] { display: none !important; }
 
-/* ---------- PRODUCT CARD ----------
-   The photograph is the card. No frame competes with it: the image runs square
-   and hard-edged like a print, and the type sits underneath on the paper. */
-.card { display: flex; flex-direction: column; background: transparent; border: 0;
-  border-radius: 0; overflow: visible; }
-.card__media { position: relative; aspect-ratio: 1; background: var(--cream); overflow: hidden;
-  border-radius: 2px; }
-.card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms var(--ease); }
-.card:hover .card__media img { transform: scale(1.02); }
-.card__top { position: absolute; inset: 8px 8px auto 8px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
-.card__veg { background: var(--paper); border-radius: 2px; padding: 3px; display: grid; place-items: center; }
-.card__body { padding: 10px 0 0; display: flex; flex-direction: column; gap: 3px; flex: 1; }
-.card__name { font-family: var(--font-text); font-weight: 600; letter-spacing: -.008em; font-size: 14px; line-height: 1.32;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.64em; }
-.card__sub { font-size: 12px; color: var(--ink-3); }
-.card__foot { margin-top: auto; padding-top: 7px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.card__price b { font-size: 16px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; font-family: var(--font-text); }
-.card__price span { font-size: 12px; color: var(--brass); font-weight: 600; display: inline; margin-right: 4px;
-  text-transform: uppercase; letter-spacing: .08em; }
-/* A text action, not a floating lozenge — the photograph is the thing being
-   sold, and a second coloured pill per card would compete with it. */
-.card__add { height: auto; padding: 0; border-radius: 0; font-size: 14px; font-weight: 600;
-  background: none; color: var(--rose); border: 0; border-bottom: 1.5px solid var(--rose-200);
-  flex: none; cursor: pointer; transition: border-color var(--fast) var(--ease); }
-.card:hover .card__add { border-bottom-color: var(--rose); }
+/* ---------- PRODUCT CARD ---------- */
+.card { display: flex; flex-direction: column; background: var(--paper); border: 1px solid var(--line);
+  border-radius: var(--r-lg); overflow: hidden; transition: border-color var(--base) var(--ease), box-shadow var(--base) var(--ease), transform var(--base) var(--ease); }
+.card:hover { border-color: var(--rose-200); box-shadow: var(--sh-2); transform: translateY(-3px); }
+.card__media { position: relative; aspect-ratio: 1; background: var(--cream); overflow: hidden; }
+.card__media img { width: 100%; height: 100%; object-fit: cover; transition: transform 700ms var(--ease); }
+.card:hover .card__media img { transform: scale(1.05); }
+.card__top { position: absolute; inset: 9px 9px auto 9px; display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+.card__veg { background: rgba(255,255,255,.95); border-radius: var(--r-sm); padding: 4px; display: grid; place-items: center; }
+.card__body { padding: 10px 11px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+@media (min-width: 768px) { .card__body { padding: 11px 12px 13px; } }
+.card__name { font-family: var(--font-jakarta); font-weight: 700; letter-spacing: -.02em; font-size: 13px; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.6em; }
+@media (min-width: 768px) { .card__name { font-size: 14px; } }
+.card__sub { font-size: 11.5px; color: var(--ink-3); }
+.card__foot { margin-top: auto; padding-top: 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card__price b { font-size: 15px; font-weight: 750; letter-spacing: -.025em; font-variant-numeric: tabular-nums; font-family: var(--font-jakarta); }
+.card__price span { font-size: 10px; color: var(--ink-4); font-weight: 600; display: block; line-height: 1; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .07em; }
+.card__add { height: 32px; padding: 0 14px; border-radius: var(--r-pill); font-size: 12.5px; font-weight: 700;
+  background: var(--rose-50); color: var(--rose); border: 1.5px solid var(--rose-200); flex: none; cursor: pointer;
+  transition: all var(--fast) var(--ease); }
+.card:hover .card__add { background: var(--rose); border-color: var(--rose); color: #fff; }
 
 /* ---------- FORMS ---------- */
 /* 16px is the floor: iOS Safari zooms the whole page when a focused field is
    smaller than that, which throws the user out of context mid-form. */
 .input, .select, .textarea {
-  height: 48px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: var(--r-sm);
-  background: var(--bone); font-size: 16px; width: 100%; color: var(--ink);
+  height: 50px; padding: 0 15px; border: 1.5px solid var(--line-2); border-radius: var(--r-md);
+  background: var(--paper); font-size: 16px; width: 100%; color: var(--ink);
   transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease); }
 .textarea { height: auto; padding: 12px 15px; min-height: 90px; resize: vertical; }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--rose); box-shadow: 0 0 0 3px var(--rose-100); }
@@ -558,7 +460,7 @@ h4 { font-weight: 600; }
   padding-bottom: env(safe-area-inset-bottom); }
 @media (min-width: 768px) { .mnav { display: none; } }
 .mnav a, .mnav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  font-size: 11px; font-weight: 600; color: var(--ink-3); position: relative; }
+  font-size: 9.5px; font-weight: 650; color: var(--ink-4); position: relative; }
 .mnav svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; }
 .mnav .is-on { color: var(--rose); }
 .mnav .is-on::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 28px; height: 2.5px;
@@ -591,7 +493,8 @@ h4 { font-weight: 600; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* ---------- HERO SLIDER (v5) ---------- */
-.v5-slider { position: relative; border-radius: 2px; overflow: hidden; background: var(--cream-2); }
+.v5-slider { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--cream-2); box-shadow: var(--sh-2); }
+@media (min-width: 768px) { .v5-slider { border-radius: var(--r-xl); } }
 .v5-slider__track { display: flex; transition: transform 600ms var(--ease); }
 @media (prefers-reduced-motion: reduce) { .v5-slider__track { transition: none; } }
 .v5-slide { flex: 0 0 100%; position: relative; aspect-ratio: 4 / 5; }
@@ -619,15 +522,10 @@ h4 { font-weight: 600; }
 .v5-slider__nav svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2.2; }
 .v5-slider__nav--l { left: 16px; }
 .v5-slider__nav--r { right: 16px; }
-.v5-slider__dots { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center; gap: 2px; z-index: 5; }
-/* The visible dot is small; the hit area around it is not. */
-.v5-slider__dots button { width: 24px; height: 32px; border: 0; background: none; padding: 0;
-  display: grid; place-items: center; cursor: pointer; min-height: 0 !important; }
-.v5-slider__dots button::after { content: ""; display: block; width: 8px; height: 8px;
-  border-radius: var(--r-pill); background: rgba(255,255,255,.55);
-  transition: width var(--base) var(--ease), background var(--base) var(--ease); }
-.v5-slider__dots button.is-on { width: 40px; }
-.v5-slider__dots button.is-on::after { width: 26px; background: #fff; }
+.v5-slider__dots { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: center; gap: 7px; z-index: 5; }
+.v5-slider__dots button { width: 8px; height: 8px; border-radius: var(--r-pill); background: rgba(255,255,255,.55);
+  transition: all var(--base) var(--ease); box-shadow: 0 1px 3px rgba(0,0,0,.3); cursor: pointer; min-height: 0 !important; }
+.v5-slider__dots button.is-on { width: 26px; background: #fff; }
 
 /* ---------- HERO CTA BAR ---------- */
 .herobar { display: flex; align-items: center; gap: 16px; padding: 16px 0 20px; flex-wrap: wrap; }
@@ -638,8 +536,9 @@ h4 { font-weight: 600; }
   .herobar { gap: 12px; padding: 14px 0 4px; }
   .herobar__cta { width: 100%; gap: 10px; }
   .herobar__cta .btn { flex: 1; height: 46px; font-size: 13.5px; padding: 0 10px; }
-  .herobar__usp { width: 100%; flex-wrap: wrap; gap: 8px 16px; }
-  .herobar__usp div { font-size: 12px; white-space: nowrap; flex: none; gap: 6px; }
+  .herobar__usp { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 10px; }
+  .herobar__usp::-webkit-scrollbar { display: none; }
+  .herobar__usp div { font-size: 11.5px; white-space: nowrap; flex: none; gap: 6px; }
   .herobar__usp svg { width: 14px; height: 14px; }
 }
 .herobar__usp div { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 550; color: var(--ink-2); }
@@ -653,21 +552,17 @@ h4 { font-weight: 600; }
 .ftr__top p { font-size: 14px; line-height: 1.7; max-width: 38ch; }
 .ftr__brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .ftr__brand img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
-.ftr__brand h3 { font-family: var(--font-display), Georgia, serif;
-  font-variation-settings: "SOFT" 40, "WONK" 1; font-weight: 600; color: #fff; font-size: 24px;
-  letter-spacing: -.014em; line-height: 1; }
-.ftr__fssai { font-size: 14px !important; margin-top: 12px; color: rgba(255,255,255,.45); }
+.ftr__brand h3 { font-family: var(--font-jakarta); font-weight: 800; color: #fff; font-size: 24px;
+  letter-spacing: -.04em; line-height: 1; }
+.ftr__fssai { font-size: 13px !important; margin-top: 12px; color: rgba(255,255,255,.45); }
 .ftr__call { margin-top: 12px; }
-.ftr__call a { color: #fff; font-weight: 600; font-size: 16px; display: inline-block; padding: 6px 0; }
-.ftr ul { list-style: none; display: flex; flex-direction: column; font-size: 14px; }
-/* Dense link lists need a real tap target on a phone, not a 15px line box. */
-.ftr li a { display: inline-block; padding: 7px 0; }
-@media (min-width: 768px) { .ftr li a { padding: 4px 0; } }
+.ftr__call a { color: #fff; font-weight: 650; font-size: 16px; }
+.ftr ul { list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
 .ftr__bot { display: flex; justify-content: space-between; align-items: center; padding-top: 18px;
   font-size: 12px; color: rgba(255,255,255,.35); flex-wrap: wrap; gap: 10px; }
 .ftr__pay { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .ftr__pay span { border: 1px solid rgba(255,255,255,.16); border-radius: 5px; padding: 3px 9px;
-  font-size: 11px; font-weight: 600; color: rgba(255,255,255,.6); }
+  font-size: 10.5px; font-weight: 650; color: rgba(255,255,255,.6); }
 /* ---------- CUSTOM CAKE BAND (v5) ---------- */
 .v5-band { border-radius: var(--r-xl); overflow: hidden; display: grid; grid-template-columns: 1fr;
   background: var(--choc); color: #f2e4e6; }
@@ -721,24 +616,20 @@ h4 { font-weight: 600; }
 /* contain, not cover — the brand mark is a circle with its own margin. */
 .v5brand__logo { width: 40px; height: 40px; border-radius: 50%; object-fit: contain; background: var(--paper); }
 @media (min-width: 768px) { .v5brand__logo { width: 46px; height: 46px; } }
-/* The wordmark is the one place the display face appears at small size — it is
-   a logotype, so it keeps its own size rather than sitting on the text scale. */
-.v5brand__n { display: block; font-family: var(--font-display), Georgia, serif;
-  font-variation-settings: "SOFT" 40, "WONK" 1; font-weight: 600; letter-spacing: -.012em;
-  font-size: 20px; line-height: 1; color: var(--ink); }
-@media (min-width: 768px) { .v5brand__n { font-size: 24px; } }
+.v5brand__n { display: block; font-family: var(--font-jakarta); font-weight: 800; letter-spacing: -.035em;
+  font-size: 18px; line-height: 1; color: var(--rose); }
+@media (min-width: 768px) { .v5brand__n { font-size: 21px; } }
 
-.v5search { flex: 1; max-width: 440px; height: 42px; border: 1px solid var(--line-2); border-radius: var(--r-sm);
-  display: none; align-items: center; gap: 10px; padding: 0 14px; background: var(--bone);
-  transition: border-color var(--fast) var(--ease); }
+.v5search { flex: 1; max-width: 440px; height: 44px; border: 1.5px solid var(--line-2); border-radius: var(--r-pill);
+  display: none; align-items: center; gap: 10px; padding: 0 18px; transition: border-color var(--fast) var(--ease); }
 @media (min-width: 900px) { .v5search { display: flex; } }
 .v5search:focus-within { border-color: var(--rose); box-shadow: 0 0 0 3px var(--rose-100); }
 .v5search svg { width: 18px; height: 18px; stroke: var(--ink-3); flex: none; }
-.v5search input { border: 0; outline: none; flex: 1; font-size: 14px; background: transparent; }
+.v5search input { border: 0; outline: none; flex: 1; font-size: 14.5px; background: transparent; }
 .v5search input::placeholder { color: var(--ink-4); }
 
 .v5hdr__acts { margin-left: auto; display: flex; align-items: center; gap: 4px; }
-.v5ibtn { height: 42px; min-width: 42px; padding: 0 10px; border-radius: var(--r-sm); display: inline-flex; align-items: center;
+.v5ibtn { height: 44px; min-width: 44px; padding: 0 11px; border-radius: var(--r-pill); display: inline-flex; align-items: center;
   justify-content: center; gap: 7px; position: relative; font-size: 14px; font-weight: 600; cursor: pointer;
   transition: background var(--fast) var(--ease); color: var(--ink); }
 .v5ibtn:hover { background: var(--cream); }
@@ -746,30 +637,27 @@ h4 { font-weight: 600; }
 .v5ibtn__t { display: none; }
 @media (min-width: 768px) { .v5ibtn__t { display: inline; } }
 
-.v5dot { position: absolute; top: 3px; right: 1px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill);
-  background: var(--rose); color: #fff; font-size: 11px; font-weight: 600; display: grid; place-items: center;
+.v5dot { position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: var(--r-pill);
+  background: var(--rose); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center;
   border: 2px solid var(--paper); font-variant-numeric: tabular-nums; }
 .v5dot--nav { top: 4px; right: 22px; border-color: rgba(255,255,255,.98); }
 
 /* Store picker — compact chip on phones, labelled pill from tablet up. */
 .v5store { position: relative; }
 .v5loc { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 10px;
-  border: 1px solid var(--line-2); border-radius: var(--r-sm); background: transparent;
+  border: 1.5px solid var(--line); border-radius: var(--r-pill); background: var(--paper);
   cursor: pointer; text-align: left; font: inherit; color: inherit;
   transition: border-color var(--fast) var(--ease); }
-.v5loc:hover, .v5loc[aria-expanded="true"] { border-color: var(--ink); }
+.v5loc:hover, .v5loc[aria-expanded="true"] { border-color: var(--rose-200); }
 .v5loc svg { width: 16px; height: 16px; stroke: var(--rose); flex: none; }
-/* With two outlets live, which one you are ordering from is worth the space —
-   so the name shows on phones too; only the "Deliver from" label is dropped. */
-.v5loc__t { display: block; min-width: 0; }
-.v5loc small { display: none; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
-  color: var(--ink-3); font-weight: 600; }
-.v5loc b { display: block; font-size: 13px; line-height: 1.2; max-width: 72px; font-weight: 600;
+.v5loc__t { display: none; min-width: 0; }
+.v5loc small { display: block; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-4); font-weight: 700; }
+.v5loc b { display: block; font-size: 13.5px; line-height: 1.2; max-width: 130px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (min-width: 768px) {
   .v5loc { height: 42px; gap: 8px; padding: 0 12px; }
-  .v5loc small { display: block; }
-  .v5loc b { font-size: 14px; max-width: 130px; }
+  .v5loc__t { display: block; }
 }
 
 .v5store__bg { position: fixed; inset: 0; z-index: 80; background: rgba(23, 18, 16, .45); }
@@ -871,7 +759,7 @@ h4 { font-weight: 600; }
 .v5nav .wrap { display: flex; align-items: center; gap: 22px; height: 48px; font-size: 14px; font-weight: 550;
   overflow-x: auto; scrollbar-width: none; }
 .v5nav .wrap::-webkit-scrollbar { display: none; }
-@media (min-width: 768px) { .v5nav .wrap { gap: 30px; height: 50px; font-size: 14px; } }
+@media (min-width: 768px) { .v5nav .wrap { gap: 30px; height: 50px; font-size: 14.5px; } }
 .v5nav a { position: relative; height: 100%; flex: none; display: flex; align-items: center; color: var(--ink-2); white-space: nowrap; }
 .v5nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.5px; background: var(--rose);
   border-radius: 3px 3px 0 0; transform: scaleX(0); transition: transform var(--base) var(--ease); }
@@ -897,7 +785,7 @@ h4 { font-weight: 600; }
 .fgroup { border-bottom: 1px solid var(--line); }
 .fgroup:last-child { border-bottom: 0; }
 .fgroup__b { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 13px 16px;
-  font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); cursor: pointer; }
+  font-size: 12.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); cursor: pointer; }
 .fgroup__b svg { width: 15px; height: 15px; stroke: var(--ink-3); fill: none; stroke-width: 2.2;
   transition: transform var(--base) var(--ease); flex: none; }
 .fgroup.open .fgroup__b svg { transform: rotate(180deg); }
@@ -926,8 +814,8 @@ h4 { font-weight: 600; }
   background: var(--cream); transition: border-color var(--fast) var(--ease); }
 .subtag[aria-pressed="true"] .subtag__img { border-color: var(--rose); }
 .subtag__img img { width: 100%; height: 100%; object-fit: cover; }
-.subtag b { display: block; font-size: 11px; font-weight: 600; margin-top: 6px; line-height: 1.2; min-height: 2.4em; }
-@media (min-width: 768px) { .subtag b { font-size: 12px; } }
+.subtag b { display: block; font-size: 10.5px; font-weight: 650; margin-top: 6px; line-height: 1.2; min-height: 2.4em; }
+@media (min-width: 768px) { .subtag b { font-size: 11.5px; } }
 .subtag[aria-pressed="true"] b { color: var(--rose); }
 
 /* minmax(0,…) — plain 1fr floors at min-content and overflows narrow screens. */
@@ -1291,7 +1179,7 @@ h4 { font-weight: 600; }
 /* Kept in the DOM for SEO, but clamped so products stay near the fold. */
 .plp__intro { font-size: 14px; line-height: 1.55; color: var(--ink-3); max-width: 62ch; margin: 8px 0 0;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 767px) { .plp__intro { font-size: 14px; line-height: 1.5; -webkit-line-clamp: 2; margin-top: 6px; } }
+@media (max-width: 767px) { .plp__intro { font-size: 12.5px; line-height: 1.5; -webkit-line-clamp: 2; margin-top: 6px; } }
 .subtags__wrap { margin-top: 14px; }
 .subtags__lbl { margin-bottom: 8px; }
 @media (max-width: 767px) { .subtags__wrap { margin-top: 12px; } }

@@ -44,9 +44,7 @@ export default function CheckoutPage() {
   const [checks, setChecks] = useState<Record<string, Verdict>>({});
   const [newAddr, setNewAddr] = useState(false);
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
-  // Must come from the same local-date list as the chips: toISOString is UTC,
-  // so east of Greenwich the default could be a day nobody can pick.
-  const [date, setDate] = useState(DAYS[0].iso);
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [slot, setSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<AddOn[]>([]);

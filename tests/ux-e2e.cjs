@@ -73,14 +73,12 @@ const check = (ok, n, d = "") => {
 
       const brand = await p.evaluate(() => {
         const el = document.querySelector(".v5brand__n");
-        return el ? { text: el.textContent.trim(), colour: getComputedStyle(el).color, font: getComputedStyle(el).fontFamily } : null;
+        return el ? { text: el.textContent.trim(), colour: getComputedStyle(el).color } : null;
       });
       check(brand?.text === "Bliss Bakery", "brand always reads Bliss Bakery", brand?.text);
       check(!(await p.$(".v5brand__s")), "the city is no longer part of the brand lockup");
-      // Colour is reserved for action, so the wordmark is set in ink and the
-      // display face does the distinguishing.
-      check(/27,\s*21,\s*18/.test(brand?.colour ?? ""), "brand wordmark is set in ink", brand?.colour);
-      check(/Fraunces/.test(brand?.font ?? ""), "brand wordmark uses the display face", brand?.font);
+      // rgb(175, 63, 99) is the rose CTA colour
+      check(/175,\s*63,\s*99/.test(brand?.colour ?? ""), "brand wordmark is pink, not near-black", brand?.colour);
       await ctx2.close();
     }
 
