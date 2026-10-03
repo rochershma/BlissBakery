@@ -50,7 +50,9 @@ export default function CartPage() {
     () => Object.entries(extras).reduce((s, [id, q]) => s + (addOns.find((a) => a.id === id)?.price ?? 0) * q, 0),
     [extras, addOns],
   );
-  const total = subtotal + addOnTotal + charges.packaging + charges.delivery;
+  // Delivery is excluded here on purpose — the fulfilment method (delivery vs free
+  // pickup) is chosen at checkout, so the cart only shows what we can charge now.
+  const total = subtotal + addOnTotal + charges.packaging;
 
   if (!hydrated) {
     return (
@@ -155,9 +157,8 @@ export default function CartPage() {
           <div className="sline"><span>Item total</span><b>{formatPrice(subtotal)}</b></div>
           {addOnTotal > 0 ? <div className="sline"><span>Add-ons</span><b>{formatPrice(addOnTotal)}</b></div> : null}
           <div className="sline"><span>Packaging</span><b>{formatPrice(charges.packaging)}</b></div>
-          <div className="sline"><span>Delivery <span className="t-small">free for pickup</span></span><b>{formatPrice(charges.delivery)}</b></div>
           <div className="sline sline--tot"><span>Estimated total</span><b>{formatPrice(total)}</b></div>
-          <p className="cart5__note">Exact delivery charge is set by your address at the next step.</p>
+          <p className="cart5__note">Delivery charge is added at checkout when you choose delivery — pickup is free.</p>
           <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 14 }}
             onClick={() => router.push("/checkout")}>
             Proceed to checkout
