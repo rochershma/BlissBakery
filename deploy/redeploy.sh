@@ -44,7 +44,12 @@ main() {
   cp -r public .next/standalone/public
 
   echo "==> restarting"
+  # `--update-env` replaces the process env with the current shell's, so source
+  # .env first — otherwise DATABASE_URL and other secrets get dropped and the
+  # app boots into a PrismaClientInitializationError (500 on every page).
+  set -a; . ./.env; set +a
   pm2 restart blissbakery-v5 --update-env >/dev/null
+  pm2 save >/dev/null 2>&1 || true
   sleep 4
   pm2 list --no-color | grep blissbakery-v5 || true
 
