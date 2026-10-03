@@ -24,8 +24,9 @@ main() {
   grep '^NEXT_PUBLIC_APP_URL' .env
 
   echo "==> installing"
-  # Tailwind/PostCSS are devDependencies and are required by the build.
-  npm ci --no-audit --no-fund --silent 2>&1 | tail -2
+  # Tailwind/PostCSS are devDependencies and are required by the build, so force
+  # them in even though .env sets NODE_ENV=production (which npm ci would prune).
+  NODE_ENV=development npm ci --no-audit --no-fund --include=dev --silent 2>&1 | tail -2
   npx prisma generate >/dev/null 2>&1
 
   echo "==> syncing database schema"
