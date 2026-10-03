@@ -8,8 +8,6 @@ import { InstallAppPrompt } from "@/components/shared/install-prompt";
 import { ToastProvider } from "@/components/shared/toast";
 import { ConfirmProvider } from "@/components/shared/confirm-dialog";
 import { ServiceWorkerRegistration } from "@/components/shared/sw-register";
-import { SearchProvider } from "@/components/shared/search-context";
-import { MobileSearchOverlayWrapper } from "@/components/shared/mobile-search-wrapper";
 import { StoreGate } from "@/components/v5/store-gate";
 import { getCustomerStoreSlug } from "@/lib/customer-store";
 
@@ -82,19 +80,16 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans">
         <AuthProvider>
-          <SearchProvider>
           <ToastProvider>
             <ConfirmProvider>
               {children}
               <StoreGate chosen={chosenStore} />
               <LoginModal />
-              <MobileNavV5 />
-              <MobileSearchOverlayWrapper />
+              <MobileNavV5 storeSlug={chosenStore ?? undefined} />
               <InstallAppPrompt />
               <ServiceWorkerRegistration />
             </ConfirmProvider>
           </ToastProvider>
-          </SearchProvider>
         </AuthProvider>
       </body>
     </html>
