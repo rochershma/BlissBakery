@@ -57,6 +57,17 @@ export function fromPrice(product: PricingInput, variants: { name: string; price
   return product.basePrice;
 }
 
+/** fromPrice for a raw Product row, where flavourPrices is still a JSON string. */
+export function cardPrice(p: {
+  pricingStrategy?: string | null; basePrice: number; designCharge?: number | null;
+  base500gPrice?: number | null; flavourPrices?: string | null;
+  variants?: { name: string; price: number; isAvailable?: boolean }[];
+}): number {
+  let flavourPrices: FlavourPrice[] = [];
+  try { flavourPrices = p.flavourPrices ? JSON.parse(p.flavourPrices) : []; } catch { /* malformed row */ }
+  return fromPrice({ ...p, flavourPrices }, p.variants ?? []);
+}
+
 /** Serves label from a weight, used when a variant has no `serves` set. */
 export function servesFor(kg: number): string {
   const table: [number, string][] = [

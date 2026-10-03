@@ -1,5 +1,9 @@
 import { db } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { cleanQuery, productsByIds, searchProductIds } from "@/lib/search";
+import { cardPrice } from "@/lib/pricing";
+import { parseJsonSafe } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
@@ -7,7 +11,7 @@ export async function GET(request: NextRequest) {
   const theme = sp.get("theme");
   const forWhom = sp.get("for");
   const tag = sp.get("tag");
-  const query = sp.get("q")?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50);
+  const query = cleanQuery(sp.get("q"));
   const storeSlug = sp.get("store");
   const offset = Math.max(0, parseInt(sp.get("offset") || "0", 10));
   const limit = Math.min(24, Math.max(1, parseInt(sp.get("limit") || "12", 10)));
@@ -30,51 +34,43 @@ export async function GET(request: NextRequest) {
     if (tag) where.themeTags = { contains: `"${tag}"` };
   }
   if (query) {
-    const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
-    const orConds: any[] = [];
-    for (const word of words) {
-      orConds.push(
-        { name: { contains: word } }, { shortDesc: { contains: word } },
-        { category: { name: { contains: word } } }, { occasions: { contains: word } },
-        { themes: { contains: word } }, { themeTags: { contains: word } },
-      );
-    }
-    orConds.push({ name: { contains: query } });
-    where.OR = orConds;
+    // Same ranking as the first page the search route rendered.
+    const ids = (await searchProductIds(store.id, query)).slice(offset, offset + limit);
+    const ranked = await productsByIds(ids, (page) => db.product.findMany({
+      where: { id: { in: page } },
+      include: { category: true, variants: { where: { isAvailable: true } } },
+    }));
+    return NextResponse.json({ items: ranked.map(toItem) });
   }
 
   const products = await db.product.findMany({
     where,
     include: {
       category: true,
-      variants: { where: { isAvailable: true }, orderBy: { price: "asc" as const }, take: 1 },
+      variants: { where: { isAvailable: true }, orderBy: { price: "asc" as const } },
     },
     orderBy: [{ isBestseller: "desc" as const }, { isFeatured: "desc" as const }, { name: "asc" as const }],
     skip: offset,
     take: limit,
   });
 
-  const items = products.map((p) => {
-    let image: string | null = null;
-    try {
-      const imgs = JSON.parse(p.images || "[]");
-      image = Array.isArray(imgs) ? imgs[0] || null : null;
-    } catch { /* */ }
-    const available = p.variants.filter(v => v.isAvailable !== false);
-    const displayPrice = available.length > 0 ? Math.min(...available.map(v => v.price)) : p.basePrice;
-    return {
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      displayPrice,
-      mrpPrice: p.mrpPrice,
-      image,
-      images: (() => { try { return JSON.parse(p.images || "[]"); } catch { return []; } })(),
-      categoryName: p.category.name,
-      isBestseller: p.isBestseller,
-      isNew: p.isNew,
-    };
-  });
+  return NextResponse.json({ items: products.map(toItem) });
+}
 
-  return NextResponse.json({ items });
+type Row = Prisma.ProductGetPayload<{ include: { category: true; variants: true } }>;
+
+function toItem(p: Row) {
+  const images = parseJsonSafe<string[]>(p.images, []);
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    displayPrice: cardPrice(p),
+    mrpPrice: p.mrpPrice,
+    image: images[0] ?? null,
+    images,
+    categoryName: p.category.name,
+    isBestseller: p.isBestseller,
+    isNew: p.isNew,
+  };
 }

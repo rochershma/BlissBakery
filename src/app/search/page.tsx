@@ -6,7 +6,9 @@ import Image from "next/image";
 import { AppHeader, AppFooter } from "@/components/v5/app-header";
 import { ExploreRanges } from "@/components/shared/explore-ranges";
 import { InfiniteProductGrid } from "@/components/shared/infinite-product-grid";
-import { parseJsonSafe, getDisplayPrice } from "@/lib/utils";
+import { parseJsonSafe } from "@/lib/utils";
+import { cardPrice } from "@/lib/pricing";
+import { cleanQuery, productsByIds, searchProductIds } from "@/lib/search";
 import { Search } from "lucide-react";
 
 const INITIAL_BATCH = 12;
@@ -18,74 +20,26 @@ interface Props {
 export default async function SearchPage({ searchParams }: Props) {
   noStore();
   const { q } = await searchParams;
-  const query = q?.trim().replace(/[^\w\s\-&']/gi, "").substring(0, 50) || "";
+  const query = cleanQuery(q);
 
   const store = await db.store.findFirst({ where: { id: await getCustomerStoreId() } });
   const storeSlug = store?.slug || "kuchaman-city";
   // Search only ever covers the store the customer is shopping in.
   const inStore = { category: { storeId: store?.id ?? "" } };
+  const include = { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" as const } } };
 
   let products: any[] = [];
   let totalCount = 0;
 
-  if (query.length >= 2) {
-    const priceMatch = query.match(/(?:under|below|upto|up to|less than|within)\s*₹?\s*(\d+)/i);
-    const maxPrice = priceMatch ? parseInt(priceMatch[1], 10) : null;
-
-    if (maxPrice) {
-      const where = { isAvailable: true, ...inStore, basePrice: { lte: maxPrice } };
-      [products, totalCount] = await Promise.all([
-        db.product.findMany({
-          where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
-          orderBy: [{ basePrice: "asc" }, { isBestseller: "desc" }],
-          take: INITIAL_BATCH,
-        }),
-        db.product.count({ where }),
-      ]);
-    } else {
-      const words = query.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
-      const orConditions: any[] = [];
-      for (const word of words) {
-        orConditions.push(
-          { name: { contains: word } }, { shortDesc: { contains: word } },
-          { category: { name: { contains: word } } }, { occasions: { contains: word } },
-          { themes: { contains: word } }, { themeTags: { contains: word } },
-          { flavours: { contains: word } }, { forWhom: { contains: word } },
-        );
-      }
-      orConditions.push({ name: { contains: query } }, { shortDesc: { contains: query } });
-      const where = { isAvailable: true, ...inStore, OR: orConditions };
-      
-      // Fetch more candidates for scoring
-      const candidates = await db.product.findMany({
-        where, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
-        take: 100,
-        orderBy: [{ isBestseller: "desc" }, { name: "asc" }],
-      });
-      totalCount = await db.product.count({ where });
-      
-      // Score by relevance — name matches rank much higher
-      const scored = candidates.map(p => {
-        let score = 0;
-        const nameLower = p.name.toLowerCase();
-        const descLower = (p.shortDesc || "").toLowerCase();
-        if (nameLower.includes(query.toLowerCase())) score += 100;
-        for (const w of words) {
-          if (nameLower.includes(w)) score += 30;
-          if (p.category.name.toLowerCase().includes(w)) score += 15;
-          if (descLower.includes(w)) score += 10;
-        }
-        if (words.length > 1 && words.every(w => nameLower.includes(w))) score += 50;
-        if (p.isBestseller) score += 5;
-        return { p, score };
-      });
-      scored.sort((a, b) => b.score - a.score);
-      products = scored.slice(0, INITIAL_BATCH).map(s => s.p);
-    }
+  if (query.length >= 2 && store) {
+    const ids = await searchProductIds(store.id, query);
+    totalCount = ids.length;
+    products = await productsByIds(ids.slice(0, INITIAL_BATCH), (page) =>
+      db.product.findMany({ where: { id: { in: page } }, include }));
   } else {
     [products, totalCount] = await Promise.all([
       db.product.findMany({
-        where: { isAvailable: true, ...inStore }, include: { category: true, variants: { where: { isAvailable: true }, orderBy: { price: "asc" }, take: 1 } },
+        where: { isAvailable: true, ...inStore }, include,
         orderBy: [{ isBestseller: "desc" }, { isFeatured: "desc" }, { name: "asc" }],
         take: INITIAL_BATCH,
       }),
@@ -109,7 +63,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <div>
             {query ? (
               <>
-                <p className="text-xs text-muted-foreground">Showing results for</p>
+                <p className="text-xs text-muted-foreground">{totalCount} {totalCount === 1 ? "result" : "results"} for</p>
                 <h1 className="text-xl md:text-2xl font-serif font-bold text-foreground mt-1">&ldquo;{query}&rdquo;</h1>
               </>
             ) : (
@@ -150,12 +104,12 @@ export default async function SearchPage({ searchParams }: Props) {
           <InfiniteProductGrid
             initialProducts={products.map((p: any) => {
               const imgs = parseJsonSafe<string[]>(p.images, []);
-              const displayPrice = getDisplayPrice(p);
+              const displayPrice = cardPrice(p);
               return { id: p.id, name: p.name, slug: p.slug, displayPrice, mrpPrice: p.mrpPrice, image: imgs[0] || null, images: imgs, categoryName: p.category.name, isBestseller: p.isBestseller, isNew: p.isNew };
             })}
             totalCount={totalCount}
             storeSlug={storeSlug}
-            apiParams={query ? `q=${encodeURIComponent(query)}` : ""}
+            apiParams={`store=${encodeURIComponent(storeSlug)}${query ? `&q=${encodeURIComponent(query)}` : ""}`}
           />
         )}
       </main>
