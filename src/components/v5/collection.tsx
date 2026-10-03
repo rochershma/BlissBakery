@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { img } from "@/lib/img";
 import { ProductCard, type CardProduct } from "./product-card";
-import { IconChevD, IconFilter, IconPlus } from "./icons";
+import { IconChevD, IconFilter, IconPlus, IconGrid } from "./icons";
 
 export type FilterGroup = {
   key: string;
@@ -94,7 +94,7 @@ export function Collection({
     return s;
   }, [products, activeTag, sel, groups, sort]);
 
-  const activeCount = Object.values(sel).reduce((n, s) => n + s.size, 0) + (activeTag ? 1 : 0);
+  const activeCount = Object.values(sel).reduce((n, s) => n + s.size, 0);
   const clearAll = () => { setSel({}); setTag(""); setShown(PAGE); };
 
   // Reveal the next page as the sentinel scrolls into view.
@@ -157,17 +157,19 @@ export function Collection({
         ))}
       </p>
 
-      <h1 className="d2" style={{ marginTop: 10 }}>{title}</h1>
-      {subtitle ? <p className="plp__intro">{subtitle}</p> : null}
+      <h1 className="d2 plp__title" style={{ marginTop: 10 }}>{title}</h1>
 
       {subTags.length > 0 && (
         <div className="subtags__wrap">
-          {subTagLabel ? <p className="t-micro subtags__lbl">{subTagLabel}</p> : null}
           <div className="subtags">
+            <button type="button" className="subtag subtag--all" aria-pressed={!activeTag} onClick={() => setTag("")}>
+              <span className="subtag__img"><IconGrid /></span>
+              <b>All</b>
+            </button>
             {subTags.map((t, i) => (
               <button key={t.slug} type="button" className="subtag" aria-pressed={activeTag === t.slug} onClick={() => setTag(t.slug)}>
                 <span className="subtag__img">
-                  {t.image ? <Image src={img(t.image, 190, 190)} alt="" width={190} height={190} unoptimized loading={i < 6 ? "eager" : "lazy"} /> : null}
+                  {t.image ? <Image src={img(t.image, 160, 160)} alt="" width={160} height={160} unoptimized loading={i < 6 ? "eager" : "lazy"} /> : null}
                 </span>
                 <b>{t.name}</b>
               </button>

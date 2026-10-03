@@ -10,7 +10,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
 import { useToast } from "@/components/shared/toast";
-import { IconBag, IconChevL, IconTrash } from "@/components/v5/icons";
+import { IconBag, IconChevL, IconTrash, IconPlus, IconTruck } from "@/components/v5/icons";
 
 const NO_EXTRAS: Record<string, number> = {};
 
@@ -96,10 +96,16 @@ export default function CartPage() {
       </div>
 
       <div className="wrap cart5">
-        <div>
+        <div className="cart5__main">
+          <div className="cart5__assure">
+            <IconTruck />
+            <span><b>Same-day delivery</b> or free pickup — you choose at checkout</span>
+          </div>
+
+          <div className="cart5__items">
           {items.map((it) => {
             const key = lineKey(it);
-            const addOnTotal = (it.addOns ?? []).reduce((a, x) => a + x.price, 0);
+            const lineAddOns = (it.addOns ?? []).reduce((a, x) => a + x.price, 0);
             return (
               <div className="crow" key={key}>
                 <Link href={`/store/${storeSlug}/menu/${it.productSlug ?? ""}`} className="crow__i">
@@ -108,41 +114,36 @@ export default function CartPage() {
                 <div className="crow__body">
                   <div className="crow__top">
                     <span className="veg" aria-label="Pure veg" />
-                    <Link href={`/store/${storeSlug}/menu/${it.productSlug ?? ""}`}>
-                      <b className="crow__name">{it.name}</b>
-                    </Link>
+                    <Link href={`/store/${storeSlug}/menu/${it.productSlug ?? ""}`} className="crow__name">{it.name}</Link>
+                    <button type="button" className="crow__x" aria-label="Remove" onClick={() => removeLine(key)}><IconTrash /></button>
                   </div>
-                  <div className="crow__tags">
-                    {it.variantName ? <span className="badge badge--soft">{it.variantName}</span> : null}
-                    {it.flavour ? <span className="badge badge--soft">{it.flavour}</span> : null}
-                  </div>
+                  {[it.variantName, it.flavour].filter(Boolean).length ? (
+                    <p className="crow__sub">{[it.variantName, it.flavour].filter(Boolean).join(" · ")}</p>
+                  ) : null}
                   {it.cakeMessage ? (
                     <p className="t-small crow__msg">On the cake — “<b>{it.cakeMessage}</b>”</p>
                   ) : null}
                   {(it.addOns ?? []).length > 0 ? (
-                    <p className="t-small">{it.addOns!.map((a) => a.name).join(", ")} · {formatPrice(addOnTotal)}</p>
+                    <p className="t-small crow__addons">{it.addOns!.map((a) => a.name).join(", ")} · {formatPrice(lineAddOns)}</p>
                   ) : null}
-                  <div className="crow__ctl">
-                    <div className="qty">
+                  <div className="crow__foot">
+                    <div className="qty qty--sm">
                       <button type="button" aria-label="Decrease" disabled={it.quantity <= 1}
                         onClick={() => setLineQuantity(key, it.quantity - 1)}>−</button>
                       <span>{it.quantity}</span>
                       <button type="button" aria-label="Increase" disabled={it.quantity >= 50}
                         onClick={() => setLineQuantity(key, it.quantity + 1)}>+</button>
                     </div>
-                    <button type="button" className="btn btn--ghost btn--sm crow__rm"
-                      onClick={() => removeLine(key)}>
-                      <IconTrash /> Remove
-                    </button>
+                    <b className="t-num crow__price">{formatPrice((it.unitPrice + lineAddOns) * it.quantity)}</b>
                   </div>
                 </div>
-                <b className="t-num crow__price">{formatPrice((it.unitPrice + addOnTotal) * it.quantity)}</b>
               </div>
             );
           })}
+          </div>
 
-          <Link className="btn btn--out btn--sm cart5__more" href={`/store/${storeSlug}/menu`}>
-            + Add more items
+          <Link className="cart5__more" href={`/store/${storeSlug}/menu`}>
+            <IconPlus /> Add more items
           </Link>
 
           <AddOnsPicker
@@ -158,13 +159,13 @@ export default function CartPage() {
           <h3 className="t-h3">Bill details</h3>
           <div className="sline"><span>Item total</span><b>{formatPrice(subtotal)}</b></div>
           {addOnTotal > 0 ? <div className="sline"><span>Add-ons</span><b>{formatPrice(addOnTotal)}</b></div> : null}
-          <div className="sline"><span>Safe cake packaging</span><b>{formatPrice(charges.packaging)}</b></div>
-          <div className="sline"><span>Delivery <span className="t-small">(free for pickup)</span></span><b>{formatPrice(charges.delivery)}</b></div>
+          <div className="sline"><span>Packaging</span><b>{formatPrice(charges.packaging)}</b></div>
+          <div className="sline"><span>Delivery <span className="t-small">free for pickup</span></span><b>{formatPrice(charges.delivery)}</b></div>
           <div className="sline sline--tot"><span>Estimated total</span><b>{formatPrice(total)}</b></div>
-          <p className="t-small" style={{ marginTop: 6 }}>Exact delivery charge depends on your address — confirmed at the next step.</p>
-          <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 16 }}
+          <p className="cart5__note">Exact delivery charge is set by your address at the next step.</p>
+          <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 14 }}
             onClick={() => router.push("/checkout")}>
-            Continue to delivery
+            Proceed to checkout
           </button>
           <div className="summary5__trust">
             <span className="t-small"><span className="veg" /> 100% eggless</span>

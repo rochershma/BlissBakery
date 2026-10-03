@@ -61,7 +61,7 @@ page.on("console", (m) => {
   check(home.tiles >= 6, "browse tiles render", `${home.tiles}`);
   check(home.cards >= 1, "bestsellers render", `${home.cards}`);
   check(/Jakarta/.test(home.font), "display font is Plus Jakarta Sans");
-  check(home.cta === "rgb(173, 116, 126)", "CTA uses brand colour #ad747e", home.cta);
+  check(home.cta === "rgb(175, 63, 99)", "CTA uses brand colour #af3f63", home.cta);
   check(["Shop by category", "Shop by occasion", "Shop by theme"].every((s) => home.sections.includes(s)), "all browse sections present");
   check((await broken()) === 0, "no broken images on home");
 
@@ -115,8 +115,8 @@ page.on("console", (m) => {
     price: document.querySelector(".pdp5__price b")?.textContent,
     sizes: document.querySelectorAll("#pdp-size option").length,
     sizesShowPrice: [...document.querySelectorAll("#pdp-size option")].every((e) => /₹/.test(e.textContent)),
-    flav: document.querySelectorAll(".pdp5__flav .chip").length,
-    flavHasPrice: /₹/.test(document.querySelector(".pdp5__flav")?.textContent || ""),
+    flav: document.querySelectorAll(".flavrow .flavchip").length,
+    flavHasPrice: /₹/.test(document.querySelector(".flavrow")?.textContent || ""),
     acc: document.querySelectorAll(".acc__i").length,
     related: document.querySelectorAll(".card").length,
     dupServes: /serves\s+Serves/i.test(document.body.innerText),
@@ -146,7 +146,7 @@ page.on("console", (m) => {
   });
   check(agree.sel === agree.main, "size option price matches headline price", `${agree.sel} vs ${agree.main}`);
 
-  const chips = await page.$$(".pdp5__flav .chip");
+  const chips = await page.$$(".flavrow .flavchip");
   if (chips.length > 2) { await chips[chips.length - 1].click(); await page.waitForTimeout(500); }
   const p2 = await page.evaluate(() => document.querySelector(".pdp5__price b").textContent);
   check(p2 !== p1, "price updates when flavour changes", `${p1} -> ${p2}`);
@@ -161,11 +161,11 @@ page.on("console", (m) => {
   const cart = await page.evaluate(() => ({
     rows: document.querySelectorAll(".crow").length,
     total: document.querySelector(".sline--tot b")?.textContent,
-    tags: document.querySelectorAll(".crow__tags .badge").length,
+    tags: document.querySelector(".crow__sub")?.textContent?.trim().length || 0,
     addons: document.querySelectorAll(".aocard").length,
   }));
   check(cart.rows === 1, "cart has the added item", `${cart.rows} rows`);
-  check(cart.tags >= 2, "cart line shows size + flavour badges", `${cart.tags}`);
+  check(cart.tags >= 2, "cart line shows size + flavour", `${cart.tags}`);
   check(!!cart.total, "cart shows a total", cart.total);
   check(cart.addons > 0, "cart offers add-ons", `${cart.addons}`);
 

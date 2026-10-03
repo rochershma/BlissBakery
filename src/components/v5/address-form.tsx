@@ -139,7 +139,18 @@ export function AddressForm({
   };
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) { setPlacesDown(true); return; }
+    setError("");
+    // Browsers only hand out GPS on a secure origin; over plain http it silently fails.
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      setError("Location needs a secure (https) connection. Please search for your area instead.");
+      setManual(true);
+      return;
+    }
+    if (!navigator.geolocation) {
+      setError("This device can't share location. Search for your area instead.");
+      setManual(true);
+      return;
+    }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -151,12 +162,23 @@ export function AddressForm({
           setPlace({ ...d, city: d.city || fallbackCity });
         } catch {
           setError("Couldn't read your location. Search for the area instead.");
+          setManual(true);
         } finally {
           setLocating(false);
         }
       },
-      () => { setLocating(false); setError("Location permission denied."); },
-      { enableHighAccuracy: true, timeout: 10000 },
+      (err) => {
+        setLocating(false);
+        const msg =
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission is off. Allow it in your browser, or search below."
+            : err.code === err.TIMEOUT
+              ? "Taking too long to locate you. Search for your area instead."
+              : "Couldn't find your location. Search for your area instead.";
+        setError(msg);
+        setManual(true);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
     );
   };
 

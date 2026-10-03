@@ -1,8 +1,9 @@
 // Recolours the brand mark (white + one pink) to a new brand colour, keeping
-// anti-aliased edges. node scripts/recolor-logo.mjs ad747e
+// anti-aliased edges. node scripts/recolor-logo.mjs af3f63
 import sharp from "sharp";
+import { rename } from "fs/promises";
 
-const hex = (process.argv[2] || "ad747e").replace("#", "");
+const hex = (process.argv[2] || "af3f63").replace("#", "");
 const target = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
 const FILES = [
@@ -40,5 +41,6 @@ for (const [file, resize] of FILES) {
     for (let c = 0; c < 3; c++) data[i + c] = Math.round(255 + t * (target[c] - 255));
   }
   await sharp(data, { raw: info }).png({ compressionLevel: 9, palette: false }).toFile(file + ".tmp");
+  await rename(file + ".tmp", file);
   console.log(`${file}: ${info.width}x${info.height} recoloured from g=${srcG}`);
 }

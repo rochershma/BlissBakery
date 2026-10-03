@@ -8,7 +8,7 @@ import { useToast } from "@/components/shared/toast";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { customPrice, parseWeightKg, servesFor, type FlavourPrice } from "@/lib/pricing";
-import { IconLeaf, IconTruck, IconClock, IconPlus, IconCheck } from "@/components/v5/icons";
+import { IconLeaf, IconTruck, IconClock, IconPlus, IconCheck, IconChevD } from "@/components/v5/icons";
 
 export type PdpProduct = {
   id: string;
@@ -169,45 +169,47 @@ export function ProductDetail({
           <span className="t-small">100% eggless</span>
         </div>
 
-        <h1 className="d2">{product.name}</h1>
+        <h1 className="pdp5__title">{product.name}</h1>
         <p className="pdp5__lead">
           <b className="t-num">{formatPrice(unitPrice)}</b>
-          <span className="t-small">{[variant?.name, flavour].filter(Boolean).join(" · ")}</span>
+          {product.mrpPrice && product.mrpPrice > unitPrice ? <s className="t-num">{formatPrice(product.mrpPrice)}</s> : null}
         </p>
         {product.shortDesc ? <p className="t-body pdp5__desc">{product.shortDesc}</p> : null}
 
         {product.variants.length > 0 && (
           <div className="opt-block">
             <h4><label htmlFor="pdp-size">Size</label></h4>
-            <select
-              id="pdp-size"
-              className="select sizesel"
-              value={variantId}
-              onChange={(e) => reselect(setVariantId)(e.target.value)}
-            >
-              {product.variants.map((v) => {
-                const vkg = parseWeightKg(v.name);
-                const vPrice = isCustom && flavour
-                  ? customPrice(flavourMap.get(flavour) ?? product.base500gPrice ?? 300, vkg, product.designCharge)
-                  : v.price;
-                return (
-                  <option key={v.id} value={v.id}>
-                    {`${v.name} · ${servesLabel(v.serves || servesFor(vkg))} · ${formatPrice(vPrice)}`}
-                  </option>
-                );
-              })}
-            </select>
+            <div className="selectwrap">
+              <select
+                id="pdp-size"
+                className="select sizesel"
+                value={variantId}
+                onChange={(e) => reselect(setVariantId)(e.target.value)}
+              >
+                {product.variants.map((v) => {
+                  const vkg = parseWeightKg(v.name);
+                  const vPrice = isCustom && flavour
+                    ? customPrice(flavourMap.get(flavour) ?? product.base500gPrice ?? 300, vkg, product.designCharge)
+                    : v.price;
+                  return (
+                    <option key={v.id} value={v.id}>
+                      {`${v.name}  ·  ${formatPrice(vPrice)}`}
+                    </option>
+                  );
+                })}
+              </select>
+              <IconChevD className="selectwrap__chev" />
+            </div>
+            <p className="sizesel__serves">{serves}</p>
           </div>
         )}
 
         {product.flavours.length > 0 && (
           <div className="opt-block">
-            <h4>
-              Choose a flavour <span className="t-small">all eggless</span>
-            </h4>
-            <div className="pdp5__flav">
+            <h4>Flavour <span className="t-small">all eggless</span></h4>
+            <div className="flavrow">
               {product.flavours.map((f) => (
-                <button key={f} type="button" className="chip chip--sm" aria-checked={f === flavour} role="radio" onClick={() => reselect(setFlavour)(f)}>
+                <button key={f} type="button" className="flavchip" aria-checked={f === flavour} role="radio" onClick={() => reselect(setFlavour)(f)}>
                   {f}
                 </button>
               ))}
@@ -228,14 +230,21 @@ export function ProductDetail({
           />
         </div>
 
+        <div className="pdp5__meta">
+          <div className="pdp5__meta-i">
+            <IconClock />
+            <span><b>{isCustom ? "Made to order" : "Freshly baked"}</b>{leadHours > 0 ? ` · order ${leadHours}h ahead` : ""}</span>
+          </div>
+          <div className="pdp5__meta-i">
+            <IconTruck />
+            <span><b>Delivery slots</b>{slots.length ? ` · ${slots.slice(0, 2).join(", ")}${slots.length > 2 ? "…" : ""}` : " · same-day"}</span>
+          </div>
+        </div>
+
         <div className="pdp5__price">
           <div>
             <b className="t-num">{formatPrice(total)}</b>
-            <p className="t-small">
-              {variant ? `${variant.name} · ` : ""}
-              {flavour ? `${flavour} · ` : ""}
-              {serves}
-            </p>
+            <p className="t-small">{[variant?.name, flavour].filter(Boolean).join(" · ")}{qty > 1 ? ` · ${qty} cakes` : ""}</p>
           </div>
           <div className="pdp5__buy">
             {added ? (
