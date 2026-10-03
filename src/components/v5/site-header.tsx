@@ -112,22 +112,17 @@ export function SiteHeaderV5({
       </div>
 
       {nav.length > 0 ? (
-        <nav className="v5nav" aria-label="Shop by occasion">
+        <nav className="v5nav" aria-label="Categories">
           <div className="wrap">
-            <Link href={`/store/${storeSlug}/menu`} className={`v5chip${pathname?.endsWith("/menu") ? " is-on" : ""}`}>
-              <span className="v5chip__ic"><IconGrid /></span>
-              Full menu
+            <Link href={`/store/${storeSlug}/menu`} className={pathname?.endsWith("/menu") ? "is-on" : ""}>
+              Menu
             </Link>
             {nav.map((n) => (
-              <Link key={n.href} href={n.href} className={`v5chip${pathname === n.href ? " is-on" : ""}`}>
-                <span className="v5chip__ic">
-                  {n.image ? <Image src={img(n.image, 64, 64)} alt="" width={28} height={28} unoptimized /> : <IconCake />}
-                </span>
+              <Link key={n.href} href={n.href} className={pathname === n.href ? "is-on" : ""}>
                 {n.label}
               </Link>
             ))}
-            <Link href={`/store/${storeSlug}/custom-cakes`} className="v5chip v5chip--custom">
-              <span className="v5chip__ic"><IconCake /></span>
+            <Link href={`/store/${storeSlug}/custom-cakes`} className="v5nav__custom">
               Custom cake
             </Link>
           </div>

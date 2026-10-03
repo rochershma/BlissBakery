@@ -36,7 +36,7 @@ export function SiteFooter({
           <div>
             <h4>Shop</h4>
             <ul>
-              <li><Link href={`/store/${storeSlug}/menu`}>Full menu</Link></li>
+              <li><Link href={`/store/${storeSlug}/menu`}>Menu</Link></li>
               <li><Link href="/cakes/birthday">Birthday cakes</Link></li>
               <li><Link href="/cakes/anniversary">Anniversary cakes</Link></li>
               <li><Link href="/cakes/wedding">Wedding cakes</Link></li>

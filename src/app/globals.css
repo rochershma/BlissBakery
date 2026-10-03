@@ -9,10 +9,10 @@
    ============================================================ */
 
 :root {
-  --ink:    #3d2a2e;
-  --ink-2:  #5a4347;
-  --ink-3:  #7a6468;
-  --ink-4:  #a8959a;
+  --ink:    #1a1614;
+  --ink-2:  #453c38;
+  --ink-3:  #6f635d;
+  --ink-4:  #a2968f;
 
   --paper:  #ffffff;
   --bone:   #fdfbf9;
@@ -21,15 +21,15 @@
   --line:   #eae1d8;
   --line-2: #d9cdc2;
 
-  --rose-50:  #fbf4f5;
-  --rose-100: #f5e6e8;
-  --rose-200: #ead0d5;
-  --rose-300: #d7aeb6;
-  --rose-500: #c4939c;   /* brand tint */
-  --rose:     #ad747e;   /* brand colour */
-  --rose-dk:  #955f69;
-  --rose-dker:#7c4c55;
-  --brand:    #ad747e;
+  --rose-50:  #fdf2f5;
+  --rose-100: #fae1e9;
+  --rose-200: #f2c4d2;
+  --rose-300: #e09fb4;
+  --rose-500: #c47590;   /* brand tint */
+  --rose:     #af3f63;   /* brand colour — 5.63:1 on white, WCAG AA */
+  --rose-dk:  #92304f;
+  --rose-dker:#78243e;
+  --brand:    var(--rose);
 
   --choc:   #27191d;
   --choc-2: #3a2428;
@@ -811,25 +811,18 @@ h4 { font-weight: 700; }
 .v5menu__pop svg { width: 17px; height: 17px; stroke: currentColor; flex: none; }
 .v5menu__out { color: var(--danger) !important; border-top: 1px solid var(--line); margin-top: 4px; padding-top: 12px !important; border-radius: 0 !important; }
 
-.v5nav { border-top: 1px solid var(--line); background: var(--bone); }
-.v5nav .wrap { display: flex; align-items: center; gap: 8px; padding-top: 9px; padding-bottom: 9px;
-  overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+.v5nav { border-top: 1px solid var(--line); }
+.v5nav .wrap { display: flex; align-items: center; gap: 22px; height: 48px; font-size: 14px; font-weight: 550;
+  overflow-x: auto; scrollbar-width: none; }
 .v5nav .wrap::-webkit-scrollbar { display: none; }
-@media (min-width: 768px) { .v5nav .wrap { gap: 10px; padding-top: 10px; padding-bottom: 10px; } }
-/* Sections read as tappable chips with artwork, the way FNP/Bakingo surface them. */
-.v5chip { flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 5px;
-  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--paper); color: var(--ink-2);
-  font-size: 13.5px; font-weight: 600; white-space: nowrap; scroll-snap-align: start;
-  transition: border-color var(--fast) var(--ease), background var(--fast) var(--ease), color var(--fast) var(--ease); }
-.v5chip:hover { border-color: var(--rose-300); color: var(--brand); }
-.v5chip__ic { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex: none; display: grid; place-items: center;
-  background: var(--rose-50); }
-.v5chip__ic img { width: 100%; height: 100%; object-fit: cover; }
-.v5chip__ic svg { width: 16px; height: 16px; stroke: var(--rose); }
-.v5chip.is-on { background: var(--rose); border-color: var(--rose); color: #fff; }
-.v5chip.is-on .v5chip__ic { background: rgba(255,255,255,.22); }
-.v5chip.is-on .v5chip__ic svg { stroke: #fff; }
-.v5chip--custom { border-color: var(--rose-200); background: var(--rose-50); color: var(--brand); font-weight: 700; }
+@media (min-width: 768px) { .v5nav .wrap { gap: 30px; height: 50px; font-size: 14.5px; } }
+.v5nav a { position: relative; height: 100%; flex: none; display: flex; align-items: center; color: var(--ink-2); white-space: nowrap; }
+.v5nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.5px; background: var(--rose);
+  transform: scaleX(0); transform-origin: left; transition: transform var(--fast) var(--ease); }
+.v5nav a:hover { color: var(--rose); }
+.v5nav a:hover::after, .v5nav a.is-on::after { transform: scaleX(1); }
+.v5nav a.is-on { color: var(--rose); font-weight: 700; }
+.v5nav__custom { color: var(--rose) !important; font-weight: 700 !important; }
 /* ---------- COLLECTION (v5) ---------- */
 .v5crumbs span { display: inline; }
 .v5crumbs a { color: var(--ink-3); }

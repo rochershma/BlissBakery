@@ -228,7 +228,6 @@ export default async function HomePage() {
               ) : null}
             </div>
             <div className="ccband__copy">
-              <span className="ccband__script">Made just for you</span>
               <h2 className="d2">Design your custom cake</h2>
               <p>Have a design in mind? Share your inspiration and create a cake that&apos;s uniquely yours.</p>
               <span className="btn btn--rose ccband__cta">Start designing <IconChevR /></span>
