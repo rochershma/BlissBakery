@@ -1,397 +1,346 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Upload, Send, MessageCircle, X, Cake, Palette, Calendar, DollarSign } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useToast } from "@/components/shared/toast";
+import { img } from "@/lib/img";
+import { localIso } from "@/lib/slots";
+import { IconCake, IconCheck, IconPlus, IconClock, IconLeaf } from "@/components/v5/icons";
 
-const flavours = [
-  { name: "Vanilla", emoji: "🍦" },
-  { name: "Chocolate", emoji: "🍫" },
-  { name: "Red Velvet", emoji: "❤️" },
-  { name: "Butterscotch", emoji: "🧈" },
-  { name: "Pineapple", emoji: "🍍" },
-  { name: "Strawberry", emoji: "🍓" },
-  { name: "Mango", emoji: "🥭" },
-  { name: "Black Forest", emoji: "🌲" },
-  { name: "Other", emoji: "✨" },
-];
-const frostings = [
-  { name: "Buttercream", emoji: "🧁" },
-  { name: "Fondant", emoji: "🎀" },
-  { name: "Whipped Cream", emoji: "☁️" },
-  { name: "Ganache", emoji: "🍫" },
-  { name: "Cream Cheese", emoji: "🧀" },
-];
-const sizes = [
-  { name: "500g", serves: "4-6", emoji: "🎂" },
-  { name: "1 kg", serves: "8-10", emoji: "🎂🎂" },
-  { name: "2 kg", serves: "15-20", emoji: "🎂🎂🎂" },
-  { name: "3 kg", serves: "25-30", emoji: "👑" },
-  { name: "5 kg", serves: "40-50", emoji: "🏆" },
-];
-const budgets = ["₹500 - ₹1,000", "₹1,000 - ₹2,000", "₹2,000 - ₹5,000", "₹5,000 - ₹10,000", "₹10,000+"];
+export type CustomCakeConfig = {
+  storeSlug: string;
+  storeName: string;
+  whatsapp: string;
+  sizes: { name: string; serves: string | null }[];
+  flavours: string[];
+  inspiration: { name: string; image: string }[];
+};
 
-export function CustomCakeForm() {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    size: "",
-    flavour: "",
-    frosting: "",
-    theme: "",
-    messageOnCake: "",
-    description: "",
-    preferredDate: "",
-    budget: "",
-  });
-  const [images, setImages] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [submitted, setSubmitted] = useState(false);
+const BUDGETS = ["Under ₹1,000", "₹1,000 – 2,000", "₹2,000 – 5,000", "₹5,000 – 10,000", "₹10,000+"];
+const FINISHES = ["Whipped cream", "Buttercream", "Fondant", "Semi-fondant", "Ganache"];
+// Custom designs need two clear days in the kitchen.
+const LEAD_DAYS = 2;
 
-  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files || []);
-    if (files.length + images.length > 5) {
-      alert("Maximum 5 images allowed");
+const DAYS = Array.from({ length: 14 }, (_, n) => {
+  const d = new Date();
+  d.setDate(d.getDate() + LEAD_DAYS + n);
+  return {
+    iso: localIso(d),
+    dow: d.toLocaleDateString("en-IN", { weekday: "short" }),
+    day: String(d.getDate()).padStart(2, "0"),
+    mon: d.toLocaleDateString("en-IN", { month: "short" }),
+  };
+});
+
+type Photo = { url: string; preview: string };
+
+export function CustomCakeForm({ config }: { config: CustomCakeConfig }) {
+  const { user, setShowLoginModal } = useAuth();
+  const { toast } = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [size, setSize] = useState("");
+  const [flavour, setFlavour] = useState("");
+  const [finish, setFinish] = useState("");
+  const [theme, setTheme] = useState("");
+  const [message, setMessage] = useState("");
+  const [notes, setNotes] = useState("");
+  const [date, setDate] = useState("");
+  const [budget, setBudget] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [uploading, setUploading] = useState(0);
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
+  const [tried, setTried] = useState(false);
+
+  // Signed-in customers shouldn't retype what we already know.
+  useEffect(() => {
+    if (!user) return;
+    setName((n) => n || user.name || "");
+    setPhone((p) => p || user.phone || "");
+  }, [user]);
+
+  const cleanPhone = phone.replace(/\D/g, "").slice(-10);
+  const missing = useMemo(() => {
+    const m: string[] = [];
+    if (!size) m.push("size");
+    if (!flavour) m.push("flavour");
+    if (name.trim().length < 2) m.push("name");
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) m.push("mobile number");
+    return m;
+  }, [size, flavour, name, cleanPhone]);
+
+  const addPhotos = async (files: FileList | null) => {
+    if (!files?.length) return;
+    if (!user) { setShowLoginModal(true); return; }
+    const room = 5 - photos.length;
+    const pick = Array.from(files).slice(0, room);
+    if (files.length > room) toast(`Up to 5 photos — added the first ${room}`, "error");
+    setUploading((n) => n + pick.length);
+    for (const f of pick) {
+      try {
+        const fd = new FormData();
+        fd.append("file", f);
+        const r = await fetch("/api/custom-cakes/upload", { method: "POST", body: fd });
+        const d = await r.json();
+        if (!r.ok || !d.success) throw new Error(d.message || "Upload failed");
+        setPhotos((p) => [...p, { url: d.url, preview: URL.createObjectURL(f) }]);
+      } catch (e) {
+        toast(e instanceof Error ? e.message : "Upload failed", "error");
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const summary = () =>
+    [
+      `Custom cake request${done ? ` ${done}` : ""} — ${config.storeName}`,
+      `Size: ${size}`, `Flavour: ${flavour}`,
+      finish && `Finish: ${finish}`, theme && `Theme: ${theme}`, message && `Message on cake: ${message}`,
+      date && `Needed on: ${date}`, budget && `Budget: ${budget}`, notes && `Notes: ${notes}`,
+      `Name: ${name}`, `Mobile: ${cleanPhone}`,
+    ].filter(Boolean).join("\n");
+
+  const openWhatsApp = () => {
+    if (!config.whatsapp) return;
+    window.open(`https://wa.me/91${config.whatsapp}?text=${encodeURIComponent(summary())}`, "_blank", "noopener");
+  };
+
+  const submit = async () => {
+    setTried(true);
+    if (missing.length) {
+      toast(`Add your ${missing.join(", ")}`, "error");
       return;
     }
-    setImages([...images, ...files]);
-    const newPreviews = files.map((f) => URL.createObjectURL(f));
-    setPreviews([...previews, ...newPreviews]);
-  }
-
-  function removeImage(idx: number) {
-    setImages(images.filter((_, i) => i !== idx));
-    setPreviews(previews.filter((_, i) => i !== idx));
-  }
-
-  const phoneValid = /^[6-9]\d{9}$/.test(form.phone.replace(/\s/g, ""));
-  const isFormValid = form.name.trim() && phoneValid && form.size && form.flavour;
-
-  async function handleSubmit() {
-    if (!isFormValid) return;
+    if (uploading) { toast("Hold on — photos are still uploading", "error"); return; }
+    setSending(true);
     try {
-      const res = await fetch("/api/custom-cakes", {
+      const r = await fetch("/api/custom-cakes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: form.name,
-          customerPhone: form.phone.replace(/\s/g, ""),
-          cakeSize: form.size,
-          baseFlavour: form.flavour,
-          frosting: form.frosting || null,
-          theme: form.theme || null,
-          messageOnCake: form.messageOnCake || null,
-          preferredDate: form.preferredDate || null,
-          budget: form.budget || null,
-          specialNotes: form.description || null,
+          storeSlug: config.storeSlug,
+          customerName: name.trim(),
+          customerPhone: cleanPhone,
+          cakeSize: size,
+          baseFlavour: flavour,
+          frosting: finish || null,
+          theme: theme.trim() || null,
+          messageOnCake: message.trim() || null,
+          preferredDate: date || null,
+          budget: budget || null,
+          specialNotes: notes.trim() || null,
+          referenceImages: photos.map((p) => p.url),
         }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setSubmitted(true);
-      } else {
-        alert(data.message || "Failed to submit. Please try again.");
-      }
-    } catch {
-      alert("Something went wrong. Please try again.");
+      const d = await r.json();
+      if (!r.ok || !d.success) throw new Error(d.message || "Couldn't send your request");
+      setDone(d.orderNumber);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't send your request", "error");
+    } finally {
+      setSending(false);
     }
-  }
+  };
 
-  function handleWhatsApp() {
-    if (!isFormValid) return;
-    const text = encodeURIComponent(
-      `🎂 Custom Cake Order\n\n` +
-      `Name: ${form.name}\nPhone: ${form.phone}\n` +
-      `Size: ${form.size}\nFlavour: ${form.flavour}\n` +
-      `Frosting: ${form.frosting}\nTheme: ${form.theme}\n` +
-      `Message: ${form.messageOnCake}\n` +
-      `Description: ${form.description}\n` +
-      `Date: ${form.preferredDate}\nBudget: ${form.budget}`
-    );
-    window.open(`https://wa.me/919602831559?text=${text}`, "_blank");
-  }
-
-  if (submitted) {
+  if (done) {
     return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <div className="flex-1 flex flex-col items-center justify-center px-4 text-center animate-fade-in-up">
-          <div className="text-6xl mb-4">🎂</div>
-          <h2 className="text-2xl font-bold text-foreground font-serif mb-2">Request Submitted!</h2>
-          <p className="text-muted-foreground mb-6 max-w-md">
-            Our team will review your custom cake request and share a quote on WhatsApp within 2 hours.
+      <div className="wrap" style={{ padding: "40px 16px 80px" }}>
+        <div className="v5empty cc5__done">
+          <span className="cc5__tick"><IconCheck /></span>
+          <h1 className="t-h1">Request received</h1>
+          <p className="t-small">
+            Reference <b>{done}</b>. {config.storeName} will message you on WhatsApp with a design and a price —
+            usually within a few hours. Nothing is charged until you confirm.
           </p>
-          <div className="flex gap-3">
-            <Link href="/" className="bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:bg-primary-hover transition-colors btn-press">
-              Back to Home
-            </Link>
-            <button
-              onClick={handleWhatsApp}
-              className="bg-green-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-green-700 transition-colors btn-press flex items-center gap-2"
-            >
-              <MessageCircle className="w-5 h-5" /> WhatsApp Us
-            </button>
+          <div className="cc5__acts">
+            {config.whatsapp ? (
+              <button type="button" className="btn btn--rose" onClick={openWhatsApp}>
+                Chat on WhatsApp now
+              </button>
+            ) : null}
+            <Link className="btn btn--out" href={`/store/${config.storeSlug}/menu`}>Browse the menu</Link>
           </div>
         </div>
       </div>
     );
   }
 
+  const err = (field: string) => tried && missing.includes(field);
+
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="wrap cc5">
+      <header className="cc5__head">
+        <span className="kicker">Your design, our kitchen</span>
+        <h1 className="d2" style={{ marginTop: 8 }}>Design a custom cake</h1>
+        <p className="t-small" style={{ marginTop: 8, maxWidth: "56ch" }}>
+          Tell us what you have in mind — a theme, a photo, a colour. We&apos;ll send a design and a price on WhatsApp.
+          You only pay once you&apos;re happy with it.
+        </p>
+        <ol className="cc5__steps">
+          <li><b>1</b><span>Share your idea</span></li>
+          <li><b>2</b><span>Get a quote on WhatsApp</span></li>
+          <li><b>3</b><span>We bake &amp; deliver</span></li>
+        </ol>
+      </header>
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-accent/10 via-primary-light to-primary/10 py-10 animate-fade-in">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h1 className="text-3xl font-bold text-foreground mb-2 font-serif">
-            Design Your Dream Cake
-          </h1>
-          <p className="text-muted-foreground">
-            Tell us what you want — we&apos;ll craft it with love. Birthdays, weddings, anniversaries &amp; more!
-          </p>
-        </div>
-      </section>
-
-      <main className="max-w-3xl mx-auto px-3 md:px-4 py-6 page-enter pb-32" style={{ maxWidth: '100%' }}>
-        {/* Inspiration Gallery Placeholder */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-foreground font-serif mb-3">Popular Custom Cake Styles</h2>
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-2" style={{ maxWidth: '100%' }}>
-            {[
-              { label: "Kids Theme", bg: "from-pink-100 to-pink-50" },
-              { label: "Floral Wedding", bg: "from-rose-100 to-rose-50" },
-              { label: "Photo Cake", bg: "from-amber-100 to-amber-50" },
-              { label: "Bento Cake", bg: "from-orange-100 to-orange-50" },
-              { label: "Chocolate Drip", bg: "from-yellow-100 to-yellow-50" },
-              { label: "Minimal Cream", bg: "from-green-100 to-green-50" },
-            ].map((style, i) => (
-              <div key={i} className={`w-24 h-24 md:w-28 md:h-28 flex-shrink-0 rounded-2xl bg-gradient-to-br ${style.bg} flex items-center justify-center text-center p-2 border border-border/30 hover:shadow-sm transition-shadow cursor-pointer`}>
-                <span className="text-xs font-semibold text-foreground leading-tight">{style.label}</span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground mt-2">Share your reference image and we&apos;ll create it for you</p>
-        </div>
-
-        {/* Form */}
-        <div className="space-y-5">
-          {/* Contact */}
-          <div className="bg-white rounded-2xl border border-border p-5">
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Send className="w-4 h-4 text-primary" /> Your Details
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="text"
-                placeholder="Your Name *"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-              <input
-                type="tel"
-                placeholder="Phone Number *"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-            </div>
-          </div>
-
-          {/* Cake Details */}
-          <div className="bg-white rounded-2xl border border-border p-5">
-            <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Cake className="w-4 h-4 text-primary" /> Cake Details
-            </h3>
-
-            {/* Size — visual cards */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-foreground mb-2">Select Size *</p>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" style={{ maxWidth: '100%' }}>
-                {sizes.map((s) => (
+      <div className="co5 cc5__grid">
+        <div>
+          {config.inspiration.length > 0 ? (
+            <div className="opt-block">
+              <h4>Start from a style <span className="t-small">optional</span></h4>
+              <div className="cc5__insp" role="list">
+                {config.inspiration.map((t) => (
                   <button
-                    key={s.name}
                     type="button"
-                    onClick={() => setForm({ ...form, size: s.name })}
-                    className={`flex-shrink-0 w-[72px] px-2 py-3 rounded-xl border-2 text-center transition-all btn-press ${
-                      form.size === s.name
-                        ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
-                        : "bg-white text-foreground border-border hover:border-primary/50"
-                    }`}
+                    role="listitem"
+                    key={t.name}
+                    className="cc5__style"
+                    aria-pressed={theme === t.name}
+                    onClick={() => setTheme((cur) => (cur === t.name ? "" : t.name))}
                   >
-                    <span className="text-lg">{s.emoji}</span>
-                    <p className="text-sm font-bold mt-1">{s.name}</p>
-                    <p className="text-[10px] opacity-70">serves {s.serves}</p>
+                    <span className="cc5__styleimg">
+                      <Image src={img(t.image, 220, 220)} alt="" width={110} height={110} unoptimized loading="lazy" />
+                      {theme === t.name ? <i><IconCheck /></i> : null}
+                    </span>
+                    <span>{t.name}</span>
                   </button>
                 ))}
               </div>
             </div>
+          ) : null}
 
-            {/* Flavour — visual chips */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-foreground mb-2">Select Flavour *</p>
-              <div className="flex flex-wrap gap-2">
-                {flavours.map((f) => (
-                  <button
-                    key={f.name}
-                    type="button"
-                    onClick={() => setForm({ ...form, flavour: f.name })}
-                    className={`px-3 py-2 rounded-full text-sm font-medium border transition-all btn-press flex items-center gap-1.5 ${
-                      form.flavour === f.name
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-white text-foreground border-border hover:border-primary/50 hover:bg-primary/5"
-                    }`}
-                  >
-                    <span>{f.emoji}</span> {f.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Frosting — visual chips */}
-            <div className="mb-4">
-              <p className="text-sm font-medium text-foreground mb-2">Select Frosting</p>
-              <div className="flex flex-wrap gap-2">
-                {frostings.map((f) => (
-                  <button
-                    key={f.name}
-                    type="button"
-                    onClick={() => setForm({ ...form, frosting: f.name })}
-                    className={`px-3 py-2 rounded-full text-sm font-medium border transition-all btn-press flex items-center gap-1.5 ${
-                      form.frosting === f.name
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-white text-foreground border-border hover:border-primary/50 hover:bg-primary/5"
-                    }`}
-                  >
-                    <span>{f.emoji}</span> {f.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="🎉 Theme / Occasion (e.g., Birthday, Unicorn, Wedding)"
-                value={form.theme}
-                onChange={(e) => setForm({ ...form, theme: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
-              <input
-                type="text"
-                placeholder="✍️ Message on Cake (e.g., Happy Birthday Rahul!)"
-                value={form.messageOnCake}
-                onChange={(e) => setForm({ ...form, messageOnCake: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-              />
+          <div className={`opt-block${err("size") ? " is-err" : ""}`}>
+            <h4>Size</h4>
+            <div className="sizes" role="radiogroup" aria-label="Size">
+              {config.sizes.map((s) => (
+                <button type="button" role="radio" key={s.name} className="sizes__o" aria-checked={size === s.name} onClick={() => setSize(s.name)}>
+                  <b>{s.name}</b>
+                  {s.serves ? <em>{/serves/i.test(s.serves) ? s.serves : `Serves ${s.serves}`}</em> : null}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Design Description */}
-          <div className="bg-white rounded-2xl border border-border p-5">
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Palette className="w-4 h-4 text-primary" /> Design Description
-            </h3>
-            <textarea
-              placeholder="Describe your dream cake — colors, decorations, characters, layers, etc."
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              rows={4}
-              className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-            />
-
-            {/* Image Upload */}
-            <div className="mt-3">
-              <p className="text-sm font-medium text-foreground mb-2">Reference Images (up to 5)</p>
-              <div className="flex flex-wrap gap-3">
-                {previews.map((preview, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
-                    <img src={preview} alt="" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-0.5 right-0.5 w-5 h-5 bg-black/60 text-white rounded-full flex items-center justify-center"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
-                {images.length < 5 && (
-                  <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
-                    <Upload className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground mt-1">Upload</span>
-                    <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
-                  </label>
-                )}
-              </div>
+          <div className={`opt-block${err("flavour") ? " is-err" : ""}`}>
+            <h4>Flavour <span className="t-small">all eggless</span></h4>
+            <div className="pdp5__flav">
+              {config.flavours.map((f) => (
+                <button type="button" key={f} className="chip chip--sm" aria-pressed={flavour === f} onClick={() => setFlavour(f)}>{f}</button>
+              ))}
             </div>
           </div>
 
-          {/* Date & Budget */}
-          <div className="bg-white rounded-2xl border border-border p-5">
-            <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" /> When &amp; Budget
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">📅 Preferred Date</p>
-                <input
-                  type="date"
-                  value={form.preferredDate}
-                  onChange={(e) => setForm({ ...form, preferredDate: e.target.value })}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+          <div className="opt-block">
+            <h4>Finish <span className="t-small">optional</span></h4>
+            <div className="pdp5__flav">
+              {FINISHES.map((f) => (
+                <button type="button" key={f} className="chip chip--sm" aria-pressed={finish === f} onClick={() => setFinish((c) => (c === f ? "" : f))}>{f}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="opt-block">
+            <h4>The design</h4>
+            <div className="cc5__fields">
+              <div className="field">
+                <label htmlFor="cc-theme">Theme or occasion</label>
+                <input id="cc-theme" className="input" maxLength={80} placeholder="e.g. Unicorn, Cricket, 25th anniversary" value={theme} onChange={(e) => setTheme(e.target.value)} />
               </div>
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">💰 Budget Range</p>
-                <div className="flex flex-wrap gap-2">
-                  {budgets.map((b) => (
-                    <button
-                      key={b}
-                      type="button"
-                      onClick={() => setForm({ ...form, budget: b })}
-                      className={`px-3 py-2 rounded-full text-sm font-medium border transition-all btn-press ${
-                        form.budget === b
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-white text-foreground border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {b}
-                    </button>
+              <div className="field">
+                <label htmlFor="cc-msg">Message on the cake</label>
+                <input id="cc-msg" className="input" maxLength={60} placeholder="e.g. Happy Birthday Aarav" value={message} onChange={(e) => setMessage(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="cc-notes">Anything else</label>
+                <textarea id="cc-notes" className="textarea" rows={3} maxLength={1000} placeholder="Colours, characters, tiers, a photo to print…" value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </div>
+              <div className="field">
+                <label>Reference photos <span className="t-small">up to 5</span></label>
+                <div className="cc5__photos">
+                  {photos.map((p, i) => (
+                    <span key={p.url} className="cc5__photo">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={p.preview} alt={`Reference ${i + 1}`} />
+                      <button type="button" aria-label={`Remove photo ${i + 1}`} onClick={() => setPhotos((xs) => xs.filter((x) => x.url !== p.url))}>×</button>
+                    </span>
                   ))}
+                  {Array.from({ length: uploading }).map((_, i) => <span key={`up-${i}`} className="cc5__photo sk" />)}
+                  {photos.length + uploading < 5 ? (
+                    <button type="button" className="cc5__add" onClick={() => (user ? fileRef.current?.click() : setShowLoginModal(true))}>
+                      <IconPlus />
+                      <span>{user ? "Add photo" : "Sign in to add"}</span>
+                    </button>
+                  ) : null}
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => addPhotos(e.target.files)} />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
 
-      {/* Sticky Submit Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.08)] cart-bar-enter">
-        <div className="max-w-3xl mx-auto px-4 py-3">
-          {!isFormValid && (
-            <p className="text-xs text-muted-foreground text-center mb-2">
-              Fill in name, phone, size &amp; flavour to continue
-            </p>
-          )}
-          <div className="flex gap-3">
-            <button
-              onClick={handleWhatsApp}
-              disabled={!isFormValid}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors btn-press disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <MessageCircle className="w-5 h-5" />
-              Send via WhatsApp
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={!isFormValid}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold hover:bg-primary-hover transition-colors btn-press disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <Send className="w-5 h-5" />
-              Submit Order
-            </button>
+          <div className="opt-block">
+            <h4>When do you need it? <span className="t-small">optional</span></h4>
+            <div className="dpick">
+              {DAYS.map((d) => (
+                <button type="button" key={d.iso} className="dpick__d" aria-pressed={date === d.iso} onClick={() => setDate((c) => (c === d.iso ? "" : d.iso))}>
+                  <em>{d.dow}</em><b>{d.day}</b><i>{d.mon}</i>
+                </button>
+              ))}
+            </div>
+            <p className="t-small" style={{ marginTop: 10 }}>Custom designs need at least {LEAD_DAYS} days. Sooner? Message us and we&apos;ll try.</p>
+          </div>
+
+          <div className="opt-block">
+            <h4>Budget <span className="t-small">optional</span></h4>
+            <div className="pdp5__flav">
+              {BUDGETS.map((b) => (
+                <button type="button" key={b} className="chip chip--sm" aria-pressed={budget === b} onClick={() => setBudget((c) => (c === b ? "" : b))}>{b}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className={`opt-block${err("name") || err("mobile number") ? " is-err" : ""}`}>
+            <h4>Where should we send the quote?</h4>
+            <div className="cc5__fields cc5__fields--2">
+              <div className="field">
+                <label htmlFor="cc-name">Your name</label>
+                <input id="cc-name" className="input" autoComplete="name" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor="cc-phone">WhatsApp number</label>
+                <input id="cc-phone" className="input" type="tel" inputMode="numeric" autoComplete="tel-national" maxLength={14} placeholder="10-digit mobile" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+            </div>
           </div>
         </div>
+
+        <aside className="summary5 cc5__sum">
+          <h3 className="t-h3">Your cake</h3>
+          <dl className="cc5__dl">
+            <div><dt>Size</dt><dd>{size || <span className="t-small">Choose a size</span>}</dd></div>
+            <div><dt>Flavour</dt><dd>{flavour || <span className="t-small">Choose a flavour</span>}</dd></div>
+            {finish ? <div><dt>Finish</dt><dd>{finish}</dd></div> : null}
+            {theme ? <div><dt>Theme</dt><dd>{theme}</dd></div> : null}
+            {date ? <div><dt>Needed on</dt><dd>{new Date(date).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}</dd></div> : null}
+            {photos.length ? <div><dt>Photos</dt><dd>{photos.length}</dd></div> : null}
+          </dl>
+          <button type="button" className="btn btn--rose btn--block" onClick={submit} disabled={sending}>
+            {sending ? "Sending…" : "Request a quote"}
+          </button>
+          {missing.length && tried ? <p className="cc5__miss">Still needed: {missing.join(", ")}</p> : null}
+          <div className="summary5__trust t-small">
+            <span><IconClock width={15} height={15} /> Quote within hours</span>
+            <span><IconLeaf width={15} height={15} /> 100% eggless</span>
+            <span><IconCake width={15} height={15} /> No payment now</span>
+          </div>
+        </aside>
       </div>
     </div>
   );

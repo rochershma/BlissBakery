@@ -7,7 +7,7 @@ import { getActiveStore, listStores, setActiveStore } from "@/lib/active-store";
 import { StoreSwitcher } from "@/components/admin/store-switcher";
 
 export const dynamic = "force-dynamic"; // Admin always SSR — never cached
-import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, UtensilsCrossed, Tag, Users, Image as ImageIcon, Settings, LogOut, Store, Layers, Gift, CalendarHeart, Cake } from "lucide-react";
 import Image from "next/image";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,9 +23,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/");
   }
 
-  const navItems = [
+  const [stores, activeStore] = await Promise.all([listStores(), getActiveStore()]);
+  const newRequests = activeStore
+    ? await db.customCakeOrder.count({ where: { status: "RECEIVED", OR: [{ storeId: activeStore.id }, { storeId: null }] } })
+    : 0;
+
+  const navItems: { href: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+    { href: "/admin/custom-cakes", label: "Custom Cakes", icon: Cake, badge: newRequests },
     { href: "/admin/menu", label: "Menu", icon: UtensilsCrossed },
     { href: "/admin/banners", label: "Banners", icon: Layers },
     { href: "/admin/occasions", label: "Occasions", icon: CalendarHeart },
@@ -37,8 +43,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/stores", label: "Stores", icon: Store },
     { href: "/admin/settings", label: "Settings", icon: Settings },
   ];
-
-  const [stores, activeStore] = await Promise.all([listStores(), getActiveStore()]);
 
   async function selectStore(formData: FormData) {
     "use server";
@@ -74,6 +78,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             >
               <item.icon className="w-4 h-4" />
               {item.label}
+              {item.badge ? (
+                <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-primary text-white text-[10px] font-bold grid place-items-center">{item.badge}</span>
+              ) : null}
             </Link>
           ))}
         </nav>
@@ -117,9 +124,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground flex-shrink-0"
+                className="relative flex flex-col items-center gap-0.5 px-3 py-1 text-muted-foreground flex-shrink-0"
               >
                 <item.icon className="w-5 h-5" />
+                {item.badge ? <span className="absolute top-0 right-1.5 w-2 h-2 rounded-full bg-primary" aria-hidden /> : null}
                 <span className="text-[10px]">{item.label}</span>
               </Link>
             ))}

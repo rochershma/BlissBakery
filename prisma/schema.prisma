@@ -53,6 +53,7 @@ model Store {
   occasions   Occasion[]
   themes      Theme[]
   promoCodes  PromoCode[]
+  customCakeOrders CustomCakeOrder[]
 }
 
 model Banner {
@@ -275,10 +276,14 @@ model CustomCakeOrder {
   adminNotes        String?   @db.Text
   quotedPrice       Float?
   convertedOrderId  String?
+  /// null for requests made before outlets were tracked
+  storeId           String?
+  store             Store?    @relation(fields: [storeId], references: [id], onDelete: SetNull)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
   @@index([userId])
+  @@index([storeId])
 }
 
 model PromoCode {
