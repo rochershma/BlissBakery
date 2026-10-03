@@ -33,7 +33,10 @@ async function otpLogin(page, base) {
   await tel.fill(PHONE);
   await page.getByRole("button", { name: /send code/i }).first().click();
 
-  const boxes = page.locator('input[maxlength="1"]');
+  // The first OTP box accepts the whole code (one-time-code autofill/paste);
+  // the rest take one digit each. Typing the full code into the first box
+  // triggers the same split the UI uses for autofill.
+  const boxes = page.locator('.auth__otp input');
   try {
     await boxes.first().waitFor({ timeout: 20000 });
   } catch {
@@ -44,7 +47,7 @@ async function otpLogin(page, base) {
     throw new Error("OTP form never appeared");
   }
 
-  for (let i = 0; i < 6; i++) await boxes.nth(i).fill(OTP[i]);
+  await boxes.first().fill(OTP);
   await page.waitForTimeout(400);
   const verify = page.getByRole("button", { name: /verify/i }).first();
   if (await verify.count()) await verify.click();

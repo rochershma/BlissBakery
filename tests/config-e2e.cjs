@@ -265,6 +265,8 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
     await page.locator(".pdp5__cta").click();
     await page.waitForURL(/\/cart$/, { timeout: 15000 }).catch(() => {});
     check(/\/cart$/.test(page.url()), "Add to cart goes straight to the cart", page.url());
+    // The add-ons shelf renders after /api/store/config resolves.
+    await page.locator(".aocard").first().waitFor({ timeout: 10000 }).catch(() => {});
     check((await page.$$(".aocard")).length > 0, "cart offers add-ons right after adding");
 
     /* ---------- mobile layout ---------- */

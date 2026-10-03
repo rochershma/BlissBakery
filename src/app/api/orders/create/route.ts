@@ -31,6 +31,8 @@ const schema = z.object({
   addressId: z.string().optional(),
   deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a delivery date"),
   deliverySlot: z.string().min(1, "Pick a delivery slot").max(30),
+  // Basket-level add-ons from the outlet shelf, priced once per order (not per cake).
+  extras: z.array(z.object({ name: z.string().max(60), quantity: z.number().int().min(1).max(50) })).max(20).optional(),
 });
 
 const MAX_DAYS_AHEAD = 30;
@@ -136,6 +138,19 @@ export async function POST(req: NextRequest) {
       verifiedItems.push({ ...item, name: product.name, unitPrice: serverPrice, addOns: allVerifiedAddOns.length > 0 ? allVerifiedAddOns : undefined });
     }
 
+    // Basket-level add-ons are charged once each, not multiplied by any cake's quantity.
+    const extraMax = Math.max(1, store.addOnMaxQty ?? 20);
+    const verifiedExtras: { name: string; price: number; quantity: number }[] = [];
+    let extrasTotal = 0;
+    for (const ex of data.extras ?? []) {
+      const shelf = storeAddOns.find((sa) => sa.name === ex.name);
+      if (!shelf) return bad(`"${ex.name}" isn't available`);
+      if (ex.quantity > extraMax) return bad(`Up to ${extraMax} of each add-on per order`);
+      verifiedExtras.push({ name: ex.name, price: shelf.price, quantity: ex.quantity });
+      extrasTotal += shelf.price * ex.quantity;
+    }
+    itemTotal += extrasTotal;
+
     const packagingCharge = store.packagingCharge ?? 15;
     const gstRate = store.gstRate ?? 0;
 
@@ -206,8 +221,11 @@ export async function POST(req: NextRequest) {
     }
 
     const taxableAmount = itemTotal + packagingCharge + deliveryCharge - discount;
-    const tax = taxableAmount * (gstRate / 100);
-    const grandTotal = taxableAmount + tax;
+    const tax = Math.round(taxableAmount * (gstRate / 100) * 100) / 100;
+    const grandTotal = Math.round((taxableAmount + tax) * 100) / 100;
+
+    // Expanded one-per-unit so the order and tracker can list each add-on.
+    const extrasForDisplay = verifiedExtras.flatMap((e) => Array.from({ length: e.quantity }, () => ({ name: e.name, price: e.price })));
 
     // A double tap or a retried request must not bake the same cake twice.
     const recent = await db.order.findFirst({
@@ -249,20 +267,27 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
         paymentStatus: "PENDING",
         items: {
-          create: verifiedItems.map((item) => ({
-            productId: item.productId,
-            productName: sanitize(item.name) || item.name,
-            variantName: item.variantName || null,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-            addOns: item.addOns ? JSON.stringify(item.addOns) : null,
-            totalPrice: (item.unitPrice + (item.addOns || []).reduce((s, a) => s + a.price, 0)) * item.quantity,
-            cakeMessage: sanitize(item.cakeMessage),
-            flavour: sanitize(item.flavour),
-            occasion: sanitize(item.occasion),
-            recipientName: sanitize(item.recipientName),
-            recipientAge: item.recipientAge?.replace(/\D/g, "") || null,
-          })),
+          create: verifiedItems.map((item, idx) => {
+            // Basket add-ons hang off the first line for display; their price is added once below.
+            const lineAddOns = idx === 0 && extrasForDisplay.length
+              ? [...(item.addOns || []), ...extrasForDisplay]
+              : item.addOns || [];
+            const cakeTotal = (item.unitPrice + (item.addOns || []).reduce((s, a) => s + a.price, 0)) * item.quantity;
+            return {
+              productId: item.productId,
+              productName: sanitize(item.name) || item.name,
+              variantName: item.variantName || null,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              addOns: lineAddOns.length ? JSON.stringify(lineAddOns) : null,
+              totalPrice: idx === 0 ? cakeTotal + extrasTotal : cakeTotal,
+              cakeMessage: sanitize(item.cakeMessage),
+              flavour: sanitize(item.flavour),
+              occasion: sanitize(item.occasion),
+              recipientName: sanitize(item.recipientName),
+              recipientAge: item.recipientAge?.replace(/\D/g, "") || null,
+            };
+          }),
         },
         statusHistory: {
           create: { status: "PENDING", note: "Order placed" },

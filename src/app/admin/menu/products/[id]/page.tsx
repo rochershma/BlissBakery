@@ -69,12 +69,13 @@ export default async function EditProductPage({ params }: Props) {
     const customSizesJson = formData.get("customSizes") as string;
     const variants: { name: string; price: number; serves?: string }[] = (() => {
       try { const v = JSON.parse(variantsJson); return Array.isArray(v) ? v : []; } catch { return []; }
-    })();
+    })().filter((v) => v && typeof v.name === "string" && v.name.trim() && Number.isFinite(v.price) && v.price > 0);
 
-    // Parse flavour prices
+    // Keep only well-formed, positively-priced flavours — a stray NaN here would
+    // turn every custom variant price into NaN through the Math.min below.
     const flavourPricesArr: { name: string; price500g: number }[] = (() => {
-      try { return JSON.parse(flavourPricesJson || "[]"); } catch { return []; }
-    })();
+      try { const a = JSON.parse(flavourPricesJson || "[]"); return Array.isArray(a) ? a : []; } catch { return []; }
+    })().filter((fp) => fp && typeof fp.name === "string" && Number.isFinite(fp.price500g) && fp.price500g > 0);
 
     // Auto-calculate basePrice
     const cheapest500g = flavourPricesArr.length > 0 ? Math.min(...flavourPricesArr.map(fp => fp.price500g)) : (base500gPrice || 300);
@@ -85,9 +86,11 @@ export default async function EditProductPage({ params }: Props) {
       finalBasePrice = Math.min(basePrice || Infinity, ...variants.map(v => v.price));
     }
 
-    const finalMrpPrice = pricingStrategy === "CUSTOM" && discountPct > 0
+    // A strike-through price only makes sense above the selling price.
+    const computedMrp = pricingStrategy === "CUSTOM" && discountPct > 0
       ? Math.round(finalBasePrice / (1 - discountPct / 100))
       : mrpPrice;
+    const finalMrpPrice = computedMrp && computedMrp > finalBasePrice ? computedMrp : null;
 
     await db.product.update({
       where: { id },
@@ -121,6 +124,8 @@ export default async function EditProductPage({ params }: Props) {
         try { if (store2?.defaultCustomSizes) productSizes = JSON.parse(store2.defaultCustomSizes); } catch {}
         if (productSizes.length === 0) productSizes = [{ kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" }, { kg: 1, name: "1 Kg", serves: "Serves 8-10" }];
       }
+      productSizes = productSizes.filter((s) => s && Number.isFinite(s.kg) && s.kg > 0 && typeof s.name === "string" && s.name.trim());
+      if (productSizes.length === 0) productSizes = [{ kg: 0.5, name: "0.5 Kg", serves: "Serves 4-6" }];
       await db.productVariant.createMany({
         data: productSizes.map((s: { kg: number; name: string; serves: string }, i: number) => ({
           productId: id,

@@ -211,11 +211,11 @@ export default function CheckoutPage() {
 
     setPlacing(true);
     try {
-      // checkout add-ons ride along on the first line item
-      const extras = Object.entries(picked).flatMap(([id, q]) => {
-        const a = addOns.find((x) => x.id === id);
-        return a ? Array.from({ length: q }, () => ({ name: a.name, price: a.price })) : [];
-      });
+      // Basket add-ons are sent once at the order level, not multiplied by a cake's quantity.
+      const extras = Object.entries(picked)
+        .map(([id, q]) => ({ addon: addOns.find((x) => x.id === id), quantity: q }))
+        .filter((e) => e.addon && e.quantity > 0)
+        .map((e) => ({ name: e.addon!.name, quantity: e.quantity }));
 
       const res = await fetch("/api/orders/create", {
         method: "POST",
@@ -228,7 +228,8 @@ export default function CheckoutPage() {
           deliverySlot: slot,
           promoCode: activePromo?.code,
           specialInstructions: notes || undefined,
-          items: items.map((i, idx) => ({
+          extras,
+          items: items.map((i) => ({
             productId: i.productId,
             name: i.name,
             variantName: i.variantName,
@@ -236,7 +237,7 @@ export default function CheckoutPage() {
             unitPrice: i.unitPrice,
             flavour: i.flavour,
             cakeMessage: i.cakeMessage,
-            addOns: [...(i.addOns ?? []), ...(idx === 0 ? extras : [])],
+            addOns: i.addOns ?? [],
           })),
         }),
       });
