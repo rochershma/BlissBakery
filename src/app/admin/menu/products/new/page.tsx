@@ -244,19 +244,19 @@ export default async function NewProductPage() {
           <div className="flex flex-wrap gap-4">
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" name="isBestseller" className="w-4 h-4 accent-primary" />
-              ⭐ Bestseller
+              Bestseller
             </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" name="isNew" className="w-4 h-4 accent-primary" />
-              ✨ New
+              New
             </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" name="isFeatured" className="w-4 h-4 accent-primary" />
-              🌟 Featured
+              Featured
             </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" name="isAvailable" defaultChecked className="w-4 h-4 accent-primary" />
-              ✅ Available
+              Available
             </label>
           </div>
         </div>

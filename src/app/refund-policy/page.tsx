@@ -8,7 +8,7 @@ export default function RefundPolicyPage() {
         <h1 className="text-2xl font-bold text-foreground mb-6 font-serif">Refund Policy</h1>
         <div className="bg-white rounded-2xl border border-border p-6 prose prose-sm max-w-none text-foreground/80 space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-yellow-800">
-            <p className="font-semibold">⚠️ Please Note: This policy applies to all Bliss Bakery online orders.</p>
+            <p className="font-semibold">Please Note: This policy applies to all Bliss Bakery online orders.</p>
           </div>
 
           <h2 className="text-lg font-bold text-foreground">Your Money is Secure</h2>

@@ -93,7 +93,6 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
       {orders.length === 0 ? (
         <div className="bg-white rounded-2xl border border-border p-12 text-center">
-          <p className="text-4xl mb-3">📋</p>
           <p className="text-muted-foreground">No orders yet. They&apos;ll appear here when customers order.</p>
         </div>
       ) : (
@@ -123,7 +122,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                     {order.status}
                   </span>
                   <p className={`text-[10px] mt-1 font-medium ${paymentColors[order.paymentStatus]}`}>
-                    💳 {order.paymentStatus}
+                    {order.paymentStatus === "PAID" ? "Paid" : order.paymentStatus === "PENDING" ? "Not paid" : order.paymentStatus}
                   </p>
                 </div>
                 </div>
@@ -141,7 +140,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                 ))}
                 {order.specialInstructions && (
                   <p className="text-xs text-muted-foreground mt-2 italic">
-                    📝 {order.specialInstructions}
+                    Note: {order.specialInstructions}
                   </p>
                 )}
               </div>

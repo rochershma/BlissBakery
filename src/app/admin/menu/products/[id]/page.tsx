@@ -326,10 +326,10 @@ export default async function EditProductPage({ params }: Props) {
         <div className="bg-white rounded-2xl border border-border p-5 space-y-3">
           <h2 className="font-semibold text-foreground">Flags</h2>
           <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isBestseller" defaultChecked={product.isBestseller} className="w-4 h-4 accent-primary" /> ⭐ Bestseller</label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isNew" defaultChecked={product.isNew} className="w-4 h-4 accent-primary" /> ✨ New</label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isFeatured" defaultChecked={product.isFeatured} className="w-4 h-4 accent-primary" /> 🌟 Featured</label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isAvailable" defaultChecked={product.isAvailable} className="w-4 h-4 accent-primary" /> ✅ Available</label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isBestseller" defaultChecked={product.isBestseller} className="w-4 h-4 accent-primary" /> Bestseller</label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isNew" defaultChecked={product.isNew} className="w-4 h-4 accent-primary" /> New</label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isFeatured" defaultChecked={product.isFeatured} className="w-4 h-4 accent-primary" /> Featured</label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="isAvailable" defaultChecked={product.isAvailable} className="w-4 h-4 accent-primary" /> Available</label>
           </div>
         </div>
         <SubmitButton label="Save Changes" pendingLabel="Saving..." />
