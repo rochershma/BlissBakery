@@ -220,6 +220,11 @@ h4 { font-weight: 700; }
 .btn--sm { height: 40px; padding: 0 18px; font-size: 13.5px; }
 .btn--lg { height: 56px; padding: 0 32px; font-size: 16px; }
 .btn--block { width: 100%; }
+/* Phones: trim the tall desktop CTAs so Place order / Add to cart / Continue read normally. */
+@media (max-width: 767px) {
+  .btn { height: 46px; padding: 0 18px; font-size: 14.5px; }
+  .btn--lg { height: 48px; padding: 0 20px; font-size: 15px; }
+}
 
 /* ---------- MARKS ---------- */
 .veg { width: 15px; height: 15px; border: 1.6px solid var(--green); border-radius: 3px; display: inline-grid; place-items: center; flex: none; }
@@ -389,7 +394,7 @@ h4 { font-weight: 700; }
   border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); text-align: center;
   scroll-snap-align: start; transition: border-color var(--fast) var(--ease); }
 .aocard.is-on { border-color: var(--rose); }
-.aocard__img { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: var(--cream); flex: none; }
+.aocard__img { width: 56px; height: 56px; border-radius: var(--r-sm); overflow: hidden; background: var(--cream); flex: none; }
 .aocard__img img { width: 100%; height: 100%; object-fit: cover; }
 .aocard__n { font-size: 11.5px; font-weight: 650; line-height: 1.25; margin-top: 6px;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

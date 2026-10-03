@@ -37,8 +37,6 @@ export type PdpProduct = {
 export function ProductDetail({
   product,
   storeSlug,
-  slots,
-  leadHours,
 }: {
   product: PdpProduct;
   storeSlug: string;
@@ -212,17 +210,6 @@ export function ProductDetail({
               onChange={(e) => reselect(setMessage)(e.target.value)}
             placeholder="Name or message on the cake — e.g. Happy Birthday Aarav"
           />
-        </div>
-
-        <div className="pdp5__meta">
-          <div className="pdp5__meta-i">
-            <IconClock />
-            <span><b>{isCustom ? "Made to order" : "Freshly baked"}</b>{leadHours > 0 ? ` · order ${leadHours}h ahead` : ""}</span>
-          </div>
-          <div className="pdp5__meta-i">
-            <IconTruck />
-            <span><b>Delivery slots</b>{slots.length ? ` · ${slots.slice(0, 2).join(", ")}${slots.length > 2 ? "…" : ""}` : " · same-day"}</span>
-          </div>
         </div>
 
         <div className="pdp5__price">

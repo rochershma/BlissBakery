@@ -10,7 +10,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
 import { useToast } from "@/components/shared/toast";
-import { IconBag, IconChevL, IconTrash, IconPlus, IconTruck } from "@/components/v5/icons";
+import { IconBag, IconChevL, IconTrash, IconPlus } from "@/components/v5/icons";
 
 const NO_EXTRAS: Record<string, number> = {};
 
@@ -97,11 +97,6 @@ export default function CartPage() {
 
       <div className="wrap cart5">
         <div className="cart5__main">
-          <div className="cart5__assure">
-            <IconTruck />
-            <span><b>Same-day delivery</b> or free pickup — you choose at checkout</span>
-          </div>
-
           <div className="cart5__items">
           {items.map((it) => {
             const key = lineKey(it);
