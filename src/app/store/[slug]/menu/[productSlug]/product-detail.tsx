@@ -108,6 +108,7 @@ export function ProductDetail({
     }, qty);
     setAdded(true);
     toast(`${product.name} · ${[variant?.name, flavour].filter(Boolean).join(" · ")} added`, "success");
+    router.push("/cart");
   };
 
   // Changing the selection means they're configuring a different cake, so the
@@ -177,29 +178,25 @@ export function ProductDetail({
 
         {product.variants.length > 0 && (
           <div className="opt-block">
-            <h4>Choose a size</h4>
-            <div className="sizes" role="radiogroup" aria-label="Size">
+            <h4><label htmlFor="pdp-size">Size</label></h4>
+            <select
+              id="pdp-size"
+              className="select sizesel"
+              value={variantId}
+              onChange={(e) => reselect(setVariantId)(e.target.value)}
+            >
               {product.variants.map((v) => {
                 const vkg = parseWeightKg(v.name);
                 const vPrice = isCustom && flavour
                   ? customPrice(flavourMap.get(flavour) ?? product.base500gPrice ?? 300, vkg, product.designCharge)
                   : v.price;
                 return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={v.id === variantId}
-                    className="sizes__o"
-                    onClick={() => reselect(setVariantId)(v.id)}
-                  >
-                    <b>{v.name}</b>
-                    <em>{servesLabel(v.serves || servesFor(vkg))}</em>
-                    <i>{formatPrice(vPrice)}</i>
-                  </button>
+                  <option key={v.id} value={v.id}>
+                    {`${v.name} · ${servesLabel(v.serves || servesFor(vkg))} · ${formatPrice(vPrice)}`}
+                  </option>
                 );
               })}
-            </div>
+            </select>
           </div>
         )}
 

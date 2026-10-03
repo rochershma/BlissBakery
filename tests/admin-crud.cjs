@@ -96,13 +96,14 @@ const check = (ok, n, d = "") => {
   const priceShown = await page.evaluate(() => document.querySelector(".pdp5__price b")?.textContent || "");
   check(/1,?499/.test(priceShown), "price edit reflects on storefront", priceShown);
 
-  // and the size tile must quote the same number as the headline
+  // and the selected size option must quote the same number as the headline
   const tileAgrees = await page.evaluate(() => {
-    const sel = document.querySelector('.sizes__o[aria-checked="true"] i')?.textContent?.replace(/[^\d]/g, "");
+    const s = document.querySelector("#pdp-size");
+    const sel = s?.options[s.selectedIndex]?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
     const main = document.querySelector(".pdp5__price b")?.textContent?.replace(/[^\d]/g, "");
     return sel && main && sel === main;
   });
-  check(tileAgrees, "size tile price matches headline after edit");
+  check(tileAgrees, "size option price matches headline after edit");
 
   // availability toggle
   await db.product.update({ where: { id: prod.id }, data: { isAvailable: false } });

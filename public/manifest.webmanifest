@@ -7,7 +7,7 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#fbedf1",
-  "theme_color": "#C47590",
+  "theme_color": "#ad747e",
   "orientation": "portrait-primary",
   "categories": ["food", "shopping", "lifestyle"],
   "icons": [

@@ -168,6 +168,8 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
 
     /* ---------- add-on cap ---------- */
     console.log("\n[4] Add-on cap");
+    await go("/cart");
+    await page.waitForTimeout(1200);
     const addBtn = await page.$(".ao__add");
     if (!addBtn) {
       check(false, "add-on rail renders");
@@ -261,14 +263,9 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
     await go(`/store/kuchaman-city/menu/${product.slug}`);
     await page.waitForTimeout(800);
     await page.locator(".pdp5__cta").click();
-    await page.waitForTimeout(900);
-    const next = await page.$$eval(".pdp5__next button", (n) => n.map((x) => x.textContent.trim()));
-    check(next.some((t) => /view cart/i.test(t)), "View cart offered after adding", next.join(" | "));
-    check(next.some((t) => /continue shopping/i.test(t)), "Continue shopping offered after adding");
-
-    await page.locator(".pdp5__next button", { hasText: /view cart/i }).first().click();
-    await page.waitForTimeout(1500);
-    check(/\/cart$/.test(page.url()), "View cart navigates to the cart", page.url());
+    await page.waitForURL(/\/cart$/, { timeout: 15000 }).catch(() => {});
+    check(/\/cart$/.test(page.url()), "Add to cart goes straight to the cart", page.url());
+    check((await page.$$(".aocard")).length > 0, "cart offers add-ons right after adding");
 
     /* ---------- mobile layout ---------- */
     console.log("\n[9] Mobile layout");
@@ -281,18 +278,25 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
       productId: product.id, productSlug: product.slug, name: product.name, image: null,
       variantName: product.variants[0].name, unitPrice: product.variants[0].price, quantity: 1, addOns: [],
     });
-    await mob.goto(BASE + "/checkout", { waitUntil: "networkidle", timeout: 60000 });
+    await mob.goto(BASE + "/cart", { waitUntil: "networkidle", timeout: 60000 });
     await mob.waitForTimeout(1500);
 
     const m = await mob.evaluate(() => ({
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       cards: document.querySelectorAll(".aocard").length,
-      slots: document.querySelectorAll(".slots .chip").length,
       thumb: document.querySelector(".aocard__img")?.getBoundingClientRect().height ?? 0,
     }));
+    await mob.goto(BASE + "/checkout", { waitUntil: "networkidle", timeout: 60000 });
+    await mob.waitForTimeout(1500);
+    Object.assign(m, await mob.evaluate(() => ({
+      overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      slots: document.querySelectorAll(".slots .chip").length,
+    })));
     check(m.overflow <= 1, "checkout has no horizontal overflow on mobile", `${m.overflow}px`);
     check(m.slots > 0, "slot chips render on mobile", `${m.slots}`);
     check(m.cards > 0 && m.thumb <= 72, "add-on cards stay compact on mobile", `${m.cards} cards, ${Math.round(m.thumb)}px thumb`);
+    await mob.goto(BASE + "/cart", { waitUntil: "networkidle", timeout: 60000 });
+    await mob.waitForTimeout(1000);
 
     // the full-catalogue sheet must be reachable and dismissable on a phone
     const seeAll = await mob.$(".ao__all");

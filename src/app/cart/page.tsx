@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,16 +8,25 @@ import { useCartStore, lineKey } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
+import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
+import { useToast } from "@/components/shared/toast";
 import { IconBag, IconChevL, IconTrash } from "@/components/v5/icons";
+
+const NO_EXTRAS: Record<string, number> = {};
 
 export default function CartPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const items = useCartStore((s) => s.items);
+  const extras = useCartStore((s) => s.extras) ?? NO_EXTRAS;
+  const setExtra = useCartStore((s) => s.setExtra);
   const setLineQuantity = useCartStore((s) => s.setLineQuantity);
   const removeLine = useCartStore((s) => s.removeLine);
   const storeSlug = useCartStore((s) => s.storeSlug) ?? "kuchaman-city";
   const [hydrated, setHydrated] = useState(false);
   const [charges, setCharges] = useState({ packaging: 10, delivery: 30 });
+  const [addOns, setAddOns] = useState<AddOn[]>([]);
+  const [maxQty, setMaxQty] = useState(20);
 
   useEffect(() => setHydrated(true), []);
   useEffect(() => {
@@ -27,6 +36,8 @@ export default function CartPage() {
         if (d?.packagingCharge != null || d?.deliveryCharge != null) {
           setCharges({ packaging: d.packagingCharge ?? 10, delivery: d.deliveryCharge ?? 30 });
         }
+        if (Array.isArray(d?.addOns)) setAddOns(d.addOns);
+        if (d?.addOnMaxQty) setMaxQty(Math.max(1, d.addOnMaxQty));
       })
       .catch(() => {});
   }, []);
@@ -35,7 +46,11 @@ export default function CartPage() {
     (s, i) => s + (i.unitPrice + (i.addOns ?? []).reduce((a, x) => a + x.price, 0)) * i.quantity,
     0,
   );
-  const total = subtotal + charges.packaging + charges.delivery;
+  const addOnTotal = useMemo(
+    () => Object.entries(extras).reduce((s, [id, q]) => s + (addOns.find((a) => a.id === id)?.price ?? 0) * q, 0),
+    [extras, addOns],
+  );
+  const total = subtotal + addOnTotal + charges.packaging + charges.delivery;
 
   if (!hydrated) {
     return (
@@ -129,11 +144,20 @@ export default function CartPage() {
           <Link className="btn btn--out btn--sm cart5__more" href={`/store/${storeSlug}/menu`}>
             + Add more items
           </Link>
+
+          <AddOnsPicker
+            addOns={addOns}
+            picked={extras}
+            maxQty={maxQty}
+            onChange={setExtra}
+            onLimit={(name) => toast(`Up to ${maxQty} ${name} per order`, "error")}
+          />
         </div>
 
         <aside className="summary5">
           <h3 className="t-h3">Bill details</h3>
           <div className="sline"><span>Item total</span><b>{formatPrice(subtotal)}</b></div>
+          {addOnTotal > 0 ? <div className="sline"><span>Add-ons</span><b>{formatPrice(addOnTotal)}</b></div> : null}
           <div className="sline"><span>Safe cake packaging</span><b>{formatPrice(charges.packaging)}</b></div>
           <div className="sline"><span>Delivery <span className="t-small">(free for pickup)</span></span><b>{formatPrice(charges.delivery)}</b></div>
           <div className="sline sline--tot"><span>Estimated total</span><b>{formatPrice(total)}</b></div>

@@ -15,26 +15,29 @@ type StoreOption = {
   address: string | null;
 };
 
+const label = (s: { city: string | null; name: string }) => s.city || s.name;
+
 /**
  * Store chooser for the storefront. One trigger and one panel at every size —
- * a dropdown on desktop, a bottom sheet on phones.
+ * a dropdown on desktop, a bottom sheet on phones. `variant="strip"` renders the
+ * trigger as the "Ordering from …" line on the homepage.
  */
 export function StorePicker({
   storeSlug,
   storeCity,
   pincode,
+  variant = "pill",
 }: {
   storeSlug: string;
   storeCity: string;
   pincode: string;
+  variant?: "pill" | "strip";
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [stores, setStores] = useState<StoreOption[] | null>(null);
-  const [confirming, setConfirming] = useState<StoreOption | null>(null);
-  const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
   const setCartStore = useCartStore((s) => s.setStoreSlug);
 
@@ -59,7 +62,9 @@ export function StorePicker({
     };
   }, [open]);
 
-  const switchTo = async (store: StoreOption) => {
+  const choose = async (store: StoreOption) => {
+    setOpen(false);
+    if (store.slug === storeSlug) return;
     // Persist before navigating: pages outside /store/[slug] read the cookie,
     // so without this the choice is lost on the next refresh.
     await fetch("/api/stores/select", {
@@ -68,6 +73,7 @@ export function StorePicker({
       body: JSON.stringify({ slug: store.slug }),
     }).catch(() => {});
 
+    // Each outlet has its own menu and prices, so a basket never moves with the customer.
     clearCart();
     setCartStore(store.slug);
 
@@ -75,34 +81,36 @@ export function StorePicker({
     // home — a product or category from the old outlet won't exist here.
     router.push(pathname.startsWith("/store/") ? `/store/${store.slug}/menu` : "/");
     router.refresh();
-    toast(`Now ordering from ${store.name}`);
+    toast(`Now ordering from ${label(store)}`);
   };
 
-  const choose = (store: StoreOption) => {
-    setOpen(false);
-    if (store.slug === storeSlug) return;
-    // Prices and the menu itself differ per outlet, so a basket cannot move.
-    if (items.length > 0) { setConfirming(store); return; }
-    void switchTo(store);
-  };
+  const here = storeCity || pincode;
 
   return (
-    <div className="v5store">
-      <button
-        type="button"
-        className="v5loc"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        aria-label={`Store: ${storeCity || pincode}. Change store`}
-      >
-        <IconPin />
-        <span className="v5loc__t">
-          <small>Deliver from</small>
-          <b>{storeCity || pincode}</b>
-        </span>
-        <IconChevD width={14} height={14} />
-      </button>
+    <div className={`v5store${variant === "strip" ? " v5store--strip" : ""}`}>
+      {variant === "strip" ? (
+        <button type="button" className="v5here" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="dialog">
+          <IconPin />
+          <span>Ordering from <b>{here}</b></span>
+          <em>Change</em>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="v5loc"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-label={`Store: ${here}. Change store`}
+        >
+          <IconPin />
+          <span className="v5loc__t">
+            <small>Ordering from</small>
+            <b>{here}</b>
+          </span>
+          <IconChevD width={14} height={14} />
+        </button>
+      )}
 
       {open ? (
         <>
@@ -131,40 +139,13 @@ export function StorePicker({
                     >
                       <span className="v5store__ic"><IconPin /></span>
                       <span className="v5store__tx">
-                        <b>{s.name}</b>
-                        <span>{s.address || [s.city, s.pincode].filter(Boolean).join(" · ")}</span>
+                        <b>{label(s)}</b>
                       </span>
                       {current ? <IconCheck /> : null}
                     </button>
                   );
                 })
               )}
-            </div>
-          </div>
-        </>
-      ) : null}
-
-      {confirming ? (
-        <>
-          <div className="v5store__bg" onClick={() => setConfirming(null)} />
-          <div className="v5swap" role="alertdialog" aria-labelledby="v5swap-t">
-            <h3 id="v5swap-t">Switch to {confirming.name}?</h3>
-            <p>
-              Your basket has {items.reduce((n, i) => n + i.quantity, 0)} item
-              {items.reduce((n, i) => n + i.quantity, 0) === 1 ? "" : "s"} from {storeCity}. Each outlet bakes
-              its own menu at its own prices, so we&apos;ll empty the basket before you carry on.
-            </p>
-            <div className="v5swap__acts">
-              <button type="button" className="btn btn--out btn--sm" onClick={() => setConfirming(null)}>
-                Stay at {storeCity}
-              </button>
-              <button
-                type="button"
-                className="btn btn--rose btn--sm"
-                onClick={() => { const s = confirming; setConfirming(null); void switchTo(s); }}
-              >
-                Switch &amp; clear basket
-              </button>
             </div>
           </div>
         </>

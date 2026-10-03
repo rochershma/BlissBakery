@@ -238,7 +238,7 @@ const check = (ok, n, d = "") => {
     const detail = await page.evaluate(() => document.body.innerText);
     check(/Pick up from/i.test(detail), "the tracker names the pickup outlet");
 
-    /* ---------- 8. switching outlet warns before emptying the basket ---------- */
+    /* ---------- 8. switching outlet empties the basket and says so ---------- */
     console.log("\n[8] Switching outlet");
     await go("/");
     await page.evaluate((l) => {
@@ -249,32 +249,18 @@ const check = (ok, n, d = "") => {
 
     await page.locator(".v5loc").first().click();
     await page.waitForTimeout(600);
-    await page.locator(".v5store__i").filter({ hasText: `${TAG} Outlet` }).first().click();
-    await page.waitForTimeout(600);
-    const dialog = await page.$(".v5swap");
-    check(!!dialog, "a confirmation appears before the basket is emptied");
-    if (dialog) {
-      const copy = await page.$eval(".v5swap", (n) => n.innerText.replace(/\s+/g, " "));
-      check(/2 items/.test(copy), "it says how much is in the basket", copy.slice(0, 90));
-
-      await page.getByRole("button", { name: /stay at/i }).click();
-      await page.waitForTimeout(500);
-      const kept2 = await page.evaluate(() => JSON.parse(localStorage.getItem("bliss-bakery-cart")).state.items.length);
-      check(kept2 === 1, "declining keeps the basket", `${kept2} lines`);
-
-      await page.locator(".v5loc").first().click();
-      await page.waitForTimeout(500);
-      await page.locator(".v5store__i").filter({ hasText: `${TAG} Outlet` }).first().click();
-      await page.waitForTimeout(500);
-      await page.getByRole("button", { name: /switch/i }).click();
-      await page.waitForTimeout(2500);
-
+    await page.locator(".v5store__i").filter({ hasText: "Faraway" }).first().click();
+    await page.waitForTimeout(2500);
+    check(!(await page.$(".v5swap")), "no confirmation dialog interrupts the switch");
+    const said = await page.evaluate(() => document.body.innerText.match(/Now ordering from [^\n]+/)?.[0] || "");
+    check(/Now ordering from Faraway/.test(said), "a toast names the new outlet", said);
+    {
       const after = await page.evaluate(() => ({
         items: JSON.parse(localStorage.getItem("bliss-bakery-cart")).state.items.length,
         slug: JSON.parse(localStorage.getItem("bliss-bakery-cart")).state.storeSlug,
         outlet: document.querySelector(".v5loc b")?.textContent?.trim(),
       }));
-      check(after.items === 0, "accepting empties the basket", `${after.items} lines`);
+      check(after.items === 0, "the basket is emptied", `${after.items} lines`);
       check(after.slug === `${TAG}-outlet`, "and the basket follows the new outlet", after.slug);
       check(after.outlet === "Faraway", "the header shows the new outlet", after.outlet);
       check(!/\/store\/kuchaman-city/.test(page.url()), "and we are no longer on the old outlet's pages", page.url());

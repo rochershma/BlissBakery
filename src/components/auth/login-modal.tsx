@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./auth-provider";
-import { X, MessageCircle, Phone, ArrowLeft } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 
 type Step = "phone" | "otp" | "register";
@@ -11,7 +11,6 @@ export function LoginModal() {
   const { showLoginModal, setShowLoginModal, sendOtp, login, updateProfile, user } = useAuth();
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
-  const [otpMethod, setOtpMethod] = useState<"whatsapp" | "sms">("whatsapp");
   const [otp, setOtp] = useState(["" , "", "", "", "", ""]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,11 +22,13 @@ export function LoginModal() {
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Lock body scroll, set inert on background, trap focus, auto-focus phone input
+  // Lock scroll, make the page inert and trap focus once per opening. Re-running
+  // this on every step change made iOS drop and re-raise the keyboard (flicker).
   useEffect(() => {
     if (!showLoginModal) return;
 
     const previousFocus = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     // Set background inert so search/other inputs can't receive focus
@@ -38,13 +39,9 @@ export function LoginModal() {
       }
     });
 
-    // Focus phone input after mount — only on desktop (mobile keyboard is intrusive)
-    const isMobile = window.innerWidth < 768;
+    // Desktop only: on phones the keyboard should open when the customer taps.
     const timer = setTimeout(() => {
-      if (!isMobile) {
-        if (step === "phone") phoneInputRef.current?.focus();
-        else if (step === "otp") otpRefs.current[0]?.focus();
-      }
+      if (window.innerWidth >= 768) phoneInputRef.current?.focus();
     }, 100);
 
     // Focus trap: cycle focus within modal
@@ -72,14 +69,15 @@ export function LoginModal() {
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = prevOverflow;
       document.removeEventListener("keydown", handleKeyDown);
       clearTimeout(timer);
       // Remove inert from all elements
       appElements.forEach((el) => el.removeAttribute("inert"));
-      previousFocus?.focus();
+      previousFocus?.focus({ preventScroll: true });
     };
-  }, [showLoginModal, step]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLoginModal]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -132,8 +130,18 @@ export function LoginModal() {
   }
 
   function handleOtpChange(index: number, value: string) {
-    if (value.length > 1) value = value.slice(-1);
-    if (value && !/^\d$/.test(value)) return;
+    const digits = value.replace(/\D/g, "");
+    // iOS/Android one-time-code autofill and paste deliver the whole code at once.
+    if (digits.length > 1) {
+      const code = digits.slice(0, 6).split("");
+      const filled = [...code, "", "", "", "", "", ""].slice(0, 6);
+      setOtp(filled);
+      if (filled.every((d) => d)) handleVerifyOtp(filled.join(""));
+      else otpRefs.current[Math.min(5, code.length)]?.focus();
+      return;
+    }
+    if (value && !/^\d$/.test(digits)) return;
+    value = digits;
 
     const newOtp = [...otp];
     newOtp[index] = value;
@@ -206,10 +214,10 @@ export function LoginModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" ref={modalRef}>
+    <div className="auth fixed inset-0 z-[100] flex items-start sm:items-center justify-center" role="dialog" aria-modal="true" ref={modalRef}>
       <div className="auth__scrim" onClick={() => { setShowLoginModal(false); resetForm(); }} />
 
-      <div className="auth__sheet animate-in slide-in-from-bottom duration-300">
+      <div className="auth__sheet">
         <div className="auth__grip" />
         <button
           aria-label="Close"
@@ -234,25 +242,18 @@ export function LoginModal() {
                   <input
                     ref={phoneInputRef}
                     type="tel"
+                    inputMode="numeric"
+                    autoComplete="tel-national"
                     maxLength={10}
                     placeholder="98765 43210"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(-10))}
                     onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
                   />
                 </div>
               </div>
 
               {error && <p className="auth__err">{error}</p>}
-
-              <div className="auth__ch">
-                <button type="button" aria-pressed={otpMethod === "whatsapp"} onClick={() => setOtpMethod("whatsapp")}>
-                  <MessageCircle /> WhatsApp
-                </button>
-                <button type="button" aria-pressed={otpMethod === "sms"} onClick={() => setOtpMethod("sms")}>
-                  <Phone /> SMS
-                </button>
-              </div>
 
               <button
                 onClick={handleSendOtp}
@@ -281,7 +282,7 @@ export function LoginModal() {
               </button>
               <h2 className="auth__h" style={{ marginTop: 12 }}>Enter your code</h2>
               <p className="auth__sub">
-                Sent via {otpMethod === "whatsapp" ? "WhatsApp" : "SMS"} to +91 {phone}
+                Sent by SMS to +91 {phone}
               </p>
 
               {devOtp && (
@@ -297,8 +298,9 @@ export function LoginModal() {
                     ref={(el) => { otpRefs.current[i] = el; }}
                     type="text"
                     inputMode="numeric"
+                    autoComplete={i === 0 ? "one-time-code" : "off"}
                     aria-label={`Digit ${i + 1}`}
-                    maxLength={1}
+                    maxLength={i === 0 ? 6 : 1}
                     value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
@@ -322,13 +324,7 @@ export function LoginModal() {
                 <p className="auth__note">Resend available in {resendTimer}s</p>
               ) : (
                 <div className="auth__resend">
-                  <button onClick={() => { setOtpMethod("whatsapp"); handleSendOtp(); }}>
-                    <MessageCircle /> Resend on WhatsApp
-                  </button>
-                  <span style={{ color: "var(--line-2)" }}>·</span>
-                  <button onClick={() => { setOtpMethod("sms"); handleSendOtp(); }}>
-                    <Phone /> SMS
-                  </button>
+                  <button onClick={() => handleSendOtp()}>Resend code</button>
                 </div>
               )}
             </>

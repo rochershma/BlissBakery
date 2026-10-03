@@ -28,6 +28,8 @@ const MAX_QTY = 50;
 
 interface CartState {
   items: CartItem[];
+  /** Basket-level add-ons from the outlet's shelf: add-on id -> quantity. */
+  extras: Record<string, number>;
   storeSlug: string | null;
   orderType: "PICKUP" | "DELIVERY";
   specialInstructions: string;
@@ -35,6 +37,7 @@ interface CartState {
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   setLineQuantity: (key: string, quantity: number) => void;
   removeLine: (key: string) => void;
+  setExtra: (id: string, quantity: number) => void;
   removeItem: (productId: string, variantName?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantName?: string) => void;
   updateItemAddOns: (productId: string, addOns: { name: string; price: number }[], variantName?: string) => void;
@@ -52,6 +55,7 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      extras: {},
       storeSlug: null,
       orderType: "PICKUP",
       specialInstructions: "",
@@ -126,14 +130,19 @@ export const useCartStore = create<CartState>()(
       },
 
       clearCart: () =>
-        set({ items: [], specialInstructions: "" }),
+        set({ items: [], extras: {}, specialInstructions: "" }),
+
+      setExtra: (id, qty) => {
+        const extras = { ...(get().extras ?? {}) };
+        if (qty > 0) extras[id] = qty; else delete extras[id];
+        set({ extras });
+      },
 
       setStoreSlug: (slug) => {
         const current = get().storeSlug;
-        // A basket cannot move between outlets — they have separate menus and
-        // prices. The UI asks first; this is the backstop.
-        if (current && current !== slug && get().items.length > 0) {
-          set({ items: [], storeSlug: slug, specialInstructions: "" });
+        // A basket cannot move between outlets — they have separate menus and prices.
+        if (current && current !== slug && (get().items.length > 0 || Object.keys(get().extras ?? {}).length > 0)) {
+          set({ items: [], extras: {}, storeSlug: slug, specialInstructions: "" });
           return;
         }
         set({ storeSlug: slug });

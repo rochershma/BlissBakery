@@ -10,19 +10,19 @@ export async function navLinks(storeSlug: string): Promise<NavLink[]> {
     db.occasion.findMany({
       where: { isActive: true, storeId: store.id },
       orderBy: { sortOrder: "asc" },
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, image: true },
       take: 5,
     }),
     db.theme.findMany({
       where: { isActive: true, storeId: store.id },
       orderBy: { sortOrder: "asc" },
-      select: { name: true, slug: true },
+      select: { name: true, slug: true, image: true },
       take: 2,
     }),
   ]);
 
   return [
-    ...occasions.map((o) => ({ label: o.name.replace(/ Cakes$/i, ""), href: `/cakes/${o.slug}` })),
-    ...themes.map((t) => ({ label: t.name.replace(/ Cakes$/i, ""), href: `/themes/${t.slug}` })),
+    ...occasions.map((o) => ({ label: o.name.replace(/ Cakes$/i, ""), href: `/cakes/${o.slug}`, image: o.image })),
+    ...themes.map((t) => ({ label: t.name.replace(/ Cakes$/i, ""), href: `/themes/${t.slug}`, image: t.image })),
   ];
 }

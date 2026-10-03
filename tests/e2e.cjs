@@ -61,7 +61,7 @@ page.on("console", (m) => {
   check(home.tiles >= 6, "browse tiles render", `${home.tiles}`);
   check(home.cards >= 1, "bestsellers render", `${home.cards}`);
   check(/Jakarta/.test(home.font), "display font is Plus Jakarta Sans");
-  check(home.cta === "rgb(175, 63, 99)", "CTA uses v5 rose", home.cta);
+  check(home.cta === "rgb(173, 116, 126)", "CTA uses brand colour #ad747e", home.cta);
   check(["Shop by category", "Shop by occasion", "Shop by theme"].every((s) => home.sections.includes(s)), "all browse sections present");
   check((await broken()) === 0, "no broken images on home");
 
@@ -113,8 +113,8 @@ page.on("console", (m) => {
   check(r.status() === 200, "PDP responds 200", href);
   const pdp = await page.evaluate(() => ({
     price: document.querySelector(".pdp5__price b")?.textContent,
-    sizes: document.querySelectorAll(".sizes__o").length,
-    sizesShowPrice: [...document.querySelectorAll(".sizes__o i")].every((e) => /₹/.test(e.textContent)),
+    sizes: document.querySelectorAll("#pdp-size option").length,
+    sizesShowPrice: [...document.querySelectorAll("#pdp-size option")].every((e) => /₹/.test(e.textContent)),
     flav: document.querySelectorAll(".pdp5__flav .chip").length,
     flavHasPrice: /₹/.test(document.querySelector(".pdp5__flav")?.textContent || ""),
     acc: document.querySelectorAll(".acc__i").length,
@@ -131,19 +131,20 @@ page.on("console", (m) => {
   check(!pdp.dupServes, "no duplicated 'serves Serves' text");
 
   const p0 = await page.evaluate(() => document.querySelector(".pdp5__price b").textContent);
-  const sizeOpts = await page.$$(".sizes__o");
-  if (sizeOpts.length > 2) await sizeOpts[2].click();
+  const sizeVals = await page.$$eval("#pdp-size option", (o) => o.map((x) => x.value));
+  if (sizeVals.length > 2) await page.selectOption("#pdp-size", sizeVals[2]);
   await page.waitForTimeout(500);
   const p1 = await page.evaluate(() => document.querySelector(".pdp5__price b").textContent);
   check(p0 !== p1, "price updates when size changes", `${p0} -> ${p1}`);
 
-  // the selected size tile must quote the same number as the main price
+  // the selected size option must quote the same number as the main price
   const agree = await page.evaluate(() => {
-    const sel = document.querySelector('.sizes__o[aria-checked="true"] i')?.textContent?.replace(/[^\d]/g, "");
+    const s = document.querySelector("#pdp-size");
+    const sel = s.options[s.selectedIndex]?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
     const main = document.querySelector(".pdp5__price b")?.textContent?.replace(/[^\d]/g, "");
     return { sel, main };
   });
-  check(agree.sel === agree.main, "size tile price matches headline price", `${agree.sel} vs ${agree.main}`);
+  check(agree.sel === agree.main, "size option price matches headline price", `${agree.sel} vs ${agree.main}`);
 
   const chips = await page.$$(".pdp5__flav .chip");
   if (chips.length > 2) { await chips[chips.length - 1].click(); await page.waitForTimeout(500); }
@@ -153,16 +154,29 @@ page.on("console", (m) => {
   /* ---------------- 4. CART ---------------- */
   console.log("\n[4] Cart");
   await page.click(".pdp5__cta");
+  await page.waitForURL(/\/cart/, { timeout: 15000 }).catch(() => {});
+  check(/\/cart/.test(page.url()), "Add to cart goes straight to the cart", page.url().replace(BASE, ""));
   await page.waitForTimeout(1200);
   r = await go("/cart");
   const cart = await page.evaluate(() => ({
     rows: document.querySelectorAll(".crow").length,
     total: document.querySelector(".sline--tot b")?.textContent,
     tags: document.querySelectorAll(".crow__tags .badge").length,
+    addons: document.querySelectorAll(".aocard").length,
   }));
   check(cart.rows === 1, "cart has the added item", `${cart.rows} rows`);
   check(cart.tags >= 2, "cart line shows size + flavour badges", `${cart.tags}`);
   check(!!cart.total, "cart shows a total", cart.total);
+  check(cart.addons > 0, "cart offers add-ons", `${cart.addons}`);
+
+  const cartAdd = await page.$(".ao__add");
+  if (cartAdd) {
+    await cartAdd.click();
+    await page.waitForTimeout(600);
+    const ta = await page.evaluate(() => document.querySelector(".sline--tot b")?.textContent);
+    check(ta !== cart.total, "cart add-on updates the total", `${cart.total} -> ${ta}`);
+    cart.total = ta;
+  } else fail("cart add-on button present");
 
   const qtyPlus = await page.$(".crow .qty button:last-child");
   if (qtyPlus) {
@@ -217,7 +231,7 @@ page.on("console", (m) => {
     return {
       steps: document.querySelectorAll(".steps5 > div").length,
       blocks: document.querySelectorAll(".opt-block").length,
-      addons: document.querySelectorAll(".aocard").length,
+      addonLine: [...document.querySelectorAll(".sline")].some((l) => /Add-ons/.test(l.textContent)),
       hasPayment: /\b(UPI|Netbanking|Cash on delivery|Pay now)\b/.test(form),
       cta: [...document.querySelectorAll("button")].some((b) => /place order/i.test(b.textContent)),
     };
@@ -225,19 +239,9 @@ page.on("console", (m) => {
   check(r.status() === 200, "checkout responds 200");
   check(co.steps === 3, "three checkout steps", `${co.steps}`);
   check(co.blocks >= 3, "delivery blocks render", `${co.blocks}`);
-  check(co.addons > 0, "add-to-box upsell renders", `${co.addons}`);
+  check(co.addonLine, "add-ons picked in the cart carry into checkout");
   check(!co.hasPayment, "no payment method step on checkout");
   check(co.cta, "Place order CTA present");
-
-  // add-on stepper
-  const addBtn = await page.$(".ao__add");
-  if (addBtn) {
-    const t0 = await page.evaluate(() => document.querySelector(".sline--tot b")?.textContent);
-    await addBtn.click();
-    await page.waitForTimeout(600);
-    const t1 = await page.evaluate(() => document.querySelector(".sline--tot b")?.textContent);
-    check(t0 !== t1, "add-on updates the total", `${t0} -> ${t1}`);
-  } else fail("add-on button present");
 
   // promo code
   const dateChips = await page.$$(".dpick__d");

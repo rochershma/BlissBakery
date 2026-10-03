@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { LoginModal } from "@/components/auth/login-modal";
@@ -20,6 +20,14 @@ const jakarta = Plus_Jakarta_Sans({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+// The script used for "Bliss Bakery" on the shop's banners and boxes.
+const script = Great_Vibes({
+  variable: "--font-script",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -61,7 +69,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#af3f63",
+  themeColor: "#ad747e",
 };
 
 export default async function RootLayout({
@@ -74,7 +82,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${inter.variable} h-full antialiased`}
+      className={`${jakarta.variable} ${inter.variable} ${script.variable} h-full antialiased`}
       // Browser extensions inject attributes on <html> before hydration.
       suppressHydrationWarning
     >

@@ -1,0 +1,28 @@
+// Quick mobile walkthrough: home top, PDP, Add to cart -> cart (with add-ons).
+const { chromium } = require("playwright");
+const BASE = process.env.BASE || "http://localhost:3005";
+(async () => {
+  const b = await chromium.launch();
+  const c = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  await c.addCookies([{ name: "bb-store", value: "kuchaman-city", domain: new URL(BASE).hostname, path: "/" }]);
+  const p = await c.newPage();
+  const errs = [];
+  p.on("pageerror", (e) => errs.push(e.message.slice(0, 120)));
+  await p.goto(BASE + "/", { waitUntil: "networkidle" });
+  await p.waitForTimeout(1200);
+  await p.screenshot({ path: ".audit/h-m-top.png" });
+  await p.goto(BASE + "/store/kuchaman-city/menu", { waitUntil: "networkidle" });
+  await p.locator('a[href*="/menu/"]').first().click();
+  await p.waitForURL(/menu\/.+/);
+  await p.waitForTimeout(1500);
+  await p.screenshot({ path: ".audit/pdp-m.png" });
+  const opts = await p.$$eval("#pdp-size option", (o) => o.map((x) => x.textContent));
+  console.log("size options", opts.length, opts[0]);
+  await p.locator(".pdp5__stickycta").first().click();
+  await p.waitForURL(/\/cart/, { timeout: 15000 });
+  await p.waitForTimeout(1500);
+  await p.screenshot({ path: ".audit/cart-m.png", fullPage: true });
+  console.log("landed", p.url().replace(BASE, ""), "addon cards", await p.locator(".aocard").count());
+  console.log("errors", errs);
+  await b.close();
+})();

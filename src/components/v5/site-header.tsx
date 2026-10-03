@@ -10,10 +10,10 @@ import { img } from "@/lib/img";
 import { StorePicker } from "./store-picker";
 import {
   IconSearch, IconUser, IconBag, IconPin, IconChevD, IconLogout,
-  IconGrid, IconHome,
+  IconGrid, IconHome, IconCake,
 } from "./icons";
 
-export type NavLink = { label: string; href: string };
+export type NavLink = { label: string; href: string; image?: string | null };
 
 export function SiteHeaderV5({
   storeSlug = "kuchaman-city",
@@ -112,17 +112,22 @@ export function SiteHeaderV5({
       </div>
 
       {nav.length > 0 ? (
-        <nav className="v5nav" aria-label="Categories">
+        <nav className="v5nav" aria-label="Shop by occasion">
           <div className="wrap">
-            <Link href={`/store/${storeSlug}/menu`} className={pathname?.endsWith("/menu") ? "is-on" : ""}>
-              Menu
+            <Link href={`/store/${storeSlug}/menu`} className={`v5chip${pathname?.endsWith("/menu") ? " is-on" : ""}`}>
+              <span className="v5chip__ic"><IconGrid /></span>
+              Full menu
             </Link>
             {nav.map((n) => (
-              <Link key={n.href} href={n.href} className={pathname === n.href ? "is-on" : ""}>
+              <Link key={n.href} href={n.href} className={`v5chip${pathname === n.href ? " is-on" : ""}`}>
+                <span className="v5chip__ic">
+                  {n.image ? <Image src={img(n.image, 64, 64)} alt="" width={28} height={28} unoptimized /> : <IconCake />}
+                </span>
                 {n.label}
               </Link>
             ))}
-            <Link href={`/store/${storeSlug}/custom-cakes`} className="v5nav__custom">
+            <Link href={`/store/${storeSlug}/custom-cakes`} className="v5chip v5chip--custom">
+              <span className="v5chip__ic"><IconCake /></span>
               Custom cake
             </Link>
           </div>

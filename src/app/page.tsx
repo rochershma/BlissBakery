@@ -4,7 +4,7 @@ import Image from "next/image";
 import { db as prisma } from "@/lib/db";
 import { getCustomerStoreId } from "@/lib/customer-store";
 import { fromPrice, type FlavourPrice } from "@/lib/pricing";
-import { firstImage, img } from "@/lib/img";
+import { firstImage, imgFit } from "@/lib/img";
 import { parseJsonSafe, formatStoreAddress } from "@/lib/utils";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
@@ -12,7 +12,8 @@ import { HeroSlider, type Slide } from "@/components/v5/hero-slider";
 import { Rail } from "@/components/v5/rail";
 import { Tile } from "@/components/v5/tile";
 import { ProductCard } from "@/components/v5/product-card";
-import { IconLeaf, IconTruck, IconClock } from "@/components/v5/icons";
+import { IconLeaf, IconTruck, IconClock, IconBag, IconCake, IconChevR } from "@/components/v5/icons";
+import { StorePicker } from "@/components/v5/store-picker";
 import { navLinks } from "@/lib/nav";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export default async function HomePage() {
     prisma.product.findMany({
       where: { isBestseller: true, isAvailable: true, category: { storeId: store.id } },
       include: { variants: true },
+      orderBy: [{ createdAt: "asc" }, { name: "asc" }],
       take: 12,
     }),
   ]);
@@ -67,7 +69,9 @@ export default async function HomePage() {
 
   const nav = await navLinks(store.slug);
   const menuHref = `/store/${store.slug}/menu`;
-  const heroImage = bestsellers.map((b) => firstImage(b.images)).find(Boolean) ?? null;
+  // The admin-set custom cake image; a stable fallback so it never shuffles between visits.
+  const customImage = store.customCakeImage || bestsellers.map((b) => firstImage(b.images)).find(Boolean) || null;
+  const customHref = `/store/${store.slug}/custom-cakes`;
 
   return (
     <>
@@ -77,21 +81,31 @@ export default async function HomePage() {
         Bliss Bakery — 100% vegetarian and eggless cakes in {store.city}
       </h1>
 
+      <div className="wrap home__here">
+        <StorePicker storeSlug={store.slug} storeCity={store.city} pincode={store.pincode} variant="strip" />
+      </div>
+
       {slides.length > 0 && (
-        <section className="sec" style={{ paddingTop: 16, paddingBottom: 0 }}>
+        <section className="sec" style={{ paddingTop: 12, paddingBottom: 0 }}>
           <div className="wrap">
             <HeroSlider slides={slides} />
             <div className="herobar">
               <div className="herobar__cta">
-                <Link className="btn btn--rose btn--lg" href={menuHref}>Order now</Link>
-                <Link className="btn btn--out btn--lg" href={`/store/${store.slug}/custom-cakes`}>
-                  Design a custom cake
+                <Link className="hcta hcta--main" href={menuHref}>
+                  <span className="hcta__ic"><IconBag /></span>
+                  <span className="hcta__tx"><b>Order now</b><small>Ready-made cakes</small></span>
+                  <IconChevR className="hcta__go" />
+                </Link>
+                <Link className="hcta hcta--alt" href={customHref}>
+                  <span className="hcta__ic"><IconCake /></span>
+                  <span className="hcta__tx"><b>Custom cake</b><small>Your own design</small></span>
+                  <IconChevR className="hcta__go" />
                 </Link>
               </div>
               <div className="herobar__usp">
                 <div><IconLeaf /><span>100% eggless</span></div>
                 <div><IconTruck /><span>Same-day delivery</span></div>
-                <div><IconClock /><span>Baked this morning</span></div>
+                <div><IconClock /><span>Baked freshly</span></div>
               </div>
             </div>
           </div>
@@ -106,9 +120,8 @@ export default async function HomePage() {
                 <span className="kicker">Start here</span>
                 <h2 className="d2" style={{ marginTop: 8 }}>Shop by category</h2>
               </div>
-              <Link className="btn btn--out btn--sm" href={menuHref}>View full menu</Link>
             </div>
-            <Rail variant="tiles" itemWidth={196}>
+            <Rail variant="tiles" itemWidth={196} className="rail--grid">
               {store.categories.map((c, i) => (
                 <Tile
                   key={c.id}
@@ -208,34 +221,19 @@ export default async function HomePage() {
 
       <section className="sec">
         <div className="wrap">
-          <div className="v5-band">
-            <div className="v5-band__copy">
-              <span className="kicker" style={{ color: "var(--rose-300)" }}>Your design, our kitchen</span>
-              <h2 className="d2" style={{ margin: "12px 0 10px", color: "#fff" }}>Custom cakes</h2>
-              <p>
-                Send a reference photo. Pick any flavour, any size from 500&nbsp;g to 6&nbsp;kg.
-                We quote within the hour and bake in 48.
-              </p>
-              <div className="v5-band__cta">
-                <Link className="btn btn--rose" href={`/store/${store.slug}/custom-cakes`}>
-                  Start a custom cake
-                </Link>
-                <a
-                  className="btn btn--light"
-                  href={`https://wa.me/91${store.phone}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  WhatsApp us
-                </a>
-              </div>
-            </div>
-            <div className="v5-band__media">
-              {heroImage ? (
-                <Image src={img(heroImage, 760, 700)} alt="" width={760} height={700} unoptimized />
+          <Link className="ccband" href={customHref}>
+            <div className="ccband__media">
+              {customImage ? (
+                <Image src={imgFit(customImage, 1200)} alt="A custom designed cake" width={1200} height={900} unoptimized loading="lazy" />
               ) : null}
             </div>
-          </div>
+            <div className="ccband__copy">
+              <span className="ccband__script">Made just for you</span>
+              <h2 className="d2">Design your custom cake</h2>
+              <p>Have a design in mind? Share your inspiration and create a cake that&apos;s uniquely yours.</p>
+              <span className="btn btn--rose ccband__cta">Start designing <IconChevR /></span>
+            </div>
+          </Link>
         </div>
       </section>
 

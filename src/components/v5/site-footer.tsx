@@ -27,7 +27,7 @@ export function SiteFooter({
               <h3>Bliss Bakery</h3>
             </div>
             <p>
-              100% vegetarian and eggless. Baked fresh every morning
+              100% vegetarian and eggless. Baked freshly
               {address ? ` at ${address}` : ""}.
             </p>
             <p className="ftr__fssai">FSSAI Lic. 12345678901234</p>

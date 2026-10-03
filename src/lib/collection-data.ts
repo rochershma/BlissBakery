@@ -76,19 +76,11 @@ const SHAPES = [
   { value: "2-tier", label: "2 tier" }, { value: "3-tier", label: "3 tier" },
 ];
 
-/** Filters are contextual to how the shopper arrived. */
+/** Filters are contextual to how the shopper arrived. Flavour is chosen on the cake, not filtered by. */
 export function buildGroups(opts: { flavours: string[]; withShape?: boolean; extra?: FilterGroup[] }): FilterGroup[] {
   const groups: FilterGroup[] = [...(opts.extra ?? [])];
   groups.push({ key: "price", label: "Price", type: "check", options: PRICE_BANDS });
   groups.push({ key: "size", label: "Size", type: "pill", options: SIZES });
-  if (opts.flavours.length) {
-    groups.push({
-      key: "flavour",
-      label: "Flavour",
-      type: "check",
-      options: opts.flavours.slice(0, 14).map((f) => ({ value: f, label: f })),
-    });
-  }
   if (opts.withShape) groups.push({ key: "shape", label: "Tier & shape", type: "pill", options: SHAPES });
   return groups;
 }

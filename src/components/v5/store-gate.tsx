@@ -96,8 +96,7 @@ export function StoreGate({ chosen }: { chosen: string | null }) {
               onClick={() => choose(s.slug)}
             >
               <span className="gate__tx">
-                <b>{s.name}</b>
-                <span>{s.address || [s.city, s.pincode].filter(Boolean).join(" · ")}</span>
+                <b>{s.city || s.name}</b>
               </span>
               <em>{busy === s.slug ? "…" : "Select"}</em>
             </button>

@@ -10,12 +10,14 @@ import { useToast } from "@/components/shared/toast";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
-import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
+import { type AddOn } from "@/components/v5/addons-picker";
 import { AddressForm, type SavedAddress } from "@/components/v5/address-form";
 import { DEFAULT_SLOTS, localIso, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
 import { IconChevL, IconPlus, IconCake, IconUser, IconPin } from "@/components/v5/icons";
 
 type Verdict = { deliverable: boolean; fee: number; distanceKm: number | null; reason: string | null };
+
+const NO_EXTRAS: Record<string, number> = {};
 
 /** Next 7 delivery days, rendered as chips instead of a native date field. */
 const DAYS = Array.from({ length: 7 }, (_, n) => {
@@ -49,7 +51,7 @@ export default function CheckoutPage() {
   const [slot, setSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<AddOn[]>([]);
-  const [picked, setPicked] = useState<Record<string, number>>({});
+  const picked = useCartStore((s) => s.extras) ?? NO_EXTRAS;
   const [charges, setCharges] = useState({ packaging: 10, delivery: 30, gstRate: 0, minOrder: 0 });
   const [area, setArea] = useState({ city: "", pincodes: [] as string[] });
   const [outlet, setOutlet] = useState({ name: "", slug: "", address: "", phone: "" });
@@ -198,13 +200,6 @@ export default function CheckoutPage() {
       setPromoBusy(false);
     }
   };
-
-  const bump = (id: string, qty: number) =>
-    setPicked((p) => {
-      const next = { ...p };
-      qty > 0 ? (next[id] = qty) : delete next[id];
-      return next;
-    });
 
   const placeOrder = async () => {
     if (!user) { setShowLoginModal(true); return; }
@@ -440,14 +435,6 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          <AddOnsPicker
-            addOns={addOns}
-            picked={picked}
-            maxQty={slotCfg.maxQty}
-            onChange={bump}
-            onLimit={(name) => toast(`Up to ${slotCfg.maxQty} ${name} per order`, "error")}
-          />
-
           <div className="opt-block">
             <h4>Anything we should know? <span className="t-small">optional</span></h4>
             <input className="input" placeholder="Gate code, floor, ring the bell twice…" value={notes} onChange={(e) => setNotes(e.target.value)} />
@@ -472,7 +459,12 @@ export default function CheckoutPage() {
             </div>
           ))}
           <div className="sline"><span>Item total</span><b>{formatPrice(subtotal)}</b></div>
-          {addOnTotal > 0 ? <div className="sline"><span>Add-ons</span><b>{formatPrice(addOnTotal)}</b></div> : null}
+          {addOnTotal > 0 ? (
+            <div className="sline">
+              <span>Add-ons <Link href="/cart" className="t-small" style={{ color: "var(--rose)" }}>Edit</Link></span>
+              <b>{formatPrice(addOnTotal)}</b>
+            </div>
+          ) : null}
           <div className="sline"><span>Safe cake packaging</span><b>{formatPrice(charges.packaging)}</b></div>
           <div className="sline"><span>Delivery</span><b>{delivery ? formatPrice(delivery) : "Free"}</b></div>
           {discount > 0 ? (
