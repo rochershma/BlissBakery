@@ -12,6 +12,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { type AddOn } from "@/components/v5/addons-picker";
 import { AddressForm, type SavedAddress } from "@/components/v5/address-form";
+import { reconcileCartPrices } from "@/lib/reconcile-cart";
 import { DEFAULT_SLOTS, localIso, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
 import { IconChevL, IconPlus, IconCake, IconUser, IconPin } from "@/components/v5/icons";
 
@@ -38,6 +39,7 @@ export default function CheckoutPage() {
 
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
+  const setExtra = useCartStore((s) => s.setExtra);
   const cartSlug = useCartStore((s) => s.storeSlug);
 
   const [hydrated, setHydrated] = useState(false);
@@ -77,6 +79,26 @@ export default function CheckoutPage() {
     if (!authLoading && !user) setShowLoginModal(true);
   }, [authLoading, user, setShowLoginModal]);
 
+  // Keep the quoted prices honest: reconcile cached cart prices before the
+  // customer commits, so the total they confirm is the total they're charged.
+  useEffect(() => {
+    if (!hydrated) return;
+    reconcileCartPrices().then(({ changed, removed }) => {
+      if (removed) toast("Some items are no longer available and were removed", "error");
+      else if (changed) toast("We refreshed your cart to the latest prices", "info");
+    });
+  }, [hydrated, toast]);
+
+  // If an admin deleted an add-on the customer had selected, drop it from the
+  // basket and say so, rather than silently billing a different set of extras.
+  useEffect(() => {
+    if (addOns.length === 0) return;
+    const orphans = Object.keys(picked).filter((id) => !addOns.some((a) => a.id === id));
+    if (orphans.length === 0) return;
+    orphans.forEach((id) => setExtra(id, 0));
+    toast("An add-on you picked is no longer available and was removed", "error");
+  }, [addOns, picked, setExtra, toast]);
+
   useEffect(() => {
     fetch("/api/store/config").then((r) => r.json()).then((d) => {
       if (d) {
@@ -113,6 +135,27 @@ export default function CheckoutPage() {
       if (Array.isArray(d?.promos)) setOffers(d.promos.filter((p: { occasionTag: string | null }) => p.occasionTag).slice(0, 3));
     }).catch(() => {});
   }, [user, storeSlug]);
+
+  // Addresses can be edited/deleted in another tab, so re-check on focus and
+  // drop a selection that no longer exists before it fails at order time.
+  useEffect(() => {
+    if (!user) return;
+    const refresh = () => {
+      fetch("/api/addresses").then((r) => r.json()).then((d) => {
+        const list: SavedAddress[] = d?.addresses ?? [];
+        setAddresses(list);
+        setAddrId((cur) => {
+          if (cur && !list.some((a) => a.id === cur)) {
+            toast("Your selected address was removed — please pick another", "error");
+            return "";
+          }
+          return cur;
+        });
+      }).catch(() => {});
+    };
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
+  }, [user, toast]);
 
   const subtotal = items.reduce(
     (s, i) => s + (i.unitPrice + (i.addOns ?? []).reduce((a, x) => a + x.price, 0)) * i.quantity, 0);

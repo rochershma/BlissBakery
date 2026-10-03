@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import { Plus, Trash2, Save, Upload, ImageIcon, GripVertical, Pencil, X, Check } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { useToast } from "@/components/shared/toast";
 
 interface AddOnItem {
   id: string;
@@ -26,6 +27,7 @@ const CATEGORIES = [
 ];
 
 export function AddOnManager({ initialAddOns }: Props) {
+  const { toast } = useToast();
   const [addOns, setAddOns] = useState<AddOnItem[]>(initialAddOns);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -65,29 +67,44 @@ export function AddOnManager({ initialAddOns }: Props) {
       form.append("file", file);
       form.append("folder", "addons");
       const res = await fetch("/api/admin/upload", { method: "POST", body: form });
-      const data = await res.json();
-      if (data.success && data.asset?.url) {
-        if (targetId) {
-          // Update existing addon image
-          await saveField(targetId, "image", data.asset.url);
-          setAddOns((prev) => prev.map((a) => a.id === targetId ? { ...a, image: data.asset.url } : a));
-        } else {
-          setFormImage(data.asset.url);
-        }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success || !data.asset?.url) {
+        toast(data?.error ?? "Image upload failed", "error");
+        return;
       }
-    } catch (e) {
-      console.error("Upload failed:", e);
+      if (targetId) {
+        if (await saveField(targetId, "image", data.asset.url)) {
+          setAddOns((prev) => prev.map((a) => a.id === targetId ? { ...a, image: data.asset.url } : a));
+        }
+      } else {
+        setFormImage(data.asset.url);
+      }
+    } catch {
+      toast("Image upload failed — check your connection", "error");
     } finally {
       setUploading(null);
     }
   };
 
-  const saveField = async (id: string, field: string, value: unknown) => {
-    await fetch("/api/admin/addons", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, [field]: value }),
-    });
+  // Returns true only when the server confirms the write, so callers never
+  // update local state on a failed request (no zombie rows).
+  const saveField = async (id: string, field: string, value: unknown): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/admin/addons", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, [field]: value }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast(d?.error ?? "Couldn't save the change", "error");
+        return false;
+      }
+      return true;
+    } catch {
+      toast("Couldn't save — check your connection", "error");
+      return false;
+    }
   };
 
   const handleSave = async () => {
@@ -102,11 +119,16 @@ export function AddOnManager({ initialAddOns }: Props) {
       };
 
       if (editingId) {
-        await fetch("/api/admin/addons", {
+        const res = await fetch("/api/admin/addons", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: editingId, ...body }),
         });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          toast(d?.error ?? "Couldn't update the add-on", "error");
+          return;
+        }
         setAddOns((prev) => prev.map((a) => a.id === editingId ? { ...a, ...body } : a));
       } else {
         const res = await fetch("/api/admin/addons", {
@@ -114,14 +136,16 @@ export function AddOnManager({ initialAddOns }: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
-        const data = await res.json();
-        if (data.addon) {
-          setAddOns((prev) => [...prev, data.addon]);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.addon) {
+          toast(data?.error ?? "Couldn't create the add-on", "error");
+          return;
         }
+        setAddOns((prev) => [...prev, data.addon]);
       }
       resetForm();
-    } catch (e) {
-      console.error("Save failed:", e);
+    } catch {
+      toast("Something went wrong — check your connection", "error");
     } finally {
       setSaving(false);
     }
@@ -129,25 +153,36 @@ export function AddOnManager({ initialAddOns }: Props) {
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this add-on?")) return;
-    await fetch("/api/admin/addons", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setAddOns((prev) => prev.filter((a) => a.id !== id));
+    try {
+      const res = await fetch("/api/admin/addons", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        toast(d?.error ?? "Couldn't delete the add-on", "error");
+        return;
+      }
+      setAddOns((prev) => prev.filter((a) => a.id !== id));
+    } catch {
+      toast("Couldn't delete — check your connection", "error");
+    }
   };
 
   const handleToggle = async (id: string) => {
     const addon = addOns.find((a) => a.id === id);
     if (!addon) return;
     const newActive = !addon.isActive;
-    await saveField(id, "isActive", newActive);
-    setAddOns((prev) => prev.map((a) => a.id === id ? { ...a, isActive: newActive } : a));
+    if (await saveField(id, "isActive", newActive)) {
+      setAddOns((prev) => prev.map((a) => a.id === id ? { ...a, isActive: newActive } : a));
+    }
   };
 
   const removeImage = async (id: string) => {
-    await saveField(id, "image", null);
-    setAddOns((prev) => prev.map((a) => a.id === id ? { ...a, image: null } : a));
+    if (await saveField(id, "image", null)) {
+      setAddOns((prev) => prev.map((a) => a.id === id ? { ...a, image: null } : a));
+    }
   };
 
   const grouped = CATEGORIES.map((cat) => ({

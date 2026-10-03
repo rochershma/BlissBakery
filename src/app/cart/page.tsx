@@ -10,6 +10,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
 import { useToast } from "@/components/shared/toast";
+import { reconcileCartPrices } from "@/lib/reconcile-cart";
 import { IconBag, IconChevL, IconTrash, IconPlus } from "@/components/v5/icons";
 
 const NO_EXTRAS: Record<string, number> = {};
@@ -41,6 +42,16 @@ export default function CartPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Reconcile cached cart prices with live server prices so the bill never
+  // shows a stale figure that would differ from what the order is charged.
+  useEffect(() => {
+    if (!hydrated) return;
+    reconcileCartPrices().then(({ changed, removed }) => {
+      if (removed) toast("Some items are no longer available and were removed", "error");
+      else if (changed) toast("We refreshed your cart to the latest prices", "info");
+    });
+  }, [hydrated, toast]);
 
   const subtotal = items.reduce(
     (s, i) => s + (i.unitPrice + (i.addOns ?? []).reduce((a, x) => a + x.price, 0)) * i.quantity,

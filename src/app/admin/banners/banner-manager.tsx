@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ImagePicker } from "@/components/admin/image-picker";
 import { Plus, Trash2, Eye, EyeOff, GripVertical, Save, Loader2, X, ChevronUp, ChevronDown, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/shared/toast";
 
 interface BannerItem {
   id: string;
@@ -21,6 +22,7 @@ interface BannerItem {
 
 export function BannerManager({ initialBanners }: { initialBanners: BannerItem[] }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [banners, setBanners] = useState<BannerItem[]>(initialBanners);
   const [showAdd, setShowAdd] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -71,8 +73,12 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
         setNewImage(""); setNewLink("");
         setShowAdd(false);
         router.refresh();
+      } else {
+        toast("Couldn't add the banner", "error");
       }
-    } catch {}
+    } catch {
+      toast("Couldn't add the banner — check your connection", "error");
+    }
     setAdding(false);
   };
 
@@ -112,22 +118,32 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
         } : b));
         setEditingId(null);
         router.refresh();
+      } else {
+        toast("Couldn't save the banner", "error");
       }
-    } catch {}
+    } catch {
+      toast("Couldn't save — check your connection", "error");
+    }
     setSaving(null);
   };
 
   const handleToggleActive = async (banner: BannerItem) => {
     setSaving(banner.id);
     try {
-      await fetch(`/api/admin/banners/${banner.id}`, {
+      const res = await fetch(`/api/admin/banners/${banner.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isActive: !banner.isActive }),
       });
-      setBanners(banners.map(b => b.id === banner.id ? { ...b, isActive: !b.isActive } : b));
-      router.refresh();
-    } catch {}
+      if (res.ok) {
+        setBanners(banners.map(b => b.id === banner.id ? { ...b, isActive: !b.isActive } : b));
+        router.refresh();
+      } else {
+        toast("Couldn't update the banner", "error");
+      }
+    } catch {
+      toast("Couldn't update — check your connection", "error");
+    }
     setSaving(null);
   };
 
@@ -135,10 +151,16 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
     if (!confirm("Delete this banner?")) return;
     setDeleting(id);
     try {
-      await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
-      setBanners(banners.filter(b => b.id !== id));
-      router.refresh();
-    } catch {}
+      const res = await fetch(`/api/admin/banners/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setBanners(banners.filter(b => b.id !== id));
+        router.refresh();
+      } else {
+        toast("Couldn't delete the banner", "error");
+      }
+    } catch {
+      toast("Couldn't delete — check your connection", "error");
+    }
     setDeleting(null);
   };
 
@@ -146,22 +168,33 @@ export function BannerManager({ initialBanners }: { initialBanners: BannerItem[]
     const swapIdx = direction === "up" ? index - 1 : index + 1;
     if (swapIdx < 0 || swapIdx >= banners.length) return;
 
+    const previous = banners;
     const updated = [...banners];
     [updated[index], updated[swapIdx]] = [updated[swapIdx], updated[index]];
     updated.forEach((b, i) => (b.sortOrder = i));
     setBanners(updated);
 
-    await Promise.all([
-      fetch(`/api/admin/banners/${updated[index].id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sortOrder: index }),
-      }),
-      fetch(`/api/admin/banners/${updated[swapIdx].id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sortOrder: swapIdx }),
-      }),
-    ]);
-    router.refresh();
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch(`/api/admin/banners/${updated[index].id}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sortOrder: index }),
+        }),
+        fetch(`/api/admin/banners/${updated[swapIdx].id}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sortOrder: swapIdx }),
+        }),
+      ]);
+      if (!r1.ok || !r2.ok) {
+        setBanners(previous);
+        toast("Couldn't reorder — reverted", "error");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setBanners(previous);
+      toast("Couldn't reorder — check your connection", "error");
+    }
   };
 
   const inputCls = "w-full px-4 py-3 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30";
