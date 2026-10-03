@@ -20,13 +20,21 @@ export interface CartItem {
   recipientAge?: string;
 }
 
+/** Identity of a cart line: the same cake in another size, flavour or message is a separate line. */
+export const lineKey = (i: Pick<CartItem, "productId" | "variantName" | "flavour" | "cakeMessage" | "occasion" | "recipientName">) =>
+  `${i.productId}-${i.variantName || ""}-${i.flavour || ""}-${i.cakeMessage || ""}-${i.occasion || ""}-${i.recipientName || ""}`;
+
+const MAX_QTY = 50;
+
 interface CartState {
   items: CartItem[];
   storeSlug: string | null;
   orderType: "PICKUP" | "DELIVERY";
   specialInstructions: string;
 
-  addItem: (item: Omit<CartItem, "quantity">) => void;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
+  setLineQuantity: (key: string, quantity: number) => void;
+  removeLine: (key: string) => void;
   removeItem: (productId: string, variantName?: string) => void;
   updateQuantity: (productId: string, quantity: number, variantName?: string) => void;
   updateItemAddOns: (productId: string, addOns: { name: string; price: number }[], variantName?: string) => void;
@@ -48,27 +56,27 @@ export const useCartStore = create<CartState>()(
       orderType: "PICKUP",
       specialInstructions: "",
 
-      addItem: (item) => {
+      addItem: (item, quantity = 1) => {
         const { items } = get();
-        // Include customization in dedup key so different messages/flavours are separate items
-        const key = `${item.productId}-${item.variantName || ""}-${item.flavour || ""}-${item.cakeMessage || ""}-${item.occasion || ""}-${item.recipientName || ""}`;
-        const existing = items.find(
-          (i) => `${i.productId}-${i.variantName || ""}-${i.flavour || ""}-${i.cakeMessage || ""}-${i.occasion || ""}-${i.recipientName || ""}` === key
-        );
-
-        if (existing) {
-          if (existing.quantity >= 50) return;
+        const key = lineKey(item);
+        const add = Math.max(1, Math.floor(quantity));
+        if (items.some((i) => lineKey(i) === key)) {
           set({
             items: items.map((i) =>
-              `${i.productId}-${i.variantName || ""}-${i.flavour || ""}-${i.cakeMessage || ""}-${i.occasion || ""}-${i.recipientName || ""}` === key
-                ? { ...i, quantity: Math.min(i.quantity + 1, 50) }
-                : i
+              lineKey(i) === key ? { ...i, quantity: Math.min(i.quantity + add, MAX_QTY) } : i
             ),
           });
         } else {
-          set({ items: [...items, { ...item, quantity: 1 }] });
+          set({ items: [...items, { ...item, quantity: Math.min(add, MAX_QTY) }] });
         }
       },
+
+      setLineQuantity: (key, quantity) => {
+        if (quantity <= 0) { get().removeLine(key); return; }
+        set({ items: get().items.map((i) => (lineKey(i) === key ? { ...i, quantity: Math.min(quantity, MAX_QTY) } : i)) });
+      },
+
+      removeLine: (key) => set({ items: get().items.filter((i) => lineKey(i) !== key) }),
 
       removeItem: (productId, variantName) => {
         // Remove only the first matching item (not all with same productId+variant)

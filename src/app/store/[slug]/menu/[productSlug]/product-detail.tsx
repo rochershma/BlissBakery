@@ -37,16 +37,19 @@ export function ProductDetail({
   product,
   storeSlug,
   deliveryCharge,
-  freeOver,
+  slots,
+  leadHours,
+  storeName,
 }: {
   product: PdpProduct;
   storeSlug: string;
   deliveryCharge: number;
-  freeOver: number;
+  slots: string[];
+  leadHours: number;
+  storeName: string;
 }) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
-  const updateQuantity = useCartStore((s) => s.updateQuantity);
   const setStoreSlug = useCartStore((s) => s.setStoreSlug);
   const cartItems = useCartStore((s) => s.items);
   const { toast } = useToast();
@@ -102,8 +105,7 @@ export function ProductDetail({
       flavour: flavour || undefined,
       cakeMessage: message.trim() || undefined,
       addOns: [],
-    });
-    if (qty > 1) updateQuantity(product.id, qty, variant?.name);
+    }, qty);
     setAdded(true);
     toast(`${product.name} · ${[variant?.name, flavour].filter(Boolean).join(" · ")} added`, "success");
   };
@@ -128,7 +130,11 @@ export function ProductDetail({
     {
       k: "deliv",
       t: "Delivery & slots",
-      c: `Same-day delivery for orders placed before 6:00 PM. ${formatPrice(deliveryCharge)} delivery, free over ${formatPrice(freeOver)}. Two-hour slots from 10 AM to 10 PM.`,
+      c: [
+        `Delivery from ${formatPrice(deliveryCharge)} depending on distance, or pick up free from ${storeName}.`,
+        leadHours > 0 ? `Please order at least ${leadHours} hour${leadHours === 1 ? "" : "s"} ahead.` : "",
+        slots.length ? `Delivery slots: ${slots.join(", ")}.` : "",
+      ].filter(Boolean).join(" "),
     },
     ...(isCustom
       ? [{ k: "made", t: "Made to order", c: "Each cake is decorated by hand, so the finish and shade may vary slightly from the photograph." }]
@@ -163,6 +169,10 @@ export function ProductDetail({
         </div>
 
         <h1 className="d2">{product.name}</h1>
+        <p className="pdp5__lead">
+          <b className="t-num">{formatPrice(unitPrice)}</b>
+          <span className="t-small">{[variant?.name, flavour].filter(Boolean).join(" · ")}</span>
+        </p>
         {product.shortDesc ? <p className="t-body pdp5__desc">{product.shortDesc}</p> : null}
 
         {product.variants.length > 0 && (

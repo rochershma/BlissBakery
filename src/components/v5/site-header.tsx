@@ -134,10 +134,6 @@ export function SiteHeaderV5({
 
 export function MobileNavV5({ storeSlug = "kuchaman-city" }: { storeSlug?: string }) {
   const pathname = usePathname() || "";
-  const items = useCartStore((s) => s.items);
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => setHydrated(true), []);
-  const count = hydrated ? items.reduce((s, i) => s + i.quantity, 0) : 0;
 
   if (/^\/(admin|checkout|cart)/.test(pathname)) return null;
 
@@ -146,16 +142,15 @@ export function MobileNavV5({ storeSlug = "kuchaman-city" }: { storeSlug?: strin
     { href: `/store/${storeSlug}/menu`, label: "Menu", Icon: IconGrid, on: pathname.includes("/menu") },
     { href: "/search", label: "Search", Icon: IconSearch, on: pathname.startsWith("/search") },
     { href: "/orders", label: "Orders", Icon: IconBag, on: pathname.startsWith("/order") },
-    { href: "/profile", label: "Account", Icon: IconUser, on: pathname.startsWith("/profile") },
+    { href: "/profile", label: "Account", Icon: IconUser, on: /^\/(profile|addresses)/.test(pathname) },
   ];
 
   return (
     <nav className="mnav" aria-label="Main">
       {tabs.map(({ href, label, Icon, on }) => (
-        <Link key={href} href={href} className={on ? "is-on" : ""} style={{ position: "relative" }}>
+        <Link key={href} href={href} className={on ? "is-on" : ""} style={{ position: "relative" }} aria-current={on ? "page" : undefined}>
           <Icon />
           <span>{label}</span>
-          {href === "/orders" && count > 0 ? <span className="v5dot v5dot--nav">{count}</span> : null}
         </Link>
       ))}
     </nav>

@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { parseJsonSafe, formatStoreAddress } from "@/lib/utils";
-import { allImages } from "@/lib/img";
+import { allImages, imgFit } from "@/lib/img";
+import { parseSlots } from "@/lib/slots";
 import type { FlavourPrice } from "@/lib/pricing";
 import { SiteHeaderV5 } from "@/components/v5/site-header";
 import { SiteFooter } from "@/components/v5/site-footer";
@@ -16,8 +17,17 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ productSlug: string }> }) {
   const { productSlug } = await params;
-  const p = await db.product.findUnique({ where: { slug: productSlug }, select: { name: true, shortDesc: true } });
-  return { title: p?.name ?? "Cake", description: p?.shortDesc ?? undefined };
+  const p = await db.product.findUnique({ where: { slug: productSlug }, select: { name: true, shortDesc: true, images: true } });
+  if (!p) return { title: "Cake" };
+  const image = allImages(p.images)[0];
+  const description = p.shortDesc ?? `${p.name} — 100% eggless, baked to order at Bliss Bakery.`;
+  // WhatsApp and Instagram shares render this card.
+  return {
+    title: p.name,
+    description,
+    openGraph: { title: p.name, description, type: "website", images: image ? [{ url: imgFit(image, 1200) }] : undefined },
+    twitter: { card: "summary_large_image", title: p.name, description },
+  };
 }
 
 export default async function ProductPage({
@@ -35,6 +45,8 @@ export default async function ProductPage({
     }),
   ]);
   if (!store || !product || !product.isAvailable) notFound();
+  // Each outlet has its own copy of the menu; another outlet's cake can't be ordered here.
+  if (product.category?.storeId !== store.id) notFound();
 
   const menuHref = `/store/${store.slug}/menu`;
   const occasions = parseJsonSafe<string[]>(product.occasions, []);
@@ -98,7 +110,9 @@ export default async function ProductPage({
           product={pdp}
           storeSlug={store.slug}
           deliveryCharge={store.deliveryCharge ?? 30}
-          freeOver={999}
+          slots={parseSlots(store.deliverySlots).filter((s) => s.active).map((s) => s.label)}
+          leadHours={store.orderLeadHours ?? 4}
+          storeName={store.name}
         />
       </div>
 

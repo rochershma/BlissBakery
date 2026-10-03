@@ -14,7 +14,6 @@ export function OrderActions({ orderId }: { orderId: string }) {
   const router = useRouter();
   const { toast } = useToast();
   const addItem = useCartStore((s) => s.addItem);
-  const updateQuantity = useCartStore((s) => s.updateQuantity);
   const setStoreSlug = useCartStore((s) => s.setStoreSlug);
   const [busy, setBusy] = useState(false);
 
@@ -33,8 +32,7 @@ export function OrderActions({ orderId }: { orderId: string }) {
       if (data.storeSlug) setStoreSlug(data.storeSlug);
       for (const item of data.items) {
         const { quantity, ...line } = item;
-        addItem(line);
-        if (quantity > 1) updateQuantity(line.productId, quantity, line.variantName);
+        addItem(line, quantity);
       }
 
       if (data.unavailable?.length) {

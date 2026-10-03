@@ -194,8 +194,9 @@ export default async function HomePage() {
                       image: firstImage(p.images),
                       price,
                       isFrom: p.pricingStrategy === "CUSTOM",
-                      isBestseller: p.isBestseller,
-                      isNew: p.isNew,
+                      // the section is already titled Bestsellers
+                      isBestseller: false,
+                      isNew: false,
                     }}
                   />
                 );

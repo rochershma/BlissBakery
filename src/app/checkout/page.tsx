@@ -43,6 +43,7 @@ export default function CheckoutPage() {
   const [addrId, setAddrId] = useState("");
   const [checks, setChecks] = useState<Record<string, Verdict>>({});
   const [newAddr, setNewAddr] = useState(false);
+  const [pickAddr, setPickAddr] = useState(false);
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
   const [date, setDate] = useState(() => localIso());
   const [slot, setSlot] = useState("");
@@ -333,7 +334,10 @@ export default function CheckoutPage() {
             <div className="opt-block">
               <h4>Delivery address</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {addresses.map((a) => {
+                {(pickAddr || newAddr || !addrId || addresses.length <= 1
+                  ? addresses
+                  : addresses.filter((a) => a.id === addrId)
+                ).map((a) => {
                   const check = checks[a.id];
                   const blocked = check ? !check.deliverable : false;
                   return (
@@ -342,7 +346,7 @@ export default function CheckoutPage() {
                       key={a.id}
                       className={`addr5${addrId === a.id && !newAddr ? " is-on" : ""}${blocked ? " is-off" : ""}`}
                       disabled={blocked}
-                      onClick={() => { setAddrId(a.id); setNewAddr(false); }}
+                      onClick={() => { setAddrId(a.id); setNewAddr(false); setPickAddr(false); }}
                     >
                       <input type="radio" readOnly checked={addrId === a.id && !newAddr} tabIndex={-1} />
                       <span style={{ flex: 1, minWidth: 0 }}>
@@ -366,7 +370,11 @@ export default function CheckoutPage() {
                   );
                 })}
 
-                {!newAddr ? (
+                {!newAddr && !pickAddr && addrId && addresses.length > 1 ? (
+                  <button type="button" className="btn btn--out btn--sm" style={{ alignSelf: "flex-start" }} onClick={() => setPickAddr(true)}>
+                    Change address · {addresses.length} saved
+                  </button>
+                ) : !newAddr ? (
                   <button type="button" className="addr5 addr5__new" onClick={() => setNewAddr(true)}>
                     <IconPlus /> Add a new address
                   </button>

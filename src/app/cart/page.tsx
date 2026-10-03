@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCartStore } from "@/store/cart";
+import { useCartStore, lineKey } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
@@ -13,8 +13,8 @@ import { IconBag, IconChevL, IconTrash } from "@/components/v5/icons";
 export default function CartPage() {
   const router = useRouter();
   const items = useCartStore((s) => s.items);
-  const updateQuantity = useCartStore((s) => s.updateQuantity);
-  const removeItem = useCartStore((s) => s.removeItem);
+  const setLineQuantity = useCartStore((s) => s.setLineQuantity);
+  const removeLine = useCartStore((s) => s.removeLine);
   const storeSlug = useCartStore((s) => s.storeSlug) ?? "kuchaman-city";
   const [hydrated, setHydrated] = useState(false);
   const [charges, setCharges] = useState({ packaging: 10, delivery: 30 });
@@ -83,7 +83,7 @@ export default function CartPage() {
       <div className="wrap cart5">
         <div>
           {items.map((it) => {
-            const key = `${it.productId}-${it.variantName ?? ""}-${it.flavour ?? ""}-${it.cakeMessage ?? ""}`;
+            const key = lineKey(it);
             const addOnTotal = (it.addOns ?? []).reduce((a, x) => a + x.price, 0);
             return (
               <div className="crow" key={key}>
@@ -110,13 +110,13 @@ export default function CartPage() {
                   <div className="crow__ctl">
                     <div className="qty">
                       <button type="button" aria-label="Decrease" disabled={it.quantity <= 1}
-                        onClick={() => updateQuantity(it.productId, it.quantity - 1, it.variantName)}>−</button>
+                        onClick={() => setLineQuantity(key, it.quantity - 1)}>−</button>
                       <span>{it.quantity}</span>
-                      <button type="button" aria-label="Increase"
-                        onClick={() => updateQuantity(it.productId, it.quantity + 1, it.variantName)}>+</button>
+                      <button type="button" aria-label="Increase" disabled={it.quantity >= 50}
+                        onClick={() => setLineQuantity(key, it.quantity + 1)}>+</button>
                     </div>
                     <button type="button" className="btn btn--ghost btn--sm crow__rm"
-                      onClick={() => removeItem(it.productId, it.variantName)}>
+                      onClick={() => removeLine(key)}>
                       <IconTrash /> Remove
                     </button>
                   </div>
@@ -135,8 +135,9 @@ export default function CartPage() {
           <h3 className="t-h3">Bill details</h3>
           <div className="sline"><span>Item total</span><b>{formatPrice(subtotal)}</b></div>
           <div className="sline"><span>Safe cake packaging</span><b>{formatPrice(charges.packaging)}</b></div>
-          <div className="sline"><span>Delivery</span><b>{formatPrice(charges.delivery)}</b></div>
-          <div className="sline sline--tot"><span>To pay</span><b>{formatPrice(total)}</b></div>
+          <div className="sline"><span>Delivery <span className="t-small">(free for pickup)</span></span><b>{formatPrice(charges.delivery)}</b></div>
+          <div className="sline sline--tot"><span>Estimated total</span><b>{formatPrice(total)}</b></div>
+          <p className="t-small" style={{ marginTop: 6 }}>Exact delivery charge depends on your address — confirmed at the next step.</p>
           <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 16 }}
             onClick={() => router.push("/checkout")}>
             Continue to delivery

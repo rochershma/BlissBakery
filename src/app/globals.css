@@ -322,6 +322,7 @@ h4 { font-weight: 700; }
 .card__price b { font-size: 15px; font-weight: 750; letter-spacing: -.025em; font-variant-numeric: tabular-nums; font-family: var(--font-jakarta); }
 .card__price span { font-size: 10px; color: var(--ink-4); font-weight: 600; display: block; line-height: 1; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .07em; }
 .card__add { height: 32px; padding: 0 14px; border-radius: var(--r-pill); font-size: 12.5px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
   background: var(--rose-50); color: var(--rose); border: 1.5px solid var(--rose-200); flex: none; cursor: pointer;
   transition: all var(--fast) var(--ease); }
 .card:hover .card__add { background: var(--rose); border-color: var(--rose); color: #fff; }
@@ -536,10 +537,10 @@ h4 { font-weight: 700; }
   .herobar { gap: 12px; padding: 14px 0 4px; }
   .herobar__cta { width: 100%; gap: 10px; }
   .herobar__cta .btn { flex: 1; height: 46px; font-size: 13.5px; padding: 0 10px; }
-  .herobar__usp { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 10px; }
-  .herobar__usp::-webkit-scrollbar { display: none; }
-  .herobar__usp div { font-size: 11.5px; white-space: nowrap; flex: none; gap: 6px; }
-  .herobar__usp svg { width: 14px; height: 14px; }
+  .herobar__usp { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .herobar__usp div { font-size: 11px; line-height: 1.25; gap: 5px; flex-direction: column; text-align: center;
+    padding: 9px 4px; border-radius: var(--r-md); background: var(--cream); }
+  .herobar__usp svg { width: 16px; height: 16px; }
 }
 .herobar__usp div { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 550; color: var(--ink-2); }
 .herobar__usp svg { width: 18px; height: 18px; stroke: var(--rose); fill: none; stroke-width: 1.7; flex: none; }
@@ -658,6 +659,17 @@ h4 { font-weight: 700; }
 @media (min-width: 768px) {
   .v5loc { height: 42px; gap: 8px; padding: 0 12px; }
   .v5loc__t { display: block; }
+}
+/* Phones: say which outlet you're ordering from; the account lives in the bottom nav. */
+@media (max-width: 767px) {
+  .v5loc__t { display: block; }
+  .v5loc small { display: none; }
+  .v5loc b { max-width: 88px; font-size: 12.5px; font-weight: 650; }
+  .v5menu { display: none; }
+}
+@media (max-width: 359px) {
+  .v5loc b { max-width: 58px; }
+  .v5brand__n { font-size: 16px; }
 }
 
 .v5store__bg { position: fixed; inset: 0; z-index: 80; background: rgba(23, 18, 16, .45); }
@@ -852,6 +864,8 @@ h4 { font-weight: 700; }
 
 .pdp5__badges { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; flex-wrap: wrap; }
 .pdp5__desc { margin-top: 10px; max-width: 50ch; }
+.pdp5__lead { display: flex; align-items: baseline; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.pdp5__lead b { font-family: var(--font-jakarta); font-weight: 800; font-size: 24px; letter-spacing: -.03em; color: var(--rose); }
 
 .opt-block { border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px; background: var(--paper); margin-top: 14px; }
 @media (min-width: 768px) { .opt-block { padding: 20px; } }
