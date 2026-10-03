@@ -58,6 +58,11 @@ export function parseSlots(raw: unknown): DeliverySlot[] {
   return slots.length ? slots : DEFAULT_SLOTS;
 }
 
+/** Local calendar date as "YYYY-MM-DD" (toISOString would give the UTC date). */
+export function localIso(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 /**
  * Slots a customer may still pick for `dateIso` (local "YYYY-MM-DD"),
  * honouring the store's preparation lead time on same-day orders.
@@ -69,7 +74,8 @@ export function slotsForDate(
   now: Date = new Date(),
 ): DeliverySlot[] {
   const live = slots.filter((s) => s.active);
-  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const todayIso = localIso(now);
+  if (dateIso < todayIso) return [];
   if (dateIso !== todayIso) return live;
 
   const earliest = now.getHours() * 60 + now.getMinutes() + Math.max(0, leadHours) * 60;

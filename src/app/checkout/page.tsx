@@ -12,7 +12,7 @@ import { img } from "@/lib/img";
 import { SiteFooter } from "@/components/v5/site-footer";
 import { AddOnsPicker, type AddOn } from "@/components/v5/addons-picker";
 import { AddressForm, type SavedAddress } from "@/components/v5/address-form";
-import { DEFAULT_SLOTS, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
+import { DEFAULT_SLOTS, localIso, parseSlots, slotsForDate, type DeliverySlot } from "@/lib/slots";
 import { IconChevL, IconPlus, IconCake, IconUser, IconPin } from "@/components/v5/icons";
 
 type Verdict = { deliverable: boolean; fee: number; distanceKm: number | null; reason: string | null };
@@ -22,7 +22,7 @@ const DAYS = Array.from({ length: 7 }, (_, n) => {
   const d = new Date();
   d.setDate(d.getDate() + n);
   return {
-    iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+    iso: localIso(d),
     dow: n === 0 ? "Today" : n === 1 ? "Tmrw" : d.toLocaleDateString("en-IN", { weekday: "short" }),
     day: String(d.getDate()).padStart(2, "0"),
     mon: d.toLocaleDateString("en-IN", { month: "short" }),
@@ -44,7 +44,7 @@ export default function CheckoutPage() {
   const [checks, setChecks] = useState<Record<string, Verdict>>({});
   const [newAddr, setNewAddr] = useState(false);
   const [orderType, setOrderType] = useState<"DELIVERY" | "PICKUP">("DELIVERY");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => localIso());
   const [slot, setSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [addOns, setAddOns] = useState<AddOn[]>([]);

@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
 import { customPrice, parseWeightKg, DEFAULT_BASE_500G, type FlavourPrice } from "@/lib/pricing";
 import { checkDelivery } from "@/lib/deliverability";
+import { localIso, parseSlots, slotsForDate } from "@/lib/slots";
+import { parseJsonSafe } from "@/lib/utils";
 import { z } from "zod";
 
 const sanitize = (s: string | undefined | null) => s?.replace(/<[^>]*>/g, "").trim() || null;
@@ -27,9 +29,13 @@ const schema = z.object({
   specialInstructions: z.string().max(500).optional(),
   promoCode: z.string().max(20).optional(),
   addressId: z.string().optional(),
-  deliveryDate: z.string().optional(),
-  deliverySlot: z.string().max(30).optional(),
+  deliveryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a delivery date"),
+  deliverySlot: z.string().min(1, "Pick a delivery slot").max(30),
 });
+
+const MAX_DAYS_AHEAD = 30;
+
+const bad = (message: string) => NextResponse.json({ success: false, message }, { status: 400 });
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +45,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const data = schema.parse(body);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) return bad(parsed.error.issues[0]?.message ?? "Invalid order");
+    const data = parsed.data;
 
     const store = await db.store.findUnique({ where: { slug: data.storeSlug } });
     if (!store) {
@@ -48,6 +56,19 @@ export async function POST(req: NextRequest) {
     if (!store.isOpen) {
       return NextResponse.json({ success: false, message: `${store.name} isn't taking orders right now` }, { status: 400 });
     }
+
+    // The kitchen plans from date + slot, so both must be real and reachable.
+    const today = localIso();
+    const latest = new Date();
+    latest.setDate(latest.getDate() + MAX_DAYS_AHEAD);
+    if (data.deliveryDate < today) return bad("That date has passed — pick another day");
+    if (data.deliveryDate > localIso(latest)) return bad(`We take orders up to ${MAX_DAYS_AHEAD} days ahead`);
+    // Half an hour of grace for a customer who sat on the checkout page.
+    const open = slotsForDate(parseSlots(store.deliverySlots), data.deliveryDate, Math.max(0, (store.orderLeadHours ?? 0) - 0.5));
+    if (!open.some((s) => s.label === data.deliverySlot)) {
+      return bad("That slot is no longer available — please pick another");
+    }
+
 
     // Calculate totals — SERVER-SIDE price lookup (never trust client prices)
     let itemTotal = 0;
@@ -69,36 +90,50 @@ export async function POST(req: NextRequest) {
           { status: 400 },
         );
       }
-      // Determine correct price from DB
+      // Determine correct price from DB. An unknown size or flavour is refused
+      // rather than priced at the base rate — the kitchen would bake what was named.
+      const variant = item.variantName
+        ? product.variants.find((v) => v.name === item.variantName && v.isAvailable !== false)
+        : null;
+      if (item.variantName && !variant) return bad(`"${product.name}" isn't available in ${item.variantName}`);
+      if (!item.variantName && product.variants.some((v) => v.isAvailable !== false)) {
+        return bad(`Choose a size for "${product.name}"`);
+      }
+
+      const flavourPrices = parseJsonSafe<FlavourPrice[]>(product.flavourPrices, []);
+      const flavourNames = new Set([
+        ...parseJsonSafe<string[]>(product.flavours, []),
+        ...flavourPrices.map((f) => f.name),
+      ]);
+      if (item.flavour && flavourNames.size && !flavourNames.has(item.flavour)) {
+        return bad(`"${item.flavour}" isn't offered for "${product.name}"`);
+      }
+
       let serverPrice = product.basePrice;
       if (product.pricingStrategy === "CUSTOM" && item.flavour) {
-        const flavourPrices: FlavourPrice[] = (() => {
-          try { return typeof product.flavourPrices === "string" ? JSON.parse(product.flavourPrices) : (product.flavourPrices || []); } catch { return []; }
-        })();
         const fp = flavourPrices.find(f => f.name === item.flavour);
         const flavour500g = fp?.price500g ?? product.base500gPrice ?? DEFAULT_BASE_500G;
         const weightKg = item.variantName ? parseWeightKg(item.variantName) : 0.5;
         serverPrice = customPrice(flavour500g, weightKg, product.designCharge ?? 0);
-      } else if (item.variantName) {
-        const variant = product.variants.find(v => v.name === item.variantName);
-        if (variant) serverPrice = variant.price;
+      } else if (variant) {
+        serverPrice = variant.price;
       }
-      // Verify add-on prices from DB (never trust client prices)
-      const verifiedAddOns = (item.addOns || []).map(clientAddon => {
-        const dbAddon = product.addOns.find(a => a.name === clientAddon.name);
-        return { name: clientAddon.name, price: dbAddon ? dbAddon.price : 0 };
-      });
-      // Also check store-level add-ons
-      const allVerifiedAddOns = verifiedAddOns.map(a => {
-        if (a.price === 0) {
-          const storeAddon = storeAddOns.find(sa => sa.name === a.name);
-          if (storeAddon) return { name: a.name, price: storeAddon.price };
-        }
-        return a;
-      });
+      // Add-ons are priced from the product or the store shelf; anything else is refused.
+      const allVerifiedAddOns: { name: string; price: number }[] = [];
+      for (const clientAddon of item.addOns || []) {
+        const own = product.addOns.find(a => a.name === clientAddon.name && a.isAvailable);
+        const shelf = storeAddOns.find(sa => sa.name === clientAddon.name);
+        if (!own && !shelf) return bad(`"${clientAddon.name}" isn't available`);
+        allVerifiedAddOns.push({ name: clientAddon.name, price: (own ?? shelf)!.price });
+      }
+      const perName = new Map<string, number>();
+      for (const a of allVerifiedAddOns) perName.set(a.name, (perName.get(a.name) ?? 0) + 1);
+      if ([...perName.values()].some((n) => n > Math.max(1, store.addOnMaxQty ?? 20))) {
+        return bad(`Up to ${store.addOnMaxQty ?? 20} of each add-on per order`);
+      }
       const addOnTotal = allVerifiedAddOns.reduce((s, a) => s + a.price, 0);
       itemTotal += (serverPrice + addOnTotal) * item.quantity;
-      verifiedItems.push({ ...item, unitPrice: serverPrice, addOns: allVerifiedAddOns.length > 0 ? allVerifiedAddOns : undefined });
+      verifiedItems.push({ ...item, name: product.name, unitPrice: serverPrice, addOns: allVerifiedAddOns.length > 0 ? allVerifiedAddOns : undefined });
     }
 
     const packagingCharge = store.packagingCharge ?? 15;
@@ -141,28 +176,57 @@ export async function POST(req: NextRequest) {
         .join(", ");
     }
 
-    // Apply promo discount
+    // Apply promo discount — the same limits /api/promo/validate shows the customer.
     let discount = 0;
+    let appliedPromo: { id: string; code: string } | null = null;
     if (data.promoCode) {
       // A store-specific code must not be redeemable at another store.
       const promo = await db.promoCode.findFirst({
-        where: { code: data.promoCode, OR: [{ storeId: null }, { storeId: store.id }] },
+        where: { code: data.promoCode.toUpperCase(), OR: [{ storeId: null }, { storeId: store.id }] },
       });
-      if (promo && promo.isActive && new Date(promo.validTo) > new Date() && (!promo.validFrom || new Date(promo.validFrom) <= new Date())) {
-        if (!promo.minOrderValue || itemTotal >= promo.minOrderValue) {
-          if (promo.discountType === "PERCENTAGE") {
-            discount = Math.min(itemTotal * (promo.discountValue / 100), promo.maxDiscount || Infinity);
-          } else {
-            discount = promo.discountValue;
-          }
-          await db.promoCode.update({ where: { id: promo.id }, data: { usedCount: { increment: 1 } } });
-        }
+      const now = new Date();
+      if (!promo || !promo.isActive || promo.validTo < now || (promo.validFrom && promo.validFrom > now)) {
+        return bad("That promo code isn't valid any more \u2014 remove it to continue");
       }
+      if (promo.minOrderValue && itemTotal < promo.minOrderValue) {
+        return bad(`${promo.code} needs a minimum order of \u20b9${promo.minOrderValue}`);
+      }
+      const counted = { promoCode: promo.code, status: { not: "CANCELLED" } };
+      if (promo.usageLimit && (await db.order.count({ where: counted })) >= promo.usageLimit) {
+        return bad(`${promo.code} has been fully redeemed`);
+      }
+      if (promo.perUserLimit && (await db.order.count({ where: { ...counted, userId: session.userId } })) >= promo.perUserLimit) {
+        return bad(`You've already used ${promo.code}`);
+      }
+      discount = promo.discountType === "PERCENTAGE"
+        ? Math.min(itemTotal * (promo.discountValue / 100), promo.maxDiscount || Infinity)
+        : promo.discountValue;
+      discount = Math.round(Math.min(discount, itemTotal) * 100) / 100;
+      appliedPromo = { id: promo.id, code: promo.code };
     }
 
     const taxableAmount = itemTotal + packagingCharge + deliveryCharge - discount;
     const tax = taxableAmount * (gstRate / 100);
     const grandTotal = taxableAmount + tax;
+
+    // A double tap or a retried request must not bake the same cake twice.
+    const recent = await db.order.findFirst({
+      where: {
+        userId: session.userId, storeId: store.id, orderType: data.orderType, deliveryAddress,
+        deliverySlot: data.deliverySlot, grandTotal, createdAt: { gte: new Date(Date.now() - 20_000) },
+      },
+      include: { items: { select: { productId: true, quantity: true, variantName: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    const sig = (xs: { productId: string | null; quantity: number; variantName?: string | null }[]) =>
+      xs.map((x) => `${x.productId}:${x.variantName ?? ""}:${x.quantity}`).sort().join("|");
+    if (recent && sig(recent.items) === sig(data.items)) {
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        order: { id: recent.id, orderNumber: recent.orderNumber, grandTotal: recent.grandTotal },
+      });
+    }
 
     // Create order
     const order = await db.order.create({
@@ -172,8 +236,8 @@ export async function POST(req: NextRequest) {
         storeId: store.id,
         orderType: data.orderType,
         deliveryAddress,
-        deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
-        deliverySlot: data.deliverySlot || null,
+        deliveryDate: new Date(data.deliveryDate),
+        deliverySlot: data.deliverySlot,
         specialInstructions: sanitize(data.specialInstructions),
         itemTotal,
         packagingCharge,
@@ -181,7 +245,7 @@ export async function POST(req: NextRequest) {
         discount,
         tax,
         grandTotal,
-        promoCode: data.promoCode,
+        promoCode: appliedPromo?.code ?? null,
         status: "PENDING",
         paymentStatus: "PENDING",
         items: {
@@ -205,6 +269,10 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    if (appliedPromo) {
+      await db.promoCode.update({ where: { id: appliedPromo.id }, data: { usedCount: { increment: 1 } } });
+    }
 
     return NextResponse.json({
       success: true,

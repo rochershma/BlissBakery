@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Check usage limits
     if (promo.usageLimit) {
-      const totalUsed = await db.order.count({ where: { promoCode: promo.code } });
+      const totalUsed = await db.order.count({ where: { promoCode: promo.code, status: { not: "CANCELLED" } } });
       if (totalUsed >= promo.usageLimit) {
         return NextResponse.json({ success: false, message: "Promo code usage limit reached" }, { status: 400 });
       }
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     if (promo.perUserLimit) {
       const userUsed = await db.order.count({
-        where: { promoCode: promo.code, userId: session.userId },
+        where: { promoCode: promo.code, userId: session.userId, status: { not: "CANCELLED" } },
       });
       if (userUsed >= promo.perUserLimit) {
         return NextResponse.json({ success: false, message: "You've already used this promo code" }, { status: 400 });

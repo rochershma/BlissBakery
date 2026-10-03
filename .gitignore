@@ -66,3 +66,5 @@ public/uploads/*
 /bblogo2.png
 next-env.d.ts
 tests/.admin-state.json
+
+.audit/

@@ -41,8 +41,19 @@ const check = (ok, n, d = "") => {
     let body = null; try { body = await r.json(); } catch {}
     return { status: r.status, body };
   }, [path, opts]);
-  const post = (path, payload) =>
-    api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  // Orders must name a real date and one of the outlet's slots.
+  const tomorrow = (() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })();
+  let slotLabel = null;
+  const post = async (path, payload) => {
+    if (path === "/api/orders/create") {
+      if (!slotLabel) {
+        const cfg = await api("/api/store/config");
+        slotLabel = (cfg.body?.deliverySlots ?? []).find((s) => s.active !== false)?.label ?? "10am - 1pm";
+      }
+      payload = { deliveryDate: tomorrow, deliverySlot: slotLabel, ...payload };
+    }
+    return api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  };
 
   const made = { storeId: null, addressIds: [], orderIds: [] };
 

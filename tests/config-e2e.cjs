@@ -68,7 +68,7 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
 
     // seed a cart so checkout is reachable
     const product = await db.product.findFirst({
-      where: { isAvailable: true, variants: { some: {} } },
+      where: { isAvailable: true, variants: { some: {} }, category: { storeId: store.id } },
       include: { variants: true },
     });
     const seedCart = async () => {
@@ -143,6 +143,8 @@ const money = (t) => Number(String(t || "").replace(/[^\d.]/g, ""));
         storeSlug: "kuchaman-city",
         orderType: "DELIVERY",
         addressId: testAddress.id,
+        deliveryDate: (() => { const d = new Date(); d.setDate(d.getDate() + 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })(),
+        deliverySlot: `${TAG} Morning`,
         items: [{
           productId: product.id,
           name: product.name,

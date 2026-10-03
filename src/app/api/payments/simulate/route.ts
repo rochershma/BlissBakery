@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 
 // Simulate payment — in production, this would verify Razorpay signature
 export async function POST(req: NextRequest) {
+  // Otherwise any customer could mark their own order paid and confirmed.
+  if (process.env.ALLOW_PAYMENT_SIMULATION !== "1") {
+    return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
+  }
   try {
     const session = await getSession();
     if (!session) {
