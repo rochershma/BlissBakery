@@ -167,10 +167,6 @@ export default function CartPage() {
             onClick={() => router.push("/checkout")}>
             Proceed to checkout
           </button>
-          <div className="summary5__trust">
-            <span className="t-small"><span className="veg" /> 100% eggless</span>
-            <span className="t-small">FSSAI licensed</span>
-          </div>
         </aside>
       </div>
 

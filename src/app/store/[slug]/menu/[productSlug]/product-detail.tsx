@@ -8,7 +8,8 @@ import { useToast } from "@/components/shared/toast";
 import { formatPrice } from "@/lib/utils";
 import { img } from "@/lib/img";
 import { customPrice, parseWeightKg, servesFor, type FlavourPrice } from "@/lib/pricing";
-import { IconLeaf, IconTruck, IconClock, IconPlus, IconCheck, IconChevD } from "@/components/v5/icons";
+import { IconLeaf, IconTruck, IconClock, IconPlus, IconCheck } from "@/components/v5/icons";
+import { SelectMenu } from "@/components/v5/select-menu";
 
 export type PdpProduct = {
   id: string;
@@ -36,10 +37,8 @@ export type PdpProduct = {
 export function ProductDetail({
   product,
   storeSlug,
-  deliveryCharge,
   slots,
   leadHours,
-  storeName,
 }: {
   product: PdpProduct;
   storeSlug: string;
@@ -71,6 +70,11 @@ export function ProductDetail({
 
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? "");
   const [flavour, setFlavour] = useState(defaultFlavour);
+  // The default flavour leads the list so it reads as the recommended pick.
+  const orderedFlavours = useMemo(
+    () => (defaultFlavour ? [defaultFlavour, ...product.flavours.filter((f) => f !== defaultFlavour)] : product.flavours),
+    [product.flavours, defaultFlavour],
+  );
   const [message, setMessage] = useState("");
   const [qty, setQty] = useState(1);
   const [gallery, setGallery] = useState(0);
@@ -128,18 +132,6 @@ export function ProductDetail({
       t: "Storage & serving",
       c: "Refrigerate on arrival. Bring to room temperature 20 minutes before serving. Best enjoyed within 24 hours.",
     },
-    {
-      k: "deliv",
-      t: "Delivery & slots",
-      c: [
-        `Delivery from ${formatPrice(deliveryCharge)} depending on distance, or pick up free from ${storeName}.`,
-        leadHours > 0 ? `Please order at least ${leadHours} hour${leadHours === 1 ? "" : "s"} ahead.` : "",
-        slots.length ? `Delivery slots: ${slots.join(", ")}.` : "",
-      ].filter(Boolean).join(" "),
-    },
-    ...(isCustom
-      ? [{ k: "made", t: "Made to order", c: "Each cake is decorated by hand, so the finish and shade may vary slightly from the photograph." }]
-      : []),
   ];
 
   return (
@@ -178,28 +170,20 @@ export function ProductDetail({
 
         {product.variants.length > 0 && (
           <div className="opt-block">
-            <h4><label htmlFor="pdp-size">Size</label></h4>
-            <div className="selectwrap">
-              <select
-                id="pdp-size"
-                className="select sizesel"
-                value={variantId}
-                onChange={(e) => reselect(setVariantId)(e.target.value)}
-              >
-                {product.variants.map((v) => {
-                  const vkg = parseWeightKg(v.name);
-                  const vPrice = isCustom && flavour
-                    ? customPrice(flavourMap.get(flavour) ?? product.base500gPrice ?? 300, vkg, product.designCharge)
-                    : v.price;
-                  return (
-                    <option key={v.id} value={v.id}>
-                      {`${v.name}  ·  ${formatPrice(vPrice)}`}
-                    </option>
-                  );
-                })}
-              </select>
-              <IconChevD className="selectwrap__chev" />
-            </div>
+            <h4>Size</h4>
+            <SelectMenu
+              ariaLabel="Choose a size"
+              className="sizemenu"
+              value={variantId}
+              onChange={(v) => reselect(setVariantId)(v)}
+              options={product.variants.map((v) => {
+                const vkg = parseWeightKg(v.name);
+                const vPrice = isCustom && flavour
+                  ? customPrice(flavourMap.get(flavour) ?? product.base500gPrice ?? 300, vkg, product.designCharge)
+                  : v.price;
+                return { value: v.id, label: `${v.name}  ·  ${formatPrice(vPrice)}` };
+              })}
+            />
             <p className="sizesel__serves">{serves}</p>
           </div>
         )}
@@ -208,7 +192,7 @@ export function ProductDetail({
           <div className="opt-block">
             <h4>Flavour <span className="t-small">all eggless</span></h4>
             <div className="flavrow">
-              {product.flavours.map((f) => (
+              {orderedFlavours.map((f) => (
                 <button key={f} type="button" className="flavchip" aria-checked={f === flavour} role="radio" onClick={() => reselect(setFlavour)(f)}>
                   {f}
                 </button>

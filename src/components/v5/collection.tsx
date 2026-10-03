@@ -7,6 +7,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { img } from "@/lib/img";
 import { ProductCard, type CardProduct } from "./product-card";
 import { IconChevD, IconFilter, IconPlus, IconGrid } from "./icons";
+import { SelectMenu } from "./select-menu";
 
 export type FilterGroup = {
   key: string;
@@ -189,15 +190,20 @@ export function Collection({
             {activeCount > 0 ? (
               <button type="button" className="btn btn--ghost btn--sm plp__clear" onClick={clearAll}>Clear</button>
             ) : null}
-            <label className="plp__sort">
+            <div className="plp__sort">
               <span className="t-small">Sort</span>
-              <select className="select" value={sort} onChange={(e) => { setSort(e.target.value); setShown(PAGE); }}>
-                <option value="popular">Most popular</option>
-                <option value="low">Price — low to high</option>
-                <option value="high">Price — high to low</option>
-                <option value="new">Newest</option>
-              </select>
-            </label>
+              <SelectMenu
+                ariaLabel="Sort cakes"
+                value={sort}
+                onChange={(v) => { setSort(v); setShown(PAGE); }}
+                options={[
+                  { value: "popular", label: "Most popular" },
+                  { value: "low", label: "Price — low to high" },
+                  { value: "high", label: "Price — high to low" },
+                  { value: "new", label: "Newest first" },
+                ]}
+              />
+            </div>
           </div>
 
           {filtered.length === 0 ? (

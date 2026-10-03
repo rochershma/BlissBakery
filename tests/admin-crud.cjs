@@ -97,9 +97,11 @@ const check = (ok, n, d = "") => {
   check(/1,?499/.test(priceShown), "price edit reflects on storefront", priceShown);
 
   // and the selected size option must quote the same number as the headline
+  await page.click(".sizemenu .selmenu__btn");
+  await page.waitForTimeout(150);
   const tileAgrees = await page.evaluate(() => {
-    const s = document.querySelector("#pdp-size");
-    const sel = s?.options[s.selectedIndex]?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
+    const on = document.querySelector(".sizemenu .selmenu__opt.is-on");
+    const sel = on?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
     const main = document.querySelector(".pdp5__price b")?.textContent?.replace(/[^\d]/g, "");
     return sel && main && sel === main;
   });

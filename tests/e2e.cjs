@@ -99,7 +99,11 @@ page.on("console", (m) => {
 
   // sort
   await go("/cakes/birthday");
-  await page.selectOption(".plp__sort select", "low");
+  await page.click(".plp__sort .selmenu__btn");
+  await page.waitForTimeout(150);
+  for (const o of await page.$$(".plp__sort .selmenu__opt")) {
+    if (/low to high/i.test((await o.textContent()) || "")) { await o.click(); break; }
+  }
   await page.waitForTimeout(600);
   const sorted = await page.evaluate(() =>
     [...document.querySelectorAll(".card__price b")].slice(0, 5).map((e) => Number(e.textContent.replace(/[^\d]/g, ""))));
@@ -111,12 +115,17 @@ page.on("console", (m) => {
   const href = await page.evaluate(() => document.querySelector(".card")?.getAttribute("href"));
   r = await go(href);
   check(r.status() === 200, "PDP responds 200", href);
+  const p0 = await page.evaluate(() => document.querySelector(".pdp5__price b")?.textContent);
+  // open the size dropdown so its options are in the DOM
+  await page.click(".sizemenu .selmenu__btn");
+  await page.waitForTimeout(150);
   const pdp = await page.evaluate(() => ({
     price: document.querySelector(".pdp5__price b")?.textContent,
-    sizes: document.querySelectorAll("#pdp-size option").length,
-    sizesShowPrice: [...document.querySelectorAll("#pdp-size option")].every((e) => /₹/.test(e.textContent)),
+    sizes: document.querySelectorAll(".sizemenu .selmenu__opt").length,
+    sizesShowPrice: [...document.querySelectorAll(".sizemenu .selmenu__opt")].every((e) => /₹/.test(e.textContent)),
     flav: document.querySelectorAll(".flavrow .flavchip").length,
     flavHasPrice: /₹/.test(document.querySelector(".flavrow")?.textContent || ""),
+    defFlavSelected: document.querySelector(".flavrow .flavchip")?.getAttribute("aria-checked"),
     acc: document.querySelectorAll(".acc__i").length,
     related: document.querySelectorAll(".card").length,
     dupServes: /serves\s+Serves/i.test(document.body.innerText),
@@ -126,25 +135,30 @@ page.on("console", (m) => {
   check(pdp.sizesShowPrice, "each size shows its own price");
   check(pdp.flav > 1, "flavour chips render", `${pdp.flav}`);
   check(pdp.flavHasPrice === false, "flavour chips hide prices");
-  check(pdp.acc >= 3, "detail accordions render", `${pdp.acc}`);
+  check(pdp.defFlavSelected === "true", "default flavour leads and is pre-selected", pdp.defFlavSelected);
+  check(pdp.acc >= 2, "detail accordions render", `${pdp.acc}`);
   check(pdp.related > 0, "related products render", `${pdp.related}`);
   check(!pdp.dupServes, "no duplicated 'serves Serves' text");
 
-  const p0 = await page.evaluate(() => document.querySelector(".pdp5__price b").textContent);
-  const sizeVals = await page.$$eval("#pdp-size option", (o) => o.map((x) => x.value));
-  if (sizeVals.length > 2) await page.selectOption("#pdp-size", sizeVals[2]);
+  // select the 3rd size (dropdown is open) and confirm the headline price moves
+  const sizeOpts = await page.$$(".sizemenu .selmenu__opt");
+  if (sizeOpts.length > 2) await sizeOpts[2].click();
+  else if (sizeOpts.length > 1) await sizeOpts[sizeOpts.length - 1].click();
   await page.waitForTimeout(500);
   const p1 = await page.evaluate(() => document.querySelector(".pdp5__price b").textContent);
   check(p0 !== p1, "price updates when size changes", `${p0} -> ${p1}`);
 
   // the selected size option must quote the same number as the main price
+  await page.click(".sizemenu .selmenu__btn");
+  await page.waitForTimeout(150);
   const agree = await page.evaluate(() => {
-    const s = document.querySelector("#pdp-size");
-    const sel = s.options[s.selectedIndex]?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
+    const on = document.querySelector(".sizemenu .selmenu__opt.is-on");
+    const sel = on?.textContent?.split("₹").pop()?.replace(/[^\d]/g, "");
     const main = document.querySelector(".pdp5__price b")?.textContent?.replace(/[^\d]/g, "");
     return { sel, main };
   });
   check(agree.sel === agree.main, "size option price matches headline price", `${agree.sel} vs ${agree.main}`);
+  await page.keyboard.press("Escape");
 
   const chips = await page.$$(".flavrow .flavchip");
   if (chips.length > 2) { await chips[chips.length - 1].click(); await page.waitForTimeout(500); }
