@@ -13,7 +13,8 @@ import { IconChevL, IconCake } from "@/components/v5/icons";
 
 export const dynamic = "force-dynamic";
 
-const FLOW = ["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED"] as const;
+const DELIVERY_FLOW = ["PENDING", "CONFIRMED", "PREPARING", "READY", "OUT_FOR_DELIVERY", "DELIVERED"];
+const PICKUP_FLOW = ["PENDING", "CONFIRMED", "PREPARING", "READY", "PICKED_UP"];
 const LABEL: Record<string, string> = {
   PENDING: "Order placed",
   CONFIRMED: "Confirmed by the bakery",
@@ -46,9 +47,12 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   if (!store) notFound();
 
   const nav = await navLinks(store.slug);
+  const pickup = order.orderType === "PICKUP";
+  const FLOW = pickup ? PICKUP_FLOW : DELIVERY_FLOW;
+  const label = (k: string) => (pickup && k === "READY" ? "Ready for pickup" : LABEL[k] ?? k);
   const cancelled = order.status === "CANCELLED";
   const reached = new Set(order.statusHistory.map((h) => h.status));
-  const currentIdx = FLOW.indexOf(order.status as (typeof FLOW)[number]);
+  const currentIdx = FLOW.indexOf(order.status);
 
   const steps = cancelled
     ? [{ k: "CANCELLED", done: true, now: true }]
@@ -73,13 +77,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <div className="wrap track5" style={{ paddingBottom: 40 }}>
         <div>
           <div className="track5__hero">
-            <span className={`status st-${order.status.toLowerCase()}`}><i />{LABEL[order.status] ?? order.status}</span>
+            <span className={`status st-${order.status.toLowerCase()}`}><i />{label(order.status)}</span>
             <b>
               {cancelled
                 ? "This order was cancelled"
-                : order.status === "DELIVERED" || order.status === "PICKED_UP"
-                  ? "Delivered — hope it was lovely"
-                  : `Arriving ${when ?? "soon"}${order.deliverySlot ? `, ${order.deliverySlot}` : ""}`}
+                : order.status === "PICKED_UP"
+                  ? "Collected — hope it was lovely"
+                  : order.status === "DELIVERED"
+                    ? "Delivered — hope it was lovely"
+                    : pickup && order.status === "READY"
+                      ? `Ready to collect from ${store.name}`
+                      : `${pickup ? "Pick up" : "Arriving"} ${when ?? "soon"}${order.deliverySlot ? `, ${order.deliverySlot}` : ""}`}
             </b>
             <p className="t-small" style={{ marginTop: 4 }}>
               {cancelled ? "If you were charged, the refund is on its way." : "We'll text you at each step."}
@@ -103,7 +111,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   ) : null}
                 </div>
                 <div className="tl5__t" style={{ paddingBottom: k < steps.length - 1 ? 16 : 0 }}>
-                  <b style={{ color: !s.done && !s.now ? "var(--ink-4)" : undefined }}>{LABEL[s.k]}</b>
+                  <b style={{ color: !s.done && !s.now ? "var(--ink-4)" : undefined }}>{label(s.k)}</b>
                   <span>
                     {order.statusHistory.find((h) => h.status === s.k)
                       ? new Date(order.statusHistory.find((h) => h.status === s.k)!.createdAt).toLocaleString("en-IN", {
@@ -175,7 +183,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             <OrderActions orderId={order.id} />
           </div>
 
-          <a className="btn btn--out btn--block" style={{ marginTop: 14 }} href={`https://wa.me/91${store.phone}?text=Hi, I need help with order ${order.orderNumber}`} target="_blank" rel="noopener noreferrer">
+          <a className="btn btn--out btn--block" style={{ marginTop: 14 }} href={`https://wa.me/91${store.phone}?text=${encodeURIComponent(`Hi, I need help with order ${order.orderNumber}`)}`} target="_blank" rel="noopener noreferrer">
             Need to change something? Message us
           </a>
         </aside>

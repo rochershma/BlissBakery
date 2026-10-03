@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { formatPrice, parseJsonSafe } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, CreditCard } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, MapPin, Clock, CreditCard, Cake, Gift, StickyNote, Check } from "lucide-react";
 import { OrderStatusUpdater } from "../order-status-updater";
 
 interface Props {
@@ -50,7 +50,15 @@ export default async function AdminOrderDetailPage({ params }: Props) {
         <div className="md:col-span-2 space-y-4">
           {/* Status Updater */}
           <div className="bg-white rounded-xl border border-border p-4">
-            <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
+            <OrderStatusUpdater
+              orderId={order.id}
+              currentStatus={order.status}
+              orderType={order.orderType}
+              paymentStatus={order.paymentStatus}
+              orderNumber={order.orderNumber}
+              customerPhone={order.user.phone}
+              storeName={order.store.name}
+            />
           </div>
 
           {/* Items */}
@@ -72,7 +80,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                       {productImg ? (
                         <Image src={productImg} alt={item.productName} fill className="object-cover" sizes="56px" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl bg-primary/5">🎂</div>
+                        <div className="w-full h-full flex items-center justify-center bg-primary/5"><Cake className="w-5 h-5 text-primary" /></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -106,7 +114,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                         <div className="mt-1.5 space-y-0.5">
                           {addOns.map((a, i) => (
                             <div key={i} className="flex items-center justify-between text-[11px] text-muted-foreground">
-                              <span>🎁 {a.name}</span>
+                              <span className="inline-flex items-center gap-1"><Gift className="w-3 h-3" /> {a.name}</span>
                               <span>+{formatPrice(a.price)}</span>
                             </div>
                           ))}
@@ -119,8 +127,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
               })}
             </div>
             {order.specialInstructions && (
-              <div className="px-4 py-2.5 bg-yellow-50 border-t border-yellow-100 text-xs text-yellow-800">
-                📝 <strong>Instructions:</strong> {order.specialInstructions}
+              <div className="px-4 py-2.5 bg-yellow-50 border-t border-yellow-100 text-xs text-yellow-800 flex gap-1.5">
+                <StickyNote className="w-3.5 h-3.5 flex-none mt-px" /> <span><strong>Instructions:</strong> {order.specialInstructions}</span>
               </div>
             )}
           </div>
@@ -146,7 +154,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-primary" />
                       <span className="font-medium text-foreground">{log.status}</span>
-                      {log.notifiedCustomer && <span className="text-green-600">🔔 Notified</span>}
+                      {log.notifiedCustomer && <span className="text-green-600 inline-flex items-center gap-0.5"><Check className="w-3 h-3" /> Messaged</span>}
                     </div>
                     <span className="text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
@@ -179,8 +187,8 @@ export default async function AdminOrderDetailPage({ params }: Props) {
             <h2 className="label-premium text-foreground mb-3">Order Info</h2>
             <div className="space-y-2 text-xs">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                {order.orderType === "PICKUP" ? "Pickup from store" : (order.deliveryAddress || "Delivery address N/A")}
+                <MapPin className="w-3.5 h-3.5 text-primary flex-none" />
+                {order.orderType === "PICKUP" ? `Pickup from ${order.store.name}` : (order.deliveryAddress || "Delivery address N/A")}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-3.5 h-3.5 text-primary" />
