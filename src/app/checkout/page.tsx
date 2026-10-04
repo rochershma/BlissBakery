@@ -208,6 +208,19 @@ export default function CheckoutPage() {
   const total = taxable + gst;
   const shortBy = orderType === "DELIVERY" ? Math.max(0, charges.minOrder - subtotal) : 0;
 
+  // Why the order can't be placed yet (also disables the button). A delivery
+  // order needs a reachable address that's actually selected — not one being
+  // typed in the add form, and not one the outlet can't reach.
+  const orderBlock =
+    orderType === "DELIVERY" && newAddr ? "Add and save a delivery address to continue"
+    : orderType === "DELIVERY" && !addrId ? "Choose a delivery address we can reach"
+    : orderType === "DELIVERY" && verdict && !verdict.deliverable
+      ? (verdict.reason ?? "We don't deliver to the selected address")
+    : shortBy > 0 ? `Add ${formatPrice(shortBy)} more to meet the ${formatPrice(charges.minOrder)} delivery minimum`
+    : !slot ? "Pick a delivery slot"
+    : "";
+  const canPlace = !orderBlock;
+
   // Slots are store-configured and same-day options disappear once prep time can't be met.
   const slotOptions = useMemo(
     () => slotsForDate(slotCfg.slots, date, slotCfg.leadHours),
@@ -256,8 +269,9 @@ export default function CheckoutPage() {
   const placeOrder = async () => {
     if (!user) { setShowLoginModal(true); return; }
     if (items.length === 0) { toast("Your cart is empty", "error"); return; }
+    if (orderType === "DELIVERY" && newAddr) { toast("Add and save a delivery address first", "error"); return; }
     if (orderType === "DELIVERY" && !addrId) { toast("Choose a delivery address", "error"); return; }
-    if (orderType === "DELIVERY" && verdict && !verdict.deliverable) { toast(verdict.reason ?? "We can't deliver there", "error"); return; }
+    if (orderType === "DELIVERY" && verdict && !verdict.deliverable) { toast(verdict.reason ?? "We can't deliver to the selected address", "error"); return; }
     if (shortBy > 0) { toast(`Add ${formatPrice(shortBy)} more to meet the ${formatPrice(charges.minOrder)} delivery minimum`, "error"); return; }
     if (!slot) { toast("Pick a delivery slot", "error"); return; }
 
@@ -431,6 +445,7 @@ export default function CheckoutPage() {
                     <AddressForm
                       fallbackCity={area.city}
                       fallbackPincodes={area.pincodes}
+                      requireDeliverable
                       onCancel={() => setNewAddr(false)}
                       onSaved={(saved) => {
                         setAddresses((list) => [saved, ...list]);
@@ -562,10 +577,10 @@ export default function CheckoutPage() {
           </div>
 
           <div className="sline sline--tot"><span>To pay</span><b>{formatPrice(total)}</b></div>
-          {shortBy > 0 ? (
-            <p className="co5__min">Add {formatPrice(shortBy)} more to meet the {formatPrice(charges.minOrder)} delivery minimum.</p>
+          {orderBlock ? (
+            <p className="co5__min">{orderBlock}</p>
           ) : null}
-          <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 16 }} disabled={placing} onClick={placeOrder}>
+          <button type="button" className="btn btn--rose btn--block btn--lg summary5__cta" style={{ marginTop: 16 }} disabled={placing || !canPlace} onClick={placeOrder}>
             {placing ? "Placing…" : "Place order"}
           </button>
           <p className="t-small" style={{ textAlign: "center", marginTop: 10 }}>
@@ -579,7 +594,7 @@ export default function CheckoutPage() {
           <div className="t-small" style={{ fontSize: 11, lineHeight: 1.2 }}>Total</div>
           <b className="t-num" style={{ fontFamily: "var(--font-jakarta)", fontSize: 19, fontWeight: 800, letterSpacing: "-.03em" }}>{formatPrice(total)}</b>
         </div>
-        <button type="button" className="btn btn--rose" style={{ flex: 1, height: 48 }} disabled={placing} onClick={placeOrder}>
+        <button type="button" className="btn btn--rose" style={{ flex: 1, height: 48 }} disabled={placing || !canPlace} onClick={placeOrder}>
           {placing ? "Placing…" : "Place order"}
         </button>
       </div>

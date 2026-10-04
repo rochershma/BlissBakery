@@ -48,7 +48,7 @@ const check = (ok, n, d = "") => {
       const options = await p.$$eval(".gate__i b", (n) => n.map((x) => x.textContent.trim()));
       check(options.length >= 2, "chooser lists every open outlet", options.join(" | "));
 
-      await p.locator(`.gate__i:has-text("${TAG}")`).first().click();
+      await p.locator(`.gate__i:has-text("Ajmer")`).first().click();
       await p.waitForTimeout(2000);
       check(!(await p.$(".gate")), "choosing an outlet dismisses the chooser");
 
@@ -91,12 +91,12 @@ const check = (ok, n, d = "") => {
       await p.waitForTimeout(1200);
 
       // start on the default outlet, then switch with the header picker
-      const firstGate = await p.$(`.gate__i:has-text("${store.name}")`);
+      const firstGate = await p.$(`.gate__i:has-text("${store.city}")`);
       if (firstGate) { await firstGate.click(); await p.waitForTimeout(2000); }
 
       await p.click(".v5loc");
       await p.waitForTimeout(800);
-      await p.locator(`.v5store__i:has-text("${TAG}")`).first().click();
+      await p.locator(`.v5store__i:has-text("Ajmer")`).first().click();
       await p.waitForTimeout(2500);
 
       // an outlet without its own upload still shows the chain mark

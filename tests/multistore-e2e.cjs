@@ -303,7 +303,7 @@ const check = (ok, n, d = "") => {
       });
       check(fits === true, `${label}: picker stays inside the viewport`);
 
-      await p.locator(`.v5store__i:has-text("${TAG}")`).first().click();
+      await p.locator(`.v5store__i:has-text("Jaipur")`).first().click();
       await p.waitForURL(`**/store/${second.slug}/menu`, { timeout: 20000 }).catch(() => {});
 
       // The contract is "this outlet is now active", not a particular URL —

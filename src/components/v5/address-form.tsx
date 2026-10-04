@@ -43,12 +43,15 @@ export function AddressForm({
   fallbackCity,
   onSaved,
   onCancel,
+  requireDeliverable = false,
 }: {
   initial?: SavedAddress | null;
   fallbackPincodes: string[];
   fallbackCity: string;
   onSaved: (address: SavedAddress) => void;
   onCancel: () => void;
+  // When true (checkout), an address the outlet can't reach can't be saved/used.
+  requireDeliverable?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
@@ -189,6 +192,12 @@ export function AddressForm({
     if (!houseNo.trim()) { setError("Add your flat or house number"); return; }
     const pincode = place?.pincode || manualPin;
     if (!/^\d{6}$/.test(pincode)) { setError("We need a valid 6-digit pincode"); return; }
+    // In checkout we must not save an address the outlet can't reach — the order
+    // would only be rejected later. Let the manage-addresses page save freely.
+    if (requireDeliverable && verdict && !verdict.deliverable) {
+      setError(verdict.reason ?? "This outlet doesn't deliver to that address");
+      return;
+    }
 
     setBusy(true);
     try {
@@ -355,7 +364,7 @@ export function AddressForm({
       {error ? <p className="addrf__err">{error}</p> : null}
 
       <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-        <button type="button" className="btn btn--rose btn--sm" disabled={busy || !place} onClick={save}>
+        <button type="button" className="btn btn--rose btn--sm" disabled={busy || !place || (requireDeliverable && !!verdict && !verdict.deliverable)} onClick={save}>
           {busy ? "Saving…" : initial ? "Update address" : "Save address"}
         </button>
         <button type="button" className="btn btn--out btn--sm" onClick={onCancel}>Cancel</button>
