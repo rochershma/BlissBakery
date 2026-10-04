@@ -65,15 +65,29 @@ export function StorePicker({
   const choose = async (store: StoreOption) => {
     setOpen(false);
     if (store.slug === storeSlug) return;
+    // Switching outlets empties the basket (separate menus/prices), so a customer
+    // with items must confirm rather than lose them on a stray tap.
+    const hasCart = useCartStore.getState().getItemCount() > 0;
+    if (hasCart && !window.confirm(`Switching to ${label(store)} will empty your current basket. Continue?`)) return;
     // Persist before navigating: pages outside /store/[slug] read the cookie,
-    // so without this the choice is lost on the next refresh.
-    await fetch("/api/stores/select", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug: store.slug }),
-    }).catch(() => {});
+    // so without this the choice is lost on the next refresh. Only clear the
+    // basket once the switch is actually saved — a failed call must not wipe it.
+    let ok = false;
+    try {
+      const res = await fetch("/api/stores/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: store.slug }),
+      });
+      ok = res.ok;
+    } catch {
+      ok = false;
+    }
+    if (!ok) {
+      toast("Couldn't switch outlet — please try again", "error");
+      return;
+    }
 
-    // Each outlet has its own menu and prices, so a basket never moves with the customer.
     clearCart();
     setCartStore(store.slug);
 

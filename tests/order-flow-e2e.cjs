@@ -249,9 +249,13 @@ const check = (ok, n, d = "") => {
 
     await page.locator(".v5loc").first().click();
     await page.waitForTimeout(600);
+    // Switching with a non-empty basket now asks for confirmation so a stray tap
+    // can't wipe the cart — accept it and capture the prompt text.
+    let confirmText = "";
+    page.once("dialog", (d) => { confirmText = d.message(); d.accept(); });
     await page.locator(".v5store__i").filter({ hasText: "Faraway" }).first().click();
     await page.waitForTimeout(2500);
-    check(!(await page.$(".v5swap")), "no confirmation dialog interrupts the switch");
+    check(/empty your current basket/i.test(confirmText), "switching a full basket asks to confirm first", confirmText);
     const said = await page.evaluate(() => document.body.innerText.match(/Now ordering from [^\n]+/)?.[0] || "");
     check(/Now ordering from Faraway/.test(said), "a toast names the new outlet", said);
     {

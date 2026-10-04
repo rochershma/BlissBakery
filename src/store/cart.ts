@@ -140,9 +140,13 @@ export const useCartStore = create<CartState>()(
 
       setStoreSlug: (slug) => {
         const current = get().storeSlug;
-        // A basket cannot move between outlets — they have separate menus and prices.
+        // A basket cannot move between outlets — but we must not silently wipe it
+        // either. When the resolved outlet differs and the basket is non-empty
+        // (e.g. an auto store-fallback, or landing on another outlet's product),
+        // keep the basket and its original outlet untouched. The checkout
+        // stale-basket guard then lets the customer decide. Explicit outlet
+        // switches clear the cart themselves (with confirmation) before calling this.
         if (current && current !== slug && (get().items.length > 0 || Object.keys(get().extras ?? {}).length > 0)) {
-          set({ items: [], extras: {}, storeSlug: slug, specialInstructions: "" });
           return;
         }
         set({ storeSlug: slug });

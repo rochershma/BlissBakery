@@ -193,6 +193,15 @@ export default function CheckoutPage() {
   // while the subtotal it was priced against still holds.
   const activePromo = promo && promo.basis === subtotal ? promo : null;
   const discount = activePromo?.discount ?? 0;
+
+  // Tell the customer when a cart change (edit or price refresh) drops the promo,
+  // instead of the discount silently vanishing from the bill.
+  useEffect(() => {
+    if (promo && promo.basis !== subtotal) {
+      toast("Your cart changed, so the promo was removed — please reapply it", "error");
+      setPromo(null);
+    }
+  }, [promo, subtotal, toast]);
   // Mirrors the server's maths in /api/orders/create so the quoted total is what we charge.
   const taxable = Math.max(0, subtotal + addOnTotal + charges.packaging + delivery - discount);
   const gst = taxable * (charges.gstRate / 100);

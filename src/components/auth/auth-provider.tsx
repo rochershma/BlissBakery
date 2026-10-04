@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { useCartStore } from "@/store/cart";
 
 interface User {
   id: string;
@@ -86,6 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch { /* ignore */ }
     setUser(null);
+    // Wipe the basket too: on a shared device the next person must not inherit
+    // the previous customer's cart (cake messages, recipient names, prices).
+    try {
+      useCartStore.getState().clearCart();
+      localStorage.removeItem("bliss-bakery-cart");
+    } catch { /* storage may be unavailable */ }
     // Account pages are useless signed out, and a hard nav also clears any
     // client caches holding the previous user's data.
     window.location.assign("/");

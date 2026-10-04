@@ -81,7 +81,10 @@ export function OrderStatusUpdater({
     if (s === "CANCELLED" && !confirm("Cancel this order?")) return;
     // Open the chat synchronously so the popup isn't blocked, then fill it in.
     const win = notify && customerPhone ? window.open("about:blank", "_blank") : null;
-    const ok = await update({ status: s, notifyCustomer: notify }, s);
+    // Only record the customer as notified if the WhatsApp window actually opened,
+    // so the order never claims a message was sent when the popup was blocked.
+    const notified = Boolean(win);
+    const ok = await update({ status: s, notifyCustomer: notified, expectedStatus: currentStatus }, s);
     if (win) {
       if (ok) {
         const text = encodeURIComponent(customerMessage(s, orderNumber, storeName, pickup));

@@ -25,6 +25,12 @@ const digits = (s) => Number(String(s || "").replace(/[^\d]/g, ""));
 
   const store = await db.store.findFirst({ where: { slug: "kuchaman-city" }, select: { id: true, slug: true } });
 
+  const api = (path, opts) => page.evaluate(async ([p, o]) => {
+    const r = await fetch(p, o || undefined);
+    let body = null; try { body = await r.json(); } catch { /* html */ }
+    return { status: r.status, body };
+  }, [path, opts]);
+
   // Seeds the Zustand cart (localStorage) then opens a cart/checkout screen.
   const seedCart = async (items, extras = {}) => {
     await page.evaluate(({ items, extras }) => {
@@ -38,7 +44,7 @@ const digits = (s) => Number(String(s || "").replace(/[^\d]/g, ""));
   // Make sure localStorage is reachable (same origin) before seeding.
   await page.goto(BASE + "/", { waitUntil: "domcontentloaded", timeout: 60000 });
 
-  const created = { categoryId: null, productId: null, variantId: null, addOnId: null };
+  const created = { categoryId: null, productId: null, variantId: null, addOnId: null, orderId: null };
 
   try {
     /* ---------------------------------------------------------------- */
@@ -145,10 +151,42 @@ const digits = (s) => Number(String(s || "").replace(/[^\d]/g, ""));
     check(dbAddon?.isActive === true, "server state unchanged after failed toggle", String(dbAddon?.isActive));
 
     await page.unroute("**/api/admin/addons");
+
+    /* ---------------------------------------------------------------- */
+    console.log("\n[4] Order status: optimistic lock + terminal guard");
+
+    const adminUser = await db.user.findFirst({ where: { role: "ADMIN" }, select: { id: true } });
+    const order = await db.order.create({
+      data: {
+        orderNumber: `${TAG}-ord`, userId: adminUser.id, storeId: store.id,
+        orderType: "PICKUP", status: "CONFIRMED", itemTotal: 100, tax: 0, grandTotal: 100,
+      },
+    });
+    created.orderId = order.id;
+    const put = (bodyObj) => api(`/api/admin/orders/${order.id}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyObj),
+    });
+
+    // A stale expectedStatus (someone else already moved it) must be refused.
+    const stale = await put({ status: "PREPARING", expectedStatus: "PENDING" });
+    check(stale.status === 409, "concurrent status update with stale expectation is rejected", `http ${stale.status}`);
+    const afterStale = await db.order.findUnique({ where: { id: order.id }, select: { status: true } });
+    check(afterStale.status === "CONFIRMED", "order status unchanged after a rejected update", afterStale.status);
+
+    // The matching expectation goes through.
+    const good = await put({ status: "PREPARING", expectedStatus: "CONFIRMED" });
+    check(good.status === 200, "status update with the correct expectation is applied", `http ${good.status}`);
+
+    // A finished (terminal) order can't be reopened or cancelled out from under itself.
+    await db.order.update({ where: { id: order.id }, data: { status: "PICKED_UP" } });
+    const reopen = await put({ status: "CONFIRMED", expectedStatus: "PICKED_UP" });
+    check(reopen.status === 409, "a finished order cannot be reopened", `http ${reopen.status}`);
   } catch (e) {
     check(false, "suite ran without throwing", e.message.slice(0, 160));
   } finally {
     // Cleanup everything this run created.
+    if (created.orderId) await db.orderStatusLog.deleteMany({ where: { orderId: created.orderId } }).catch(() => {});
+    if (created.orderId) await db.order.delete({ where: { id: created.orderId } }).catch(() => {});
     if (created.addOnId) await db.storeAddOn.delete({ where: { id: created.addOnId } }).catch(() => {});
     if (created.variantId) await db.productVariant.deleteMany({ where: { productId: created.productId } }).catch(() => {});
     if (created.productId) await db.product.delete({ where: { id: created.productId } }).catch(() => {});
